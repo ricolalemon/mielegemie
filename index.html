@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="三消小游戏，每一副牌都保证有解；七种外观可切换。">
+<meta name="description" content="三消小游戏，每一副牌都保证有解；九种摆法、七种外观。">
 <title>咩了个咩</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -637,7 +637,7 @@ button{font:inherit;color:inherit}
       <div class="sewn" id="sewn"></div>
       <div class="needle" id="needle"><svg viewBox="0 0 40 10"><path d="M2 3.4H30L38 5 30 6.6H2A1.6 1.6 0 0 1 2 3.4Z" fill="#e3e8f2"/><path d="M3 4.1H29" stroke="#fff" stroke-width=".7" stroke-linecap="round"/><rect x="4" y="4.35" width="7" height="1.3" rx=".65" fill="#22366b"/></svg></div>
     </div>
-    <p class="count">还剩 <b id="left" class="num">0</b> 张 · <span id="clock" class="num">00:00</span></p>
+    <p class="count"><span id="layoutName"></span>还剩 <b id="left" class="num">0</b> 张 · <span id="clock" class="num">00:00</span></p>
   </div>
 
   <section class="stage" id="stage" aria-label="牌堆">
@@ -1044,6 +1044,12 @@ function rngFrom(seed){
   };
 }
 const newSeed = () => 1 + Math.floor(Math.random() * 2147483000);
+// 新开一局：尽量不和上一局用同一种摆法
+function freshSeed(level){
+  let s = newSeed();
+  for (let i = 0; level > 1 && i < 12 && archOf(s).id === prefs.lastArch; i++) s = newSeed();
+  return s;
+}
 const pickOne = (arr, rng) => arr[Math.floor(rng() * arr.length)];
 function shuffled(arr, rng){
   const a = arr.slice();
@@ -1087,8 +1093,26 @@ function layerShape(rng){
   return (dx, dy) => dx <= w || dy <= w;
 }
 
-// 一层一层往上叠，左右对称；相邻两层错开半张，露出下面的边
-function genMain(rng, cfg){
+/* ---------- 九种摆法：每局先抽一种大轮廓，再在里面随机 ---------- */
+const snap = v => Math.round(v * 2) / 2;
+
+// 按左右对称生成一层；keep(dx, cy, cx) 决定某个位置要不要放牌
+function symLayer(rng, z, ox, oy, keep, dens){
+  const cols = ox ? 6 : 7, rows = oy ? 6 : 7, out = [];
+  for (let r = 0; r < rows; r++){
+    const y = r + oy, cy = y + .5;
+    for (let c = 0; c < Math.ceil(cols / 2); c++){
+      const x = c + ox, mx = cols - 1 - c + ox, cx = x + .5;
+      if (!keep(Math.abs(cx - 3.5), cy, cx) || rng() > dens) continue;
+      out.push({x, y, z});
+      if (mx !== x) out.push({x: mx, y, z});
+    }
+  }
+  return out;
+}
+
+// 方阵：每层随机一种形状，相邻两层错开半张
+function buildBlock(rng, cfg){
   const out = [];
   let prev = 0, z = 0, tries = 0;
   while (z < cfg.maxLayers && out.length < cfg.target && tries++ < 80){
@@ -1099,17 +1123,7 @@ function genMain(rng, cfg){
     }
     const [ox, oy] = OFFSETS[oi];
     const shape = layerShape(rng);
-    const cols = ox ? 6 : 7, rows = oy ? 6 : 7;
-    const layer = [];
-    for (let r = 0; r < rows; r++){
-      const y = r + oy, cy = y + .5, dy = Math.abs(cy - 3.5);
-      for (let c = 0; c < Math.ceil(cols / 2); c++){
-        const x = c + ox, mx = cols - 1 - c + ox, dx = Math.abs(x + .5 - 3.5);
-        if (!shape(dx, dy, cy) || rng() > cfg.density) continue;
-        layer.push({x, y, z});
-        if (mx !== x) layer.push({x: mx, y, z});
-      }
-    }
+    const layer = symLayer(rng, z, ox, oy, (dx, cy) => shape(dx, Math.abs(cy - 3.5), cy), cfg.density);
     if (layer.length < 6) continue;
     out.push(...layer);
     prev = oi;
@@ -1118,12 +1132,219 @@ function genMain(rng, cfg){
   return out;
 }
 
-// 底部左右两摞，只有最上面一张能拿
-function genPiles(nl, nr){
-  const out = [];
-  for (let i = 0; i < nl; i++) out.push({x: i * .105, y: 7.62, z: i});
-  for (let i = 0; i < nr; i++) out.push({x: 6 - i * .105, y: 7.62, z: i});
+// 金字塔：一层比一层小，中间最深
+function buildPyramid(rng, cfg){
+  const out = [], w0 = pickOne([3, 3.5], rng), h0 = pickOne([2.5, 3, 3.5], rng);
+  const rep = rng() < .6 ? 2 : 1, step = pickOne([.5, .6, .75], rng);
+  let z = 0, lvl = 0;
+  while (out.length < cfg.target && z < 18){
+    const hw = w0 - lvl * step, hh = h0 - lvl * step;
+    if (hw < .45 || hh < .45){ lvl = Math.max(0, lvl - 3); continue; }
+    const [ox, oy] = z % 2 ? [.5, .5] : [0, 0];
+    out.push(...symLayer(rng, z, ox, oy, (dx, cy) => dx <= hw + .01 && Math.abs(cy - 3.5) <= hh + .01, .93));
+    z++;
+    if (z % rep === 0) lvl++;
+  }
   return out;
+}
+
+// 双塔：左右两根高柱，底下偶尔搭一道桥
+function buildTowers(rng, cfg){
+  const out = [], mid = pickOne([1.5, 2, 2.5], rng), w = pickOne([.5, 1], rng) + .01;
+  const top = .5 + rng() * 1.5, bot = 6.5 - rng() * 1.5, bridge = rng() < .7;
+  let z = 0;
+  while (out.length < cfg.target && z < 20){
+    const [ox, oy] = OFFSETS[[0, 1, 2, 1][z % 4]];
+    out.push(...symLayer(rng, z, ox, oy, (dx, cy) =>
+      (Math.abs(dx - mid) <= w && cy >= top && cy <= bot) || (bridge && z < 2 && Math.abs(cy - 3.5) <= .6), .92));
+    z++;
+  }
+  return out;
+}
+
+// 回环：中空的方框，有时中心再立一根深柱
+function buildRing(rng, cfg){
+  const out = [], core = rng() < .55, th = pickOne([1, 1.5], rng), hh = pickOne([2.5, 3], rng) + .01;
+  let z = 0;
+  while (out.length < cfg.target && z < 16){
+    const [ox, oy] = z % 2 ? [.5, .5] : [0, 0];
+    const hw = 3 - (z % 3) * .5 + .01;
+    out.push(...symLayer(rng, z, ox, oy, (dx, cy) => {
+      const dy = Math.abs(cy - 3.5);
+      return (dx <= hw && dy <= hh && (dx >= hw - th || dy >= hh - th)) || (core && dx <= .6 && dy <= .6);
+    }, .9));
+    z++;
+  }
+  return out;
+}
+
+// 群岛：散落的小堆，不对称；每个小堆的每一层都有自己的层号
+function buildIslands(rng, cfg){
+  const out = [], sizes = [[1, 1], [2, 1], [1, 2], [2, 2], [3, 2], [2, 3]];
+  let z = 0, guard = 0;
+  while (out.length < cfg.target && guard++ < 40){
+    const [w, h] = pickOne(sizes, rng);
+    const bx = snap(rng() * (6.5 - w)), by = snap(rng() * (7 - h));
+    const depth = 3 + Math.floor(rng() * 5);
+    for (let d = 0; d < depth; d++){
+      const ox = d % 2 ? pickOne([.5, -.5], rng) : 0, oy = d % 2 ? pickOne([.5, 0], rng) : 0;
+      for (let r = 0; r < h; r++){
+        for (let c = 0; c < w; c++){
+          const x = bx + c + ox, y = by + r + oy;
+          if (x < 0 || x > 6 || y < 0 || y > 6.5 || rng() > .9) continue;
+          out.push({x, y, z});
+        }
+      }
+      z++;
+    }
+  }
+  return out;
+}
+
+// 漩涡：一块牌沿着圆圈一层层挪位置往上盘
+function buildSwirl(rng, cfg){
+  const out = [], R = 1 + rng() * .9, dir = rng() < .5 ? 1 : -1, t0 = rng() * Math.PI * 2, dt = .55 + rng() * .35;
+  const w = pickOne([3, 4], rng), h = pickOne([3, 4], rng);
+  let z = 0;
+  while (out.length < cfg.target && z < 26){
+    const a = t0 + dir * z * dt;
+    const x0 = snap(3.5 + R * Math.cos(a) - w / 2), y0 = snap(3.75 + R * .9 * Math.sin(a) - h / 2);
+    for (let r = 0; r < h; r++){
+      for (let c = 0; c < w; c++){
+        const x = x0 + c, y = y0 + r;
+        if (x < 0 || x > 6 || y < 0 || y > 6.5 || rng() > .9) continue;
+        out.push({x, y, z});
+      }
+    }
+    z++;
+  }
+  return out;
+}
+
+// 千层：九个位置各叠一摞很深的牌，全部朝同一个方向错开
+function buildColumns(rng, cfg){
+  const out = [], [ddx, ddy] = pickOne([[.055, 0], [0, .055], [.045, .035], [-.045, .035]], rng);
+  const slots = [];
+  for (const y of [0, 2.3, 4.6]) for (const x of [0, 2.4, 4.8]) slots.push([x + (ddx < 0 ? 1.16 : 0), y]);
+  for (const [bx, by] of shuffled(slots, rng)){
+    if (out.length >= cfg.target) break;
+    const depth = 10 + Math.floor(rng() * 12);
+    for (let d = 0; d < depth; d++) out.push({x: bx + d * ddx, y: by + d * ddy, z: d});
+  }
+  return out;
+}
+
+// 剪影：按轮廓叠，轮廓左右对称
+const MASKS = [
+  ['羊头', ['X.....X', 'XXXXXXX', '.XXXXX.', '.XXXXX.', '..XXX..', '..XXX..', '...X...']],
+  ['爱心', ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...']],
+  ['山', ['...X...', 'X..X..X', 'X..X..X', 'X..X..X', 'XXXXXXX', 'XXXXXXX', '.......']]
+];
+function buildMask(rng, cfg, meta){
+  const [name, m] = pickOne(MASKS, rng);
+  meta.label = '剪影·' + name;
+  const on = (r, c) => r >= 0 && c >= 0 && r < 7 && c < 7 && m[r][c] === 'X';
+  const out = [];
+  let z = 0;
+  while (out.length < cfg.target && z < 14){
+    const [ox, oy] = [[0, 0], [.5, .5], [.5, 0], [0, .5]][z % 4];
+    const dens = Math.max(.6, .95 - z * .04);
+    const cols = ox ? 6 : 7, rows = oy ? 6 : 7;
+    for (let r = 0; r < rows; r++){
+      for (let c = 0; c < Math.ceil(cols / 2); c++){
+        const ok = on(r, c) && (!ox || on(r, c + 1)) && (!oy || on(r + 1, c)) && (!ox || !oy || on(r + 1, c + 1));
+        if (!ok || rng() > dens) continue;
+        const mc = cols - 1 - c;
+        out.push({x: c + ox, y: r + oy, z});
+        if (mc !== c) out.push({x: mc + ox, y: r + oy, z});
+      }
+    }
+    z++;
+  }
+  return out;
+}
+
+// 砖墙：一行错开半张，像砌砖；宽而浅
+function buildBricks(rng, cfg){
+  const out = [], top = snap(rng() * 1.5), bot = 6.5 - snap(rng() * 1.5);
+  let z = 0;
+  while (out.length < cfg.target && z < 10){
+    const oy = (z % 4 >= 2) ? .5 : 0, holes = .05 + rng() * .15;
+    for (let y = top + oy, row = 0; y <= bot; y += 1, row++){
+      const ox = ((row + z) % 2) * .5, cols = ox ? 6 : 7;
+      for (let c = 0; c < cols; c++){
+        if (rng() < holes) continue;
+        out.push({x: c + ox, y, z});
+      }
+    }
+    z++;
+  }
+  return out;
+}
+
+const ARCHES = [
+  {id: 'block', name: '方阵', build: buildBlock},
+  {id: 'pyramid', name: '金字塔', build: buildPyramid},
+  {id: 'towers', name: '双塔', build: buildTowers},
+  {id: 'ring', name: '回环', build: buildRing},
+  {id: 'islands', name: '群岛', build: buildIslands, flip: true},
+  {id: 'swirl', name: '漩涡', build: buildSwirl, flip: true},
+  {id: 'columns', name: '千层', build: buildColumns, flip: true},
+  {id: 'mask', name: '剪影', build: buildMask},
+  {id: 'bricks', name: '砖墙', build: buildBricks}
+];
+const archOf = seed => ARCHES[Math.floor(rngFrom((seed ^ 0x2c1b3c6d) >>> 0)() * ARCHES.length)];
+
+// 底部的牌摞：0～3 摞，只有最上面一张能拿
+function pilePlan(rng, amount){
+  const r = rng();
+  const n = r < .18 ? 0 : r < .42 ? 1 : r < .85 ? 2 : 3;
+  const cap = [0, 24, 20, 11][n], out = [];
+  for (let i = 0; i < n; i++){
+    const each = Math.round(amount / n * (.75 + rng() * .45));
+    out.push({slot: n === 1 ? 'mid' : n === 2 ? (i ? 'right' : 'left') : ['left', 'mid', 'right'][i], n: Math.max(4, Math.min(cap, each))});
+  }
+  return out;
+}
+function pilePositions(piles){
+  const out = [];
+  for (const p of piles){
+    const x0 = p.slot === 'mid' ? (piles.length === 1 ? 3 - (p.n - 1) * .105 / 2 : 2.45) : 0;
+    for (let i = 0; i < p.n; i++){
+      const x = p.slot === 'right' ? 6 - i * .105 : p.slot === 'left' ? i * .105 : x0 + i * .105;
+      out.push({x, y: 7.62, z: i});
+    }
+  }
+  return out;
+}
+
+// 把主牌堆挪到牌桌正中（有牌摞时只用上面 7.5 格高）
+function centerMain(pos, hasPiles){
+  if (!pos.length) return pos;
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const p of pos){
+    x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x + 1);
+    y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y + 1);
+  }
+  const availH = hasPiles ? 7.5 : 8.6;
+  const dx = (BW - (x1 - x0)) / 2 - x0, dy = Math.max(0, (availH - (y1 - y0)) / 2) - y0;
+  return pos.map(p => ({x: p.x + dx, y: p.y + dy, z: p.z}));
+}
+
+function makeLayout(rng, cfg, arch){
+  const piles = pilePlan(rng, cfg.piles * 2);
+  const pileSum = piles.reduce((s, p) => s + p.n, 0);
+  const meta = {label: arch.name};
+  let main = arch.build(rng, {target: cfg.target + cfg.piles * 2 - pileSum, maxLayers: cfg.maxLayers, density: cfg.density}, meta);
+  if (arch.flip){
+    if (rng() < .5) main = main.map(p => ({x: 6 - p.x, y: p.y, z: p.z}));
+    if (rng() < .5) main = main.map(p => ({x: p.x, y: 6.5 - p.y, z: p.z}));
+  }
+  main = centerMain(main, piles.length > 0);
+  const extra = (3 - (main.length + pileSum) % 3) % 3;
+  if (piles.length) piles[piles.length - 1].n += extra;
+  else if (extra) main = main.sort((a, b) => a.z - b.z).slice(0, main.length - (3 - extra));
+  return {pos: main.concat(pilePositions(piles)), label: meta.label};
 }
 
 function makeTiles(pos){
@@ -1246,14 +1467,16 @@ function buildLevel(level, seed){
   for (let attempt = 0; attempt < 40; attempt++){
     const rng = rngFrom(seed + attempt * 7919);
     let pos, types;
+    let label = '热身';
     if (cfg.intro){
       pos = introLayout();
       types = [0, 1, 4];
     } else {
-      pos = genMain(rng, cfg);
-      const nl = cfg.piles, nr = cfg.piles + (3 - (pos.length + cfg.piles * 2) % 3) % 3;
-      pos = pos.concat(genPiles(nl, nr));
-      types = shuffled(ICONS.map((_, i) => i), rng).slice(0, cfg.types);
+      const lay = makeLayout(rng, cfg, archOf(seed));
+      pos = lay.pos;
+      label = lay.label;
+      const tc = Math.max(10, Math.min(16, cfg.types + pickOne([-1, 0, 0, 1], rng)));
+      types = shuffled(ICONS.map((_, i) => i), rng).slice(0, tc);
     }
     const tiles = makeTiles(pos);
     const supply = {};
@@ -1264,7 +1487,7 @@ function buildLevel(level, seed){
     const res = plan(tiles, {supply, slot: [], hold: [], interleave: cfg.interleave, maxSlot: cfg.maxSlot, rng});
     if (!res) continue;
     for (const t of tiles) t.type = res.assign.get(t.id);
-    if (verify(tiles, res.order)) return {tiles, cfg};
+    if (verify(tiles, res.order)) return {tiles, cfg, label};
   }
   return null;
 }
@@ -1322,7 +1545,7 @@ function render(){
     if (t.status === 'board'){
       x = L.boardX + (t.x + .04) * unit;
       y = L.boardY + (t.y + .01) * unit;
-      zi = 10 + t.z * 2;
+      zi = 10 + Math.min(t.z, 280);
       blocked = !isFree(t);
     } else if (t.status === 'slot'){
       x = L.trayX + pad + (t.si + .04) * cell;
@@ -1359,6 +1582,7 @@ function hud(){
   const p = total ? ((total - left) / total).toFixed(4) : 0;
   $('lvlNum').textContent = G.level;
   $('left').textContent = left;
+  $('layoutName').textContent = G.cfg.intro ? '' : `${G.label} · `;
   $('needle').style.left = `calc((100% - 40px) * ${p})`;
   $('sewn').style.width = `calc((100% - 40px) * ${p} + 6px)`;
   const n = G.slot.length;
@@ -1381,6 +1605,7 @@ function mountTiles(deal){
   for (const el of stage.querySelectorAll('.tile')) el.remove();
   const frag = document.createDocumentFragment();
   const order = G.tiles.slice().sort((a, b) => a.y - b.y || a.x - b.x || a.z - b.z);
+  const maxZ = Math.max(1, ...G.tiles.map(t => t.z));
   for (const t of order){
     const el = document.createElement('button');
     el.type = 'button';
@@ -1393,7 +1618,7 @@ function mountTiles(deal){
     face.appendChild(art);
     el.appendChild(face);
     el.addEventListener('click', () => onTile(t));
-    if (deal) el.style.setProperty('--d', Math.round(t.z * 50 + Math.random() * 110) + 'ms');
+    if (deal) el.style.setProperty('--d', Math.round(t.z / maxZ * 700 + Math.random() * 110) + 'ms');
     if (t.status === 'gone') el.classList.add('gone', 'hide');
     t.el = el;
     t.art = art;
@@ -1401,7 +1626,7 @@ function mountTiles(deal){
     frag.appendChild(el);
   }
   stage.appendChild(frag);
-  bed.hidden = !!G.cfg.intro;
+  bed.hidden = !!G.cfg.intro || !G.tiles.some(t => Math.abs(t.y - 7.62) < .01);
   stage.classList.add('instant');
   stage.classList.toggle('dealing', !!deal);
   render();
@@ -1417,15 +1642,15 @@ function startLevel(level, seed){
   if (!built){ level = 1; seed = newSeed(); built = buildLevel(1, seed); }
   G.epoch++;
   Object.assign(G, {
-    level, seed, cfg: built.cfg, tiles: built.tiles, slot: [], hold: [[], [], []],
+    level, seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
     tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
     over: false, won: false, pending: 0, acc: 0, running: false
   });
-  savePrefs({level});
+  savePrefs(built.cfg.intro ? {level} : {level, lastArch: archOf(seed).id});
   closeDialog();
   mountTiles(true);
   startClock();
-  toast(level === 1 ? '点亮着的牌，凑齐 3 张一样的就会消掉' : `第 ${level} 关 · ${G.tiles.length} 张牌`);
+  toast(level === 1 ? '点亮着的牌，凑齐 3 张一样的就会消掉' : `第 ${level} 关 · ${G.label} · ${G.tiles.length} 张牌`);
 }
 
 /* ---------- 点牌 ---------- */
@@ -1581,7 +1806,7 @@ function showLose(){
   if (G.tools.out > 0) actions.push({label: '用「移出」腾出 3 格，接着玩', primary: true, run: () => { closeDialog(); useOut(); }});
   if (G.tools.undo > 0 && G.history.length) actions.push({label: '撤回最后一步', primary: !actions.length, run: () => { closeDialog(); useUndo(); }});
   actions.push({label: '重玩这一副牌', primary: !actions.length, run: () => startLevel(G.level, G.seed)});
-  actions.push({label: '换一副新牌', run: () => startLevel(G.level, newSeed())});
+  actions.push({label: '换一副新牌', run: () => startLevel(G.level, freshSeed(G.level))});
   openDialog({kind: 'lose', art: 'sad', title: '口袋满了', body: `7 格都塞满了，还没凑出 3 张一样的。场上还剩 ${left} 张牌。`, actions});
 }
 
@@ -1597,14 +1822,14 @@ function win(){
   setTimeout(() => {
     if (lv === 1){
       openDialog({kind: 'win', art: 'hop', title: '热身完成', body: '第 2 关才是正题：牌多、压得深。放心，发牌前已经算好了一条能清空的路线。', actions: [
-        {label: '进入第 2 关', primary: true, run: () => startLevel(2, newSeed())}
+        {label: '进入第 2 关', primary: true, run: () => startLevel(2, freshSeed(2))}
       ]});
     } else {
       openDialog({kind: 'win', art: 'hop', title: `第 ${lv} 关通关！`,
         body: `用时 ${fmt(secs)}，点了 ${G.moves} 次。` + (record ? '这是你这一关最快的一次。' : `这一关最快 ${fmt(best)}。`),
         actions: [
-          {label: `挑战第 ${lv + 1} 关`, primary: true, run: () => startLevel(lv + 1, newSeed())},
-          {label: `再来一副第 ${lv} 关`, run: () => startLevel(lv, newSeed())}
+          {label: `挑战第 ${lv + 1} 关`, primary: true, run: () => startLevel(lv + 1, freshSeed(lv + 1))},
+          {label: `再来一副第 ${lv} 关`, run: () => startLevel(lv, freshSeed(lv))}
         ]});
     }
   }, 520);
@@ -1662,18 +1887,19 @@ function showHelp(){
     '口袋只有 7 格，塞满了还凑不出 3 张，这一局就输了。',
     '三个道具每局各能用 1 次：移出把口袋最左边 3 张挪到上面的架子上，之后还能点回来；撤回退回上一步；洗牌把场上的牌重新打乱。',
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
-    '右上角的调色盘可以换外观，一共七种，换了不影响这一局。'
+    '右上角的调色盘可以换外观，一共七种，换了不影响这一局。',
+    '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。'
   ], actions: [
     {label: '接着玩', primary: true, run: closeDialog},
     G.level === 1
-      ? {label: '跳过热身，直接去第 2 关', run: () => startLevel(2, newSeed())}
-      : {label: '从第 1 关重新开始', run: () => startLevel(1, newSeed())}
+      ? {label: '跳过热身，直接去第 2 关', run: () => startLevel(2, freshSeed(2))}
+      : {label: '从第 1 关重新开始', run: () => startLevel(1, freshSeed(1))}
   ]});
 }
 
 function showRestart(){
   openDialog({kind: 'menu', title: `重开第 ${G.level} 关？`, body: '这一局的进度会清掉。', actions: [
-    {label: '换一副新牌', primary: true, run: () => startLevel(G.level, newSeed())},
+    {label: '换一副新牌', primary: true, run: () => startLevel(G.level, freshSeed(G.level))},
     {label: '重玩同一副牌', run: () => startLevel(G.level, G.seed)},
     {label: '取消', run: closeDialog}
   ]});
@@ -1728,7 +1954,7 @@ function resume(s){
   if (!built || built.tiles.length !== s.n) return false;
   G.epoch++;
   Object.assign(G, {
-    level: s.level, seed: s.seed, cfg: built.cfg, tiles: built.tiles, slot: [], hold: [[], [], []],
+    level: s.level, seed: s.seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
     tools: s.tools, history: [], moves: s.moves, over: false, won: false, pending: 0, acc: s.ms || 0, running: false
   });
   restoreSnap(s);
@@ -1869,7 +2095,7 @@ function boot(data){
   layout();
   syncSound();
   const lv = Math.min(Math.max(Number(prefs.level) || 1, 1), 99);
-  if (!resume(data && data.game)) startLevel(lv, newSeed());
+  if (!resume(data && data.game)) startLevel(lv, freshSeed(lv));
 }
 applySkin(prefs.skin);
 try {
