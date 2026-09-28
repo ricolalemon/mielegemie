@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="三消小游戏，每一副牌都保证有解；九种摆法、五种外观，按住或倾斜手机看清牌是怎么叠的。">
+<meta name="description" content="三消小游戏，一共 6 关，每一副牌都保证有解；九种摆法、五种外观，按住或倾斜手机看清牌是怎么叠的。">
 <title>咩了个咩</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -281,6 +281,16 @@ button{font:inherit;color:inherit}
 .dlg-art .art{position:static;display:block;width:88px;height:88px}
 .dlg-art .hop{animation:hop .9s ease-in-out infinite}
 .dlg-art .sad{transform:rotate(-12deg) translateY(4px);filter:saturate(.6)}
+.dlg-art .herd{display:flex;align-items:flex-end;gap:2px}
+.dlg-art .herd .art{width:48px;height:48px;animation:hop .8s ease-in-out infinite;animation-delay:calc(var(--k, 0) * 120ms)}
+.dlg-art .herd .art:nth-child(3){width:64px;height:64px}
+:root[data-skin="type"] .dlg-art .herd .art{width:40px;height:48px;font-size:36px!important}
+:root[data-skin="type"] .dlg-art .herd .art:nth-child(3){width:52px;height:64px;font-size:48px!important}
+.final-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.final-stats div{display:flex;flex-direction:column;gap:2px;padding:7px 4px;border-radius:8px;box-shadow:inset 0 0 0 1.5px var(--ghost-line)}
+.final-stats span{font-size:12px;color:var(--paper-soft)}
+.final-stats b{font:400 14px/1 var(--font-num);color:var(--paper-ink);font-variant-numeric:tabular-nums}
+:root[data-skin="pixel"] .final-stats div,:root[data-skin="bauhaus"] .final-stats div,:root[data-skin="type"] .final-stats div{border-radius:0}
 .dialog h2{margin:2px 0 8px;font:400 29px/1.15 var(--font-display);letter-spacing:.06em;text-wrap:balance}
 .dialog p{margin:0 0 16px;color:var(--paper-soft);line-height:1.65}
 .dialog ul{margin:0 0 16px;padding-left:1.2em;text-align:left;color:var(--paper-soft);line-height:1.65;display:flex;flex-direction:column;gap:6px}
@@ -527,7 +537,7 @@ button{font:inherit;color:inherit}
   .stage .tile.shake .face,.stage .tile.flip .face,.stage .tile.back .face,.trough.shake,.tool .n.bump,.dlg-actions .btn{animation:none}
   .stage .tile.inslot{transition-duration:.01s}
   .needle,.sewn{transition:none}
-  .dialog,.dlg-art .hop,.meter.hot .pips i.on{animation:none}
+  .dialog,.dlg-art .hop,.dlg-art .herd .art,.meter.hot .pips i.on{animation:none}
 }
 </style>
 </head>
@@ -602,6 +612,7 @@ button{font:inherit;color:inherit}
 'use strict';
 
 const BW = 7, BH = 8.72, CAP = 7;
+const FINAL = 6; // 打通第 6 关就算通关，之后是无尽模式
 const ST = {board: 0, slot: 1, hold: 2, gone: 3};
 const STN = ['board', 'slot', 'hold', 'gone'];
 
@@ -862,7 +873,11 @@ const Sound = {
   match(){ this.tone(660, .1, 'sine', .06); this.tone(880, .12, 'sine', .06, .07); this.tone(1320, .16, 'sine', .04, .14); },
   tool(){ this.tone(420, .1, 'sine', .05); this.tone(630, .12, 'sine', .04, .06); },
   lose(){ this.tone(260, .22, 'sawtooth', .025); this.tone(180, .34, 'sawtooth', .025, .16); },
-  win(){ [523, 659, 784, 1047].forEach((f, i) => this.tone(f, .2, 'triangle', .06, i * .11)); }
+  win(){ [523, 659, 784, 1047].forEach((f, i) => this.tone(f, .2, 'triangle', .06, i * .11)); },
+  fanfare(){
+    [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, .22, 'triangle', .06, i * .12));
+    [523, 659, 784, 1047].forEach(f => this.tone(f, .9, 'sine', .035, .9));
+  }
 };
 
 /* ---------- 随机数（同一个种子永远发出同一副牌） ---------- */
@@ -1584,7 +1599,10 @@ function startLevel(level, seed){
   closeDialog();
   mountTiles(true);
   startClock();
-  toast(level === 1 ? '点亮着的牌，凑齐 3 张一样的就会消掉' : `第 ${level} 关 · ${G.label} · ${G.tiles.length} 张牌`);
+  toast(level === 1 ? '点亮着的牌，凑齐 3 张一样的就会消掉'
+    : level === FINAL ? `最后一关 · ${G.label} · ${G.tiles.length} 张牌`
+    : level > FINAL ? `无尽模式 · 第 ${level} 关 · ${G.tiles.length} 张牌`
+    : `第 ${level}/${FINAL} 关 · ${G.label} · ${G.tiles.length} 张牌`);
   if (level >= 2 && !prefs.peekTold){
     savePrefs({peekTold: true});
     setTimeout(() => toast('看不清怎么叠的？按住口袋上方的层次按钮，或两指在牌堆上拖', 3600), 2300);
@@ -1794,12 +1812,13 @@ function showLose(){
 function win(){
   G.won = true;
   stopClock();
-  Sound.win();
-  confetti();
   const secs = Math.round(elapsed() / 1000), lv = G.level;
   const best = (prefs.best || {})[lv];
   const record = !best || secs < best;
   if (record) savePrefs({best: Object.assign({}, prefs.best, {[lv]: secs})});
+  if (lv === FINAL) return celebrateFinal(secs);
+  Sound.win();
+  confetti();
   savePrefs({level: lv + 1});
   setTimeout(() => {
     if (lv === 1){
@@ -1807,14 +1826,44 @@ function win(){
         {label: '进入第 2 关', primary: true, run: () => startLevel(2, freshSeed(2))}
       ]});
     } else {
-      openDialog({kind: 'win', art: 'hop', title: `第 ${lv} 关通关！`,
+      openDialog({kind: 'win', art: 'hop', title: lv > FINAL ? `无尽模式第 ${lv} 关通关` : `第 ${lv} 关通关！`,
         body: `用时 ${fmt(secs)}，点了 ${G.moves} 次。` + (record ? '这是你这一关最快的一次。' : `这一关最快 ${fmt(best)}。`),
         actions: [
-          {label: `挑战第 ${lv + 1} 关`, primary: true, run: () => startLevel(lv + 1, freshSeed(lv + 1))},
+          {label: lv + 1 === FINAL ? `挑战最后一关（第 ${FINAL} 关）` : lv >= FINAL ? `继续无尽模式第 ${lv + 1} 关` : `挑战第 ${lv + 1} 关`,
+            primary: true, run: () => startLevel(lv + 1, freshSeed(lv + 1))},
           {label: `再来一副第 ${lv} 关`, run: () => startLevel(lv, freshSeed(lv))}
         ]});
     }
   }, REDUCED ? 520 : 800);
+}
+
+function celebrateFinal(secs){
+  const n = (prefs.finished || 0) + 1;
+  savePrefs({level: 1, finished: n});
+  Sound.fanfare();
+  confetti();
+  if (!REDUCED){ setTimeout(confetti, 650); setTimeout(confetti, 1300); }
+  const best = prefs.best || {};
+  const grid = document.createElement('div');
+  grid.className = 'final-stats';
+  for (let l = 1; l <= FINAL; l++){
+    const cell = document.createElement('div');
+    const k = document.createElement('span');
+    k.textContent = `第 ${l} 关`;
+    const v = document.createElement('b');
+    v.textContent = best[l] ? fmt(best[l]) : '—';
+    cell.append(k, v);
+    grid.appendChild(cell);
+  }
+  setTimeout(() => {
+    openDialog({kind: 'final', art: 'herd', title: '全部通关！',
+      body: `${FINAL} 关全部清空，羊群都回家了。最后一关用时 ${fmt(secs)}，点了 ${G.moves} 次。` + (n > 1 ? `这是你第 ${n} 次通关。` : ''),
+      extra: grid,
+      actions: [
+        {label: '从第 1 关再玩一遍', primary: true, run: () => startLevel(1, freshSeed(1))},
+        {label: `继续无尽模式（第 ${FINAL + 1} 关起）`, run: () => startLevel(FINAL + 1, freshSeed(FINAL + 1))}
+      ]});
+  }, REDUCED ? 520 : 1100);
 }
 
 /* ---------- 弹窗与提示 ---------- */
@@ -1822,7 +1871,18 @@ let dlgKind = '';
 function openDialog(o){
   dlgKind = o.kind || '';
   const art = $('dlgArt');
-  art.innerHTML = o.art ? `<div class="${o.art}"><i class="art ic-5"></i></div>` : '';
+  art.replaceChildren();
+  if (o.art){
+    const wrap = document.createElement('div');
+    wrap.className = o.art;
+    for (let k = 0; k < (o.art === 'herd' ? 5 : 1); k++){
+      const sheep = document.createElement('i');
+      sheep.className = 'art ic-5';
+      sheep.style.setProperty('--k', k);
+      wrap.appendChild(sheep);
+    }
+    art.appendChild(wrap);
+  }
   art.hidden = !o.art;
   $('dlgTitle').textContent = o.title;
   const body = $('dlgBody');
@@ -1870,6 +1930,7 @@ function showHelp(){
     '口袋只有 7 格，塞满了还凑不出 3 张，这一局就输了。',
     '三个道具每局各能用 1 次：移出把口袋最左边 3 张挪到上面的架子上，之后还能点回来；撤回退回上一步；洗牌把场上的牌重新打乱。',
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
+    `一共 ${FINAL} 关，打通第 ${FINAL} 关就算通关；之后还可以接着玩无尽模式。`,
     '右上角的调色盘可以换外观，一共五种，换了不影响这一局。',
     '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
     '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。捻开时被压住的牌只显示背面，不会偷看到底下是什么。'
