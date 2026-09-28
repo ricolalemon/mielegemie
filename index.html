@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@900&family=Silkscreen&family=ZCOOL+QingKe+HuangYou&display=swap">
 <style>
 /* 四套外观，靠 <html data-skin="…"> 切换。每套都自己画背景，不跟随系统深浅色。
-   默认（毛线）：靛蓝毛衣上的十字绣 */
+   默认（毛线）：靛蓝粗毛衣上的实心绣 */
 :root{
   color-scheme:dark;
   --bg:#22366b;
@@ -230,6 +230,8 @@ button{font:inherit;color:inherit}
 .ic-12{background-image:var(--ic-12)}.ic-13{background-image:var(--ic-13)}.ic-14{background-image:var(--ic-14)}.ic-15{background-image:var(--ic-15)}
 .tile.blocked{cursor:default}
 .tile.blocked .face{filter:var(--dim)}
+html[data-skin="knit"] .tile.blocked .face{filter:none;background:#878c9c;box-shadow:inset 0 0 0 1px rgba(255,244,222,.16)}
+html[data-skin="knit"] .tile.blocked .art{opacity:.34;filter:saturate(.4)}
 .tile.hide{visibility:hidden}
 .tile:focus-visible .face{outline:3px solid var(--focus);outline-offset:2px}
 .stage .tile.inslot{transition:transform .3s cubic-bezier(.3,1.35,.5,1)}
@@ -616,7 +618,7 @@ const FINAL = 6; // 打通第 6 关就算通关，之后是无尽模式
 const ST = {board: 0, slot: 1, hold: 2, gone: 3};
 const STN = ['board', 'slot', 'hold', 'gone'];
 
-/* ---------- 十字绣图案：每个图案是 11×11 的针脚格 ---------- */
+/* ---------- 刺绣图案：每个图案是 11×11 的针脚格 ---------- */
 const PAL = {
   R: '#d8433b', r: '#9c2340', P: '#ee93b3', Y: '#eaa934', O: '#e8762c', o: '#b9521a',
   G: '#4c9445', g: '#a6c63d', W: '#ffffff', L: '#aab4c8', K: '#3a3740', U: '#8d56a8',
@@ -647,56 +649,53 @@ function shade(hex, k){
   return `rgb(${f(v >> 16)},${f((v >> 8) & 255)},${f(v & 255)})`;
 }
 
-// 先画所有针脚的影子，再画底针“\”，最后画面针“/”，像真的线交叉在布上
+// 实心绣：每一格填满线色、圆一点角，只留一道很淡的斜针。一格是一块，远看不会变成一片小点
+function roundRectPath(x, a, b, w, hh, r){
+  x.beginPath();
+  x.moveTo(a + r, b); x.lineTo(a + w - r, b); x.quadraticCurveTo(a + w, b, a + w, b + r);
+  x.lineTo(a + w, b + hh - r); x.quadraticCurveTo(a + w, b + hh, a + w - r, b + hh);
+  x.lineTo(a + r, b + hh); x.quadraticCurveTo(a, b + hh, a, b + hh - r);
+  x.lineTo(a, b + r); x.quadraticCurveTo(a, b, a + r, b);
+  x.closePath();
+}
 function stitchIcon(rows){
-  const cell = 12, n = 11, size = cell * n, dpr = 2;
-  const c = document.createElement('canvas');
-  c.width = c.height = size * dpr;
-  const x = c.getContext('2d');
-  x.scale(dpr, dpr);
-  x.lineCap = 'round';
-  const m = cell * .2, lw = cell * .3;
-  const seg = (a, b, p, q) => { x.beginPath(); x.moveTo(a, b); x.lineTo(p, q); x.stroke(); };
-  for (let pass = 0; pass < 3; pass++){
-    for (let r = 0; r < n; r++){
-      for (let q = 0; q < n; q++){
-        const ch = rows[r][q];
-        if (!ch || ch === '.') continue;
-        const col = PAL[ch], x0 = q * cell, y0 = r * cell;
-        if (pass === 0){
-          x.strokeStyle = 'rgba(60,35,10,.24)';
-          x.lineWidth = lw;
-          seg(x0 + m, y0 + m + 1.3, x0 + cell - m, y0 + cell - m + 1.3);
-          seg(x0 + cell - m, y0 + m + 1.3, x0 + m, y0 + cell - m + 1.3);
-        } else if (pass === 1){
-          x.strokeStyle = shade(col, -.2);
-          x.lineWidth = lw;
-          seg(x0 + m, y0 + m, x0 + cell - m, y0 + cell - m);
-        } else {
-          x.strokeStyle = col;
-          x.lineWidth = lw;
-          seg(x0 + cell - m, y0 + m, x0 + m, y0 + cell - m);
-          x.strokeStyle = 'rgba(255,255,255,.32)';
-          x.lineWidth = lw * .3;
-          seg(x0 + cell - m - .9, y0 + m + .1, x0 + m + .1, y0 + cell - m - .9);
-        }
-      }
+  const {c, x, cell, n} = gridCanvas();
+  const cells = [];
+  for (let r = 0; r < n; r++){
+    for (let q = 0; q < n; q++){
+      if (rows[r][q] !== '.') cells.push([r, q, PAL[rows[r][q]]]);
     }
+  }
+  x.fillStyle = 'rgba(60,35,10,.16)';
+  for (const [r, q] of cells) x.fillRect(q * cell, r * cell + 1.6, cell, cell);
+  for (const [r, q, col] of cells){
+    x.fillStyle = col;
+    roundRectPath(x, q * cell + .35, r * cell + .35, cell - .7, cell - .7, 2.2);
+    x.fill();
+  }
+  x.lineCap = 'round';
+  x.lineWidth = 1.2;
+  x.strokeStyle = 'rgba(255,255,255,.2)';
+  for (const [r, q] of cells){
+    x.beginPath();
+    x.moveTo(q * cell + cell * .78, r * cell + cell * .22);
+    x.lineTo(q * cell + cell * .22, r * cell + cell * .78);
+    x.stroke();
   }
   return c.toDataURL('image/png');
 }
 
-// 靛蓝毛衣的平针纹理：每一针是一个 V
+// 靛蓝粗毛衣的平针纹理：每一针是一个 V，针脚放大 2.4 倍，一屏横着只有八针左右
 function knitTexture(){
-  const w = 20, h = 17, cols = 4, rows = 4, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = 48, h = 40.8, cols = 4, rows = 4, dpr = Math.min(window.devicePixelRatio || 1, 2);
   const c = document.createElement('canvas');
   c.width = w * cols * dpr;
   c.height = h * rows * dpr;
   const x = c.getContext('2d');
   x.scale(dpr, dpr);
-  x.fillStyle = '#1d2f64';
+  x.fillStyle = '#1e3066';
   x.fillRect(0, 0, w * cols, h * rows);
-  const rnd = rngFrom(7), tone = [];
+  const rnd = rngFrom(5), tone = [];
   for (let i = 0; i < cols * rows; i++) tone.push(rnd() * .04 - .02);
   for (let r = -1; r <= rows; r++){
     for (let q = -1; q <= cols; q++){
@@ -704,11 +703,11 @@ function knitTexture(){
       for (const side of [-1, 1]){
         const cx = q * w + w / 2 + side * w * .22, cy = r * h + h * .5;
         const g = x.createLinearGradient(cx, cy - h * .55, cx, cy + h * .55);
-        g.addColorStop(0, shade('#2b4482', k + .02));
-        g.addColorStop(1, shade('#243a74', k));
+        g.addColorStop(0, shade('#2f4a8c', k + .02));
+        g.addColorStop(1, shade('#253d7c', k));
         x.fillStyle = g;
         x.beginPath();
-        x.ellipse(cx, cy, h * .58, w * .2, -side * 1.08, 0, Math.PI * 2);
+        x.ellipse(cx, cy, h * .56, w * .19, -side * 1.08, 0, Math.PI * 2);
         x.fill();
       }
     }
@@ -2157,7 +2156,7 @@ function resume(s){
 const bodyStyle = document.body.style;
 const SKINS = {
   knit: {
-    group: '经典', name: '毛线', desc: '靛蓝毛衣 · 十字绣', draw: rows => stitchIcon(rows),
+    group: '经典', name: '毛线', desc: '靛蓝粗毛衣 · 实心绣', draw: rows => stitchIcon(rows),
     paint(){
       const kn = knitTexture();
       bodyStyle.backgroundImage = `radial-gradient(120% 90% at 50% 35%, rgba(10,18,50,0) 55%, rgba(6,10,30,.5) 100%), url(${kn.url})`;
