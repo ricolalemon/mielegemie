@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="三消小游戏，每一副牌都保证有解；九种摆法、七种外观。">
+<meta name="description" content="三消小游戏，每一副牌都保证有解；九种摆法、七种外观，按住或倾斜手机看清牌是怎么叠的。">
 <title>咩了个咩</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -223,12 +223,20 @@ button{font:inherit;color:inherit}
 .count .num{color:var(--ink);font-size:15px}
 
 /* 牌桌 */
-.stage{position:relative;isolation:isolate;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.stage{position:relative;isolation:isolate;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+.stage.tilting .tile.onboard{transition:none}
+.peek{width:30px;height:30px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none;
+  background:var(--btn);color:var(--btn-ink);box-shadow:0 2px 0 var(--btn-edge),0 2px 0 1px rgba(0,0,0,.2);
+  touch-action:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.peek svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.peek.on{background:var(--accent);color:var(--accent-ink);box-shadow:none;transform:translateY(2px)}
+.peek:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+:root[data-skin="pixel"] .peek,:root[data-skin="bauhaus"] .peek,:root[data-skin="type"] .peek{border-radius:0}
 .bed{position:absolute;z-index:0;border-radius:12px;background:var(--bed);pointer-events:none}
 .shelf{position:absolute;z-index:0;border:2px dashed var(--shelf);border-radius:12px}
-.meter{position:absolute;z-index:0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
-.pips{display:flex;gap:4px}
-.pips i{display:block;width:9px;height:9px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--pip-off)}
+.meter{position:absolute;z-index:0;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+.pips{display:flex;gap:3px}
+.pips i{display:block;width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--pip-off)}
 .pips i.on{background:var(--pip-on);box-shadow:none}
 .meter.hot{color:var(--warn-ink)}
 .meter.hot .pips i.on{background:var(--warn)}
@@ -643,7 +651,7 @@ button{font:inherit;color:inherit}
   <section class="stage" id="stage" aria-label="牌堆">
     <div class="bed" id="bed" aria-hidden="true"></div>
     <div class="shelf" id="shelf" hidden aria-hidden="true"></div>
-    <div class="meter" id="meter"><span id="meterText">口袋 0/7</span><span class="pips" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+    <div class="meter" id="meter"><button class="peek" id="btnPeek" type="button" aria-label="按住看层次" title="按住看牌是怎么叠的"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 16.5l9 5 9-5"/></svg></button><span id="meterText">口袋 0/7</span><span class="pips" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
     <div class="trough" id="trough" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </section>
 
@@ -1529,7 +1537,7 @@ function layout(){
   trough.style.setProperty('--cell', cell + 'px');
   trough.style.setProperty('--pad', pad + 'px');
   Object.assign(shelf.style, {left: (L.holdX - 5) + 'px', top: (L.holdY - 5) + 'px', width: Math.round(cell * 3.16 + 10) + 'px', height: (cell + 10) + 'px'});
-  Object.assign(meter.style, {right: Math.max(0, W - L.trayX - L.trayW + 2) + 'px', top: Math.round(L.holdY + cell / 2 - 9) + 'px'});
+  Object.assign(meter.style, {right: Math.max(0, W - L.trayX - L.trayW + 2) + 'px', top: Math.round(L.holdY + cell / 2 - (meter.offsetHeight || 30) / 2) + 'px'});
   Object.assign(bed.style, {left: (L.boardX - 4) + 'px', top: Math.round(L.boardY + unit * 7.5) + 'px', width: (unit * BW + 8) + 'px', height: Math.round(unit * 1.2) + 'px'});
 }
 
@@ -1543,8 +1551,9 @@ function render(){
     if (t.shown !== t.type){ t.art.className = 'art ic-' + t.type; el.dataset.ty = t.type; t.shown = t.type; }
     let x = 0, y = 0, s = 1, zi = 0, blocked = false;
     if (t.status === 'board'){
-      x = L.boardX + (t.x + .04) * unit;
-      y = L.boardY + (t.y + .01) * unit;
+      const lk = lift(t);
+      x = L.boardX + (t.x + .04) * unit + tilt.x * lk;
+      y = L.boardY + (t.y + .01) * unit + tilt.y * lk;
       zi = 10 + Math.min(t.z, 280);
       blocked = !isFree(t);
     } else if (t.status === 'slot'){
@@ -1566,6 +1575,7 @@ function render(){
       el.classList.remove('hide');
     }
     el.classList.toggle('blocked', blocked);
+    el.classList.toggle('onboard', t.status === 'board');
     el.classList.toggle('gone', t.status === 'gone');
     el.classList.toggle('pending', t.pending);
     const live = (t.status === 'board' || t.status === 'hold') && !blocked;
@@ -1602,6 +1612,7 @@ function toolState(id, nid, n, name){
 }
 
 function mountTiles(deal){
+  computeHeights(G.tiles);
   for (const el of stage.querySelectorAll('.tile')) el.remove();
   const frag = document.createDocumentFragment();
   const order = G.tiles.slice().sort((a, b) => a.y - b.y || a.x - b.x || a.z - b.z);
@@ -1651,11 +1662,16 @@ function startLevel(level, seed){
   mountTiles(true);
   startClock();
   toast(level === 1 ? '点亮着的牌，凑齐 3 张一样的就会消掉' : `第 ${level} 关 · ${G.label} · ${G.tiles.length} 张牌`);
+  if (level >= 2 && !prefs.peekTold){
+    savePrefs({peekTold: true});
+    setTimeout(() => toast('看不清怎么叠的？按住口袋上方的层次按钮，或两指在牌堆上拖', 3600), 2300);
+  }
 }
 
 /* ---------- 点牌 ---------- */
 function onTile(t){
   if (G.over || G.won) return;
+  if ((peekSrc && peekSrc !== 'gyro') || performance.now() - peekEndedAt < 350) return;
   if (t.status === 'board'){
     if (!isFree(t)) return nudge(t);
   } else if (t.status === 'hold'){
@@ -1872,12 +1888,12 @@ scrim.addEventListener('click', e => { if (e.target === scrim && dismissable()) 
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !scrim.hidden && dismissable()) closeDialog(); });
 
 let toastTimer = 0;
-function toast(msg){
+function toast(msg, ms = 1900){
   const el = $('toast');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 1900);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
 }
 
 function showHelp(){
@@ -1888,7 +1904,8 @@ function showHelp(){
     '三个道具每局各能用 1 次：移出把口袋最左边 3 张挪到上面的架子上，之后还能点回来；撤回退回上一步；洗牌把场上的牌重新打乱。',
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
     '右上角的调色盘可以换外观，一共七种，换了不影响这一局。',
-    '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。'
+    '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
+    '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。'
   ], actions: [
     {label: '接着玩', primary: true, run: closeDialog},
     G.level === 1
@@ -1925,6 +1942,145 @@ $('btnSound').addEventListener('click', () => {
   syncSound();
   Sound.tap();
 });
+
+/* ---------- 看层次：越高的牌往倾斜方向挪得越多，像把一叠牌捻开 ---------- */
+const tilt = {x: 0, y: 0};
+const peekBtn = $('btnPeek');
+let peekSrc = null, peekEndedAt = -1e9, tiltRaf = 0, relaxRaf = 0, sweepRaf = 0;
+
+// 每张牌底下最多压着几层（沿覆盖关系的最长链），决定它挪多远
+function computeHeights(tiles){
+  const memo = new Map();
+  const h = t => {
+    if (memo.has(t.id)) return memo.get(t.id);
+    let m = 0;
+    for (const c of t.covers) m = Math.max(m, h(c));
+    memo.set(t.id, m + 1);
+    return m + 1;
+  };
+  for (const t of tiles) t.h = h(t);
+}
+const lift = t => Math.min(t.h || 1, 12) * L.unit * .075;
+
+function applyTilt(){
+  for (const t of G.tiles){
+    if (t.status !== 'board' || !t.el) continue;
+    const k = lift(t);
+    const x = L.boardX + (t.x + .04) * L.unit + tilt.x * k, y = L.boardY + (t.y + .01) * L.unit + tilt.y * k;
+    t.el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(1)`;
+  }
+}
+function setTilt(x, y){
+  tilt.x = Math.max(-1, Math.min(1, x));
+  tilt.y = Math.max(-1, Math.min(1, y));
+  if (!tiltRaf) tiltRaf = requestAnimationFrame(() => { tiltRaf = 0; applyTilt(); });
+}
+function startPeek(src){
+  cancelAnimationFrame(relaxRaf);
+  relaxRaf = 0;
+  peekSrc = src;
+  stage.classList.add('tilting');
+  peekBtn.classList.toggle('on', src === 'button');
+}
+function endPeek(src){
+  if (peekSrc !== src) return;
+  peekSrc = null;
+  if (src !== 'gyro') peekEndedAt = performance.now();
+  peekBtn.classList.remove('on');
+  cancelAnimationFrame(sweepRaf);
+  sweepRaf = 0;
+  const x0 = tilt.x, y0 = tilt.y, t0 = performance.now();
+  const step = now => {
+    if (peekSrc){ relaxRaf = 0; return; }
+    const p = Math.min(1, (now - t0) / 260), e = 1 - Math.pow(1 - p, 3);
+    setTilt(x0 * (1 - e), y0 * (1 - e));
+    if (p < 1) relaxRaf = requestAnimationFrame(step);
+    else { relaxRaf = 0; stage.classList.remove('tilting'); }
+  };
+  relaxRaf = requestAnimationFrame(step);
+}
+
+// 按住按钮：视角绕一圈慢慢转，每个方向都看得到
+function sweep(){
+  const t0 = performance.now();
+  const step = now => {
+    if (peekSrc !== 'button') return;
+    const s = (now - t0) / 1000, amp = Math.min(1, s / .3), a = Math.PI / 4 + s * 1.7;
+    setTilt(Math.cos(a) * .9 * amp, Math.sin(a) * .9 * amp);
+    sweepRaf = requestAnimationFrame(step);
+  };
+  sweepRaf = requestAnimationFrame(step);
+}
+peekBtn.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  try { peekBtn.setPointerCapture(e.pointerId); } catch (err) {}
+  enableGyro();
+  startPeek('button');
+  sweep();
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(n => peekBtn.addEventListener(n, () => endPeek('button')));
+peekBtn.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && !e.repeat){ e.preventDefault(); startPeek('button'); sweep(); }
+});
+peekBtn.addEventListener('keyup', e => { if (e.key === 'Enter' || e.key === ' ') endPeek('button'); });
+peekBtn.addEventListener('contextmenu', e => e.preventDefault());
+
+// 两根手指在牌堆上拖：跟着手指的方向倾斜
+const touches = new Map();
+let touchStart = null;
+const touchMid = () => {
+  let x = 0, y = 0;
+  for (const p of touches.values()){ x += p.x; y += p.y; }
+  return {x: x / touches.size, y: y / touches.size};
+};
+stage.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  touches.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  if (touches.size === 2 && peekSrc !== 'button'){
+    startPeek('touch');
+    touchStart = touchMid();
+  }
+});
+stage.addEventListener('pointermove', e => {
+  if (!touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  if (peekSrc === 'touch' && touches.size >= 2){
+    const m = touchMid();
+    setTilt((m.x - touchStart.x) / 70, (m.y - touchStart.y) / 70);
+  }
+});
+const dropTouch = e => {
+  touches.delete(e.pointerId);
+  if (touches.size < 2) endPeek('touch');
+};
+stage.addEventListener('pointerup', dropTouch);
+stage.addEventListener('pointercancel', dropTouch);
+
+// 陀螺仪：手机倾斜超过 7° 才开始动，拿稳时慢慢把当前角度当成“平放”
+const gyro = {tried: false, b0: null, g0: null};
+function onOrient(e){
+  if (e.beta == null || e.gamma == null) return;
+  if (gyro.b0 == null){ gyro.b0 = e.beta; gyro.g0 = e.gamma; }
+  const f = d => Math.sign(d) * Math.min(1, Math.max(0, Math.abs(d) - 7) / 13);
+  const tx = f(e.gamma - gyro.g0), ty = f(e.beta - gyro.b0);
+  if (!tx && !ty){ gyro.b0 += (e.beta - gyro.b0) * .03; gyro.g0 += (e.gamma - gyro.g0) * .03; }
+  if (peekSrc === 'button' || peekSrc === 'touch') return;
+  if (tx || ty){
+    if (peekSrc !== 'gyro') startPeek('gyro');
+    setTilt(tx * .9, ty * .9);
+  } else if (peekSrc === 'gyro') endPeek('gyro');
+}
+function enableGyro(){
+  if (gyro.tried) return;
+  gyro.tried = true;
+  const D = window.DeviceOrientationEvent;
+  if (!D) return;
+  const on = () => window.addEventListener('deviceorientation', onOrient);
+  // iPhone 要在点按的那一刻申请权限；其他设备直接监听
+  if (typeof D.requestPermission === 'function') D.requestPermission().then(r => { if (r === 'granted') on(); }).catch(() => {});
+  else on();
+}
+if (window.DeviceOrientationEvent && typeof window.DeviceOrientationEvent.requestPermission !== 'function') enableGyro();
 
 function relayout(){
   layout();
