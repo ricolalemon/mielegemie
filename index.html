@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="三消小游戏，每一副牌都保证有解；九种摆法、七种外观，按住或倾斜手机看清牌是怎么叠的。">
+<meta name="description" content="三消小游戏，每一副牌都保证有解；九种摆法、五种外观，按住或倾斜手机看清牌是怎么叠的。">
 <title>咩了个咩</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
   --ink-soft:#c3cde8;
   --tile:#f5ead2;
   --tile-hi:rgba(255,255,255,.28);
-  --dim:brightness(.48) saturate(.5);
+  --dim:brightness(.52) saturate(.55);
   --btn:#f5ead2;
   --btn-ink:#2b2f45;
   --btn-soft:#5a5c6e;
@@ -32,8 +32,8 @@
   --accent:#bf3b2c;
   --accent-deep:#842419;
   --accent-ink:#fff;
-  --badge:#1d2e5e;
-  --badge-ink:#fff4de;
+  --badge:#f0b545;
+  --badge-ink:#1b2344;
   --paper:#f7eed9;
   --paper-ink:#2b2f45;
   --paper-soft:#5a5c6e;
@@ -60,10 +60,10 @@
   --bg:#a3bd4f;
   --ink:#1c3318;
   --ink-soft:#35552a;
-  --tile:#d6e5a0;
+  --tile:#e2edb3;
   --tile-hi:rgba(255,255,255,0);
   --dim:none;
-  --btn:#d6e5a0;
+  --btn:#e2edb3;
   --btn-ink:#1c3318;
   --btn-soft:#1c3318;
   --btn-edge:#1c3318;
@@ -94,47 +94,6 @@
   --toast:#1c3318;
   --toast-ink:#d6e5a0;
   --brand-shadow:3px 3px 0 rgba(28,51,24,.25);
-}
-/* 青花：白瓷蓝釉，放在朱漆桌面上 */
-:root[data-skin="porcelain"]{
-  --bg:#3a1611;
-  --ink:#f7ede0;
-  --ink-soft:#dcc0ad;
-  --tile:#f6f7f3;
-  --tile-hi:rgba(255,255,255,.95);
-  --dim:brightness(.5) saturate(.75);
-  --btn:#f6f7f3;
-  --btn-ink:#1b2d63;
-  --btn-soft:#244a9e;
-  --btn-edge:#bcc6d2;
-  --tray:#2a120d;
-  --tray-2:#0e0504;
-  --tray-line:rgba(216,172,92,.8);
-  --tray-cell:rgba(255,255,255,.035);
-  --thread:#d8ac5c;
-  --track:rgba(220,192,173,.2);
-  --accent:#1f47a3;
-  --accent-deep:#122c6b;
-  --accent-ink:#fff;
-  --badge:#1f47a3;
-  --badge-ink:#fff;
-  --paper:#f6f7f3;
-  --paper-ink:#1b2440;
-  --paper-soft:#4b556f;
-  --paper-edge:#bcc6d2;
-  --ghost-line:rgba(27,36,64,.2);
-  --scrim:rgba(22,6,4,.62);
-  --focus:#f1d08a;
-  --pip-off:rgba(220,192,173,.4);
-  --pip-on:#d8ac5c;
-  --warn:#ef7a5c;
-  --warn-ink:#ffc2ad;
-  --bed:rgba(0,0,0,.18);
-  --shelf:rgba(216,172,92,.6);
-  --toast:#1b0b08;
-  --toast-ink:#f7ede0;
-  --brand-shadow:0 2px 0 rgba(0,0,0,.45);
-  --font-display:"Ma Shan Zheng","STKaiti","KaiTi",serif;
 }
 /* 孔版：荧光粉 + 蓝两色油墨，故意套色不准 */
 :root[data-skin="riso"]{
@@ -258,7 +217,7 @@ button{font:inherit;color:inherit}
   background:radial-gradient(circle at 28% 18%,var(--tile-hi),rgba(255,255,255,0) 58%),var(--tile);
   box-shadow:inset 0 0 0 1px rgba(120,86,40,.2),0 calc(var(--ts) * .07) 0 #c9b288,0 calc(var(--ts) * .07 + 1.5px) 0 rgba(6,10,30,.55);
   transition:filter .2s,translate .15s}
-.art{position:absolute;inset:9%;background:center/contain no-repeat}
+.art{position:absolute;inset:7%;background:center/contain no-repeat}
 /* 图案图片由脚本按当前外观画好，放进 --ic-N 变量 */
 .ic-0{background-image:var(--ic-0)}.ic-1{background-image:var(--ic-1)}.ic-2{background-image:var(--ic-2)}.ic-3{background-image:var(--ic-3)}
 .ic-4{background-image:var(--ic-4)}.ic-5{background-image:var(--ic-5)}.ic-6{background-image:var(--ic-6)}.ic-7{background-image:var(--ic-7)}
@@ -345,7 +304,7 @@ button{font:inherit;color:inherit}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 /* ---- 掌机的形状：全部方角、硬投影，被压住的牌用网点而不是变暗 ---- */
-:root[data-skin="pixel"] .face{border-radius:0;box-shadow:inset 0 0 0 2px #1c3318,3px 3px 0 #1c3318}
+:root[data-skin="pixel"] .face{border-radius:0;box-shadow:inset 0 0 0 2px #1c3318,inset 4px 4px 0 rgba(255,255,255,.4),inset -4px -4px 0 rgba(28,51,24,.16),3px 3px 0 #1c3318}
 :root[data-skin="pixel"] .tile.blocked .face::after{content:"";position:absolute;inset:0;
   background:conic-gradient(#1c3318 25%,transparent 0 50%,#1c3318 0 75%,transparent 0) 0 0/4px 4px;opacity:.5}
 :root[data-skin="pixel"] .art{image-rendering:pixelated}
@@ -364,22 +323,6 @@ button{font:inherit;color:inherit}
 :root[data-skin="pixel"] .sewn{height:6px;margin-top:-3px;border-radius:0;background:repeating-linear-gradient(90deg,var(--thread) 0 6px,transparent 6px 8px)}
 :root[data-skin="pixel"] .meter.hot .pips i.on{animation:blink .6s steps(1) infinite}
 
-/* ---- 青花的形状：圆润瓷片，内圈一道蓝线；漆盘口袋 ---- */
-:root[data-skin="porcelain"] .face{border-radius:22%;
-  background:radial-gradient(120% 90% at 30% 15%,rgba(255,255,255,.95),rgba(255,255,255,0) 55%),linear-gradient(180deg,#fbfcfa,#e8ecef);
-  box-shadow:inset 0 -2px 0 rgba(150,165,185,.45),0 calc(var(--ts) * .06) 0 #bcc6d2,0 calc(var(--ts) * .06 + 3px) 6px rgba(15,4,2,.55)}
-:root[data-skin="porcelain"] .face::before{content:"";position:absolute;inset:5%;border-radius:19%;border:1.5px solid rgba(40,78,165,.5)}
-:root[data-skin="porcelain"] .lvl{border-radius:999px;padding-inline:14px;box-shadow:0 3px 0 var(--btn-edge),0 5px 8px rgba(0,0,0,.35)}
-:root[data-skin="porcelain"] .icon-btn{box-shadow:inset 0 0 0 3px var(--btn),inset 0 0 0 4.5px rgba(40,78,165,.35),0 3px 0 var(--btn-edge),0 5px 8px rgba(0,0,0,.4)}
-:root[data-skin="porcelain"] .tool{border-radius:18px;font-size:20px;letter-spacing:.04em;box-shadow:0 5px 0 var(--btn-edge),0 8px 14px rgba(0,0,0,.4)}
-:root[data-skin="porcelain"] .tool:active:not(:disabled){box-shadow:0 2px 0 var(--btn-edge),0 4px 8px rgba(0,0,0,.4)}
-:root[data-skin="porcelain"] .trough{background:linear-gradient(180deg,var(--tray),var(--tray-2));box-shadow:inset 0 1px 0 rgba(255,220,180,.12),0 6px 0 #0a0302,0 14px 26px rgba(0,0,0,.45)}
-:root[data-skin="porcelain"] .trough::before{border:1px solid var(--tray-line)}
-:root[data-skin="porcelain"] .dialog{border-radius:22px;box-shadow:0 8px 0 var(--paper-edge),0 24px 44px rgba(0,0,0,.5)}
-:root[data-skin="porcelain"] .dialog h2{font-size:34px;letter-spacing:.02em}
-:root[data-skin="porcelain"] .brand{letter-spacing:.04em}
-:root[data-skin="porcelain"] .needle{display:none}
-:root[data-skin="porcelain"] .sewn{height:2px;margin-top:-1px;border-radius:1px;background:var(--thread)}
 
 /* ---- 孔版的形状：纸片 + 蓝线框 + 粉色错位的影子 ---- */
 :root[data-skin="riso"] .face{border-radius:10%;background:var(--tile);box-shadow:inset 0 0 0 1.5px #0078bf,3px 3px 0 #ff48b0}
@@ -443,46 +386,6 @@ button{font:inherit;color:inherit}
   --toast-ink:#fff;
   --brand-shadow:none;
   --font-display:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-}
-/* 故障：暗屏、扫描线、红绿蓝三通道错位 */
-:root[data-skin="glitch"]{
-  --bg:#0c0a1d;
-  --ink:#e9f7ff;
-  --ink-soft:#8fa3c7;
-  --tile:#17153a;
-  --tile-hi:rgba(0,240,255,.08);
-  --dim:brightness(.35) saturate(.3);
-  --btn:#17153a;
-  --btn-ink:#e9f7ff;
-  --btn-soft:#00f0ff;
-  --btn-edge:#ff2bd6;
-  --tray:#07061a;
-  --tray-2:#07061a;
-  --tray-line:#00f0ff;
-  --tray-cell:rgba(0,240,255,.06);
-  --thread:#00f0ff;
-  --track:rgba(143,163,199,.25);
-  --accent:#ff2bd6;
-  --accent-deep:#00a8b3;
-  --accent-ink:#0c0a1d;
-  --badge:#ff2bd6;
-  --badge-ink:#0c0a1d;
-  --paper:#17153a;
-  --paper-ink:#e9f7ff;
-  --paper-soft:#a9b8d8;
-  --paper-edge:#00f0ff;
-  --ghost-line:rgba(0,240,255,.5);
-  --scrim:rgba(5,4,15,.72);
-  --focus:#00f0ff;
-  --pip-off:rgba(143,163,199,.4);
-  --pip-on:#00f0ff;
-  --warn:#ff2bd6;
-  --warn-ink:#ff8ae8;
-  --bed:rgba(0,240,255,.04);
-  --shelf:#ff2bd6;
-  --toast:#ff2bd6;
-  --toast-ink:#0c0a1d;
-  --brand-shadow:-2px 0 0 #ff2bd6,2px 0 0 #00f0ff;
 }
 /* 铅字：不要图，只要字；纯黑白 */
 :root[data-skin="type"]{
@@ -555,41 +458,20 @@ button{font:inherit;color:inherit}
 :root[data-skin="bauhaus"] .needle{display:none}
 :root[data-skin="bauhaus"] .sewn{height:6px;margin-top:-3px;border-radius:0;background:#151515}
 
-/* ---- 故障的形状 ---- */
-:root[data-skin="glitch"] .face{border-radius:6%;background:linear-gradient(180deg,#1f1b52,#121031);
-  box-shadow:inset 0 0 0 1px rgba(0,240,255,.55),2px 2px 0 #ff2bd6,-1px -1px 0 rgba(0,240,255,.55)}
-:root[data-skin="glitch"] .face::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,rgba(255,255,255,0) 1px 3px)}
-:root[data-skin="glitch"] .brand{animation:glitch 3.4s steps(1) infinite}
-:root[data-skin="glitch"] .lvl{background:transparent;color:var(--ink);border-radius:4px;box-shadow:inset 0 0 0 1px #00f0ff,2px 2px 0 #ff2bd6}
-:root[data-skin="glitch"] .lvl b{color:#ff2bd6}
-:root[data-skin="glitch"] .icon-btn{border-radius:6px;box-shadow:inset 0 0 0 1px #00f0ff,2px 2px 0 #ff2bd6}
-:root[data-skin="glitch"] .icon-btn:active{transform:translate(1px,1px);box-shadow:inset 0 0 0 1px #00f0ff}
-:root[data-skin="glitch"] .tool{border-radius:6px;letter-spacing:.12em;box-shadow:inset 0 0 0 1px #00f0ff,3px 3px 0 #ff2bd6;text-shadow:-1px 0 0 rgba(255,43,214,.7),1px 0 0 rgba(0,240,255,.7)}
-:root[data-skin="glitch"] .tool:active:not(:disabled){transform:translate(2px,2px);box-shadow:inset 0 0 0 1px #00f0ff,1px 1px 0 #ff2bd6}
-:root[data-skin="glitch"] .trough{border-radius:6px;background:var(--tray);box-shadow:inset 0 0 0 1px #00f0ff,4px 0 0 rgba(255,43,214,.85),-3px 0 0 rgba(0,240,255,.5)}
-:root[data-skin="glitch"] .trough::before{display:none}
-:root[data-skin="glitch"] .trough i{border-radius:3px;background:var(--tray-cell);box-shadow:inset 0 0 0 1px rgba(0,240,255,.25)}
-:root[data-skin="glitch"] .dialog{border-radius:6px;box-shadow:inset 0 0 0 1px #00f0ff,6px 6px 0 #ff2bd6}
-:root[data-skin="glitch"] .dialog h2{text-shadow:-2px 0 0 #ff2bd6,2px 0 0 #00f0ff}
-:root[data-skin="glitch"] .btn.primary{box-shadow:3px 3px 0 #00f0ff}
-:root[data-skin="glitch"] .toast{border-radius:4px;box-shadow:3px 3px 0 #00f0ff}
-:root[data-skin="glitch"] .needle{display:none}
-:root[data-skin="glitch"] .sewn{height:3px;margin-top:-1.5px;border-radius:0;background:#00f0ff;box-shadow:2px 0 0 #ff2bd6,0 0 8px rgba(0,240,255,.6)}
 
 /* ---- 铅字的形状：牌上印一个字，一半的牌黑底反白 ---- */
 :root[data-skin="type"] body::before{content:"咩";position:fixed;right:-14vmin;bottom:-22vmin;z-index:0;pointer-events:none;
-  font:900 118vmin/1 "Noto Serif SC","Songti SC",serif;color:transparent;-webkit-text-stroke:1.5px rgba(17,17,17,.09)}
+  font:900 118vmin/1 "Noto Serif SC","Songti SC",serif;color:transparent;-webkit-text-stroke:1.5px rgba(17,17,17,.06)}
 :root[data-skin="type"] .face{border-radius:0;box-shadow:inset 0 0 0 1.5px #111,3px 3px 0 #111}
 :root[data-skin="type"] .art{inset:0;background:none;display:grid;place-items:center;font-size:calc(var(--ts) * .6);line-height:1;color:#111;
   font-family:"Noto Serif SC","Songti SC",serif;font-weight:900}
 :root[data-skin="type"] .art::before{content:var(--ch)}
-:root[data-skin="type"] .dlg-art .art{width:88px;height:88px;font-size:72px}
-:root[data-skin="type"] .ic-1,:root[data-skin="type"] .ic-6,:root[data-skin="type"] .ic-9,:root[data-skin="type"] .ic-13{font-family:"Noto Sans SC",sans-serif;font-weight:900}
-:root[data-skin="type"] .ic-2,:root[data-skin="type"] .ic-5,:root[data-skin="type"] .ic-10,:root[data-skin="type"] .ic-14{font-family:"Ma Shan Zheng","KaiTi",serif;font-weight:400}
-:root[data-skin="type"] .ic-3,:root[data-skin="type"] .ic-7,:root[data-skin="type"] .ic-11,:root[data-skin="type"] .ic-15{font-family:"ZCOOL QingKe HuangYou",sans-serif;font-weight:400}
-:root[data-skin="type"] .tile:is([data-ty="1"],[data-ty="3"],[data-ty="4"],[data-ty="9"],[data-ty="10"],[data-ty="12"],[data-ty="15"]) .face{background:#111}
-:root[data-skin="type"] .tile:is([data-ty="1"],[data-ty="3"],[data-ty="4"],[data-ty="9"],[data-ty="10"],[data-ty="12"],[data-ty="15"]) .art{color:#fff}
+:root[data-skin="type"] .dlg-art .art{width:88px;height:88px;font-size:72px!important}
+:root[data-skin="type"] .ic-1,:root[data-skin="type"] .ic-2,:root[data-skin="type"] .ic-3,:root[data-skin="type"] .ic-11{font-family:"Noto Sans SC",sans-serif;font-weight:900}
+:root[data-skin="type"] .ic-0,:root[data-skin="type"] .ic-8,:root[data-skin="type"] .ic-9,:root[data-skin="type"] .ic-14{font-family:"Ma Shan Zheng","KaiTi",serif;font-weight:400;font-size:calc(var(--ts) * .66)}
+:root[data-skin="type"] .ic-4,:root[data-skin="type"] .ic-5,:root[data-skin="type"] .ic-12{font-family:"ZCOOL QingKe HuangYou",sans-serif;font-weight:400;font-size:calc(var(--ts) * .64)}
+:root[data-skin="type"] .tile:is([data-ty="1"],[data-ty="3"],[data-ty="6"],[data-ty="9"],[data-ty="11"],[data-ty="12"],[data-ty="14"]) .face{background:#111}
+:root[data-skin="type"] .tile:is([data-ty="1"],[data-ty="3"],[data-ty="6"],[data-ty="9"],[data-ty="11"],[data-ty="12"],[data-ty="14"]) .art{color:#fff}
 :root[data-skin="type"] .brand{font-weight:900;letter-spacing:-.02em;font-size:clamp(23px,6.8vw,34px)}
 :root[data-skin="type"] .dialog h2{font-weight:900;letter-spacing:0}
 :root[data-skin="type"] .lvl{background:#111;color:#fff;border-radius:0;box-shadow:none}
@@ -609,20 +491,14 @@ button{font:inherit;color:inherit}
 :root[data-skin="type"] .sewn{height:4px;margin-top:-2px;border-radius:0;background:#111}
 :root[data-skin="type"] .meter.hot .pips i.on{animation:blink .6s steps(1) infinite}
 /* 铅字用的字 */
-.ic-0{--ch:"心"}.ic-1{--ch:"星"}.ic-2{--ch:"花"}.ic-3{--ch:"萝"}.ic-4{--ch:"草"}.ic-5{--ch:"羊"}.ic-6{--ch:"线"}.ic-7{--ch:"鱼"}
-.ic-8{--ch:"套"}.ic-9{--ch:"水"}.ic-10{--ch:"菇"}.ic-11{--ch:"瓜"}.ic-12{--ch:"音"}.ic-13{--ch:"梨"}.ic-14{--ch:"雨"}.ic-15{--ch:"桃"}
+/* 字形尽量错开：只有花、菇带草字头；简单的字用装饰字体，复杂的字用清楚的宋体、黑体 */
+.ic-0{--ch:"心"}.ic-1{--ch:"星"}.ic-2{--ch:"花"}.ic-3{--ch:"卜"}.ic-4{--ch:"叶"}.ic-5{--ch:"羊"}.ic-6{--ch:"线"}.ic-7{--ch:"鱼"}
+.ic-8{--ch:"手"}.ic-9{--ch:"水"}.ic-10{--ch:"菇"}.ic-11{--ch:"瓜"}.ic-12{--ch:"音"}.ic-13{--ch:"梨"}.ic-14{--ch:"雨"}.ic-15{--ch:"樱"}
 
 /* 换风格面板的分组标题 */
 .skin-group{grid-column:1/-1;margin:4px 0 -2px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--paper-soft)}
 .sw-char{font-size:28px;line-height:1}
 
-@keyframes glitch{
-  0%,84%,100%{transform:none;clip-path:none;text-shadow:-2px 0 0 #ff2bd6,2px 0 0 #00f0ff}
-  86%{transform:translateX(-3px);clip-path:inset(18% 0 44% 0);text-shadow:-5px 0 0 #ff2bd6,4px 0 0 #00f0ff}
-  88%{transform:translateX(4px);clip-path:inset(56% 0 8% 0)}
-  90%{transform:translateX(-1px);clip-path:none;text-shadow:3px 0 0 #ff2bd6,-3px 0 0 #00f0ff}
-  92%{transform:none;text-shadow:-2px 0 0 #ff2bd6,2px 0 0 #00f0ff}
-}
 
 @keyframes drop{from{transform:translateY(-38px) rotate(var(--r,0deg)) scale(.9);opacity:0}70%{opacity:1}to{transform:none;opacity:1}}
 @keyframes freed{0%{transform:scale(.93)}55%{transform:scale(1.06)}100%{transform:none}}
@@ -646,7 +522,7 @@ button{font:inherit;color:inherit}
   .stage .tile.shake .face,.stage .tile.flip .face,.stage .tile.back .face,.trough.shake,.tool .n.bump,.dlg-actions .btn{animation:none}
   .stage .tile.inslot{transition-duration:.01s}
   .needle,.sewn{transition:none}
-  .dialog,.dlg-art .hop,.meter.hot .pips i.on,:root[data-skin="glitch"] .brand{animation:none}
+  .dialog,.dlg-art .hop,.meter.hot .pips i.on{animation:none}
 }
 </style>
 </head>
@@ -825,7 +701,7 @@ function knitTexture(){
 }
 
 /* ---------- 另外三套外观的画法（共用同一套 11×11 图案） ---------- */
-// 掌机和青花只有四个深浅：每种线色事先指定落在第几阶
+// 掌机只有四个深浅：每种线色事先指定落在第几阶
 const TONE = {R: 1, r: 0, P: 3, Y: 2, O: 1, o: 0, G: 1, g: 2, W: 3, L: 2, K: 0, U: 1, u: 2, T: 1, t: 3, B: 1, S: 2, N: 1, n: 2};
 function gridCanvas(){
   const cell = 12, n = 11, size = cell * n, dpr = 2;
@@ -838,7 +714,7 @@ function gridCanvas(){
 
 function pixelIcon(rows){
   const {c, x, cell, n} = gridCanvas();
-  const shades = ['#1c3318', '#3b5c28', '#6d8e36', '#a9c262'];
+  const shades = ['#0e200f', '#2f5b22', '#6d9636', '#a8c45a'];
   for (let r = 0; r < n; r++){
     for (let q = 0; q < n; q++){
       const ch = rows[r][q];
@@ -847,37 +723,6 @@ function pixelIcon(rows){
       x.fillRect(q * cell + .5, r * cell + .5, cell - 1, cell - 1);
     }
   }
-  return c.toDataURL('image/png');
-}
-
-// 青花：先铺一层晕开的淡釉，再点上钴蓝；轮廓处加深一阶，像笔描的边
-function blueIcon(rows){
-  const {c, x, cell, n} = gridCanvas();
-  const blues = ['#132d6e', '#2a52a8', '#6f91d6', '#d3def3'];
-  const on = (r, q) => r >= 0 && q >= 0 && r < n && q < n && rows[r][q] !== '.';
-  const dab = (q, r, rad) => { x.beginPath(); x.arc(q * cell + cell / 2, r * cell + cell / 2, rad, 0, Math.PI * 2); x.fill(); };
-  x.filter = 'blur(1.4px)';
-  x.globalAlpha = .4;
-  for (let r = 0; r < n; r++){
-    for (let q = 0; q < n; q++){
-      if (!on(r, q)) continue;
-      x.fillStyle = blues[Math.min(3, TONE[rows[r][q]] + 1)];
-      dab(q, r, cell * .8);
-    }
-  }
-  x.filter = 'blur(.4px)';
-  x.globalAlpha = .92;
-  for (let r = 0; r < n; r++){
-    for (let q = 0; q < n; q++){
-      if (!on(r, q)) continue;
-      let s = TONE[rows[r][q]];
-      if (s > 0 && (!on(r - 1, q) || !on(r + 1, q) || !on(r, q - 1) || !on(r, q + 1))) s--;
-      x.fillStyle = blues[s];
-      dab(q, r, cell * .6);
-    }
-  }
-  x.filter = 'none';
-  x.globalAlpha = 1;
   return c.toDataURL('image/png');
 }
 
@@ -911,8 +756,8 @@ function risoIcon(rows, seed){
     }
     if (!any) continue;
     lx.globalCompositeOperation = 'destination-out';
-    for (let i = 0; i < 320; i++){
-      lx.fillStyle = `rgba(0,0,0,${.25 + rnd() * .55})`;
+    for (let i = 0; i < 170; i++){
+      lx.fillStyle = `rgba(0,0,0,${.2 + rnd() * .45})`;
       lx.fillRect(rnd() * size, rnd() * size, .7 + rnd() * 1.3, .7 + rnd() * 1.3);
     }
     x.drawImage(lay, offs[k][0] * (rnd() < .5 ? 1 : -1), offs[k][1], size, size);
@@ -944,70 +789,12 @@ function bauhausIcon(i){
     case 7: x.fillStyle = B; x.beginPath(); x.ellipse(44, 50, 30, 19, 0, 0, PI * 2); x.fill(); tri([[68, 50], [92, 30], [92, 70]], B); circ(32, 46, 4.5, W); break;
     case 8: rect(30, 20, 40, 52, K); circ(50, 20, 20, K); circ(24, 52, 10, K); rect(28, 72, 44, 14, Y); break;
     case 9: circ(50, 62, 27, B); tri([[50, 8], [26, 52], [74, 52]], B); circ(41, 62, 6, W); break;
-    case 10: half(50, 56, 40, PI, 2 * PI, R); rect(40, 56, 20, 34, K); circ(34, 42, 5, W); circ(62, 34, 5, W); break;
+    case 10: half(50, 56, 40, PI, 2 * PI, K); rect(40, 56, 20, 34, R); circ(34, 42, 5, W); circ(62, 34, 5, W); break;
     case 11: half(50, 30, 42, 0, PI, K); half(50, 30, 35, 0, PI, R); circ(38, 44, 3.5, K); circ(50, 52, 3.5, K); circ(62, 44, 3.5, K); break;
     case 12: circ(37, 72, 14, K); rect(45, 14, 6, 60, K); tri([[51, 14], [80, 28], [51, 40]], K); break;
     case 13: circ(50, 66, 26, Y); circ(50, 38, 16, Y); rect(48, 8, 5, 18, K); tri([[53, 16], [72, 8], [66, 22]], K); break;
     case 14: ring(32, 52, 14, 4, K); ring(51, 42, 17, 4, K); ring(69, 54, 13, 4, K); rect(18, 66, 64, 4, K); rect(32, 76, 4, 14, B); rect(49, 80, 4, 14, B); rect(66, 76, 4, 14, B); break;
     default: line(32, 56, 56, 14, 4, K); line(70, 52, 56, 14, 4, K); circ(32, 70, 16, R); circ(70, 66, 16, R); break;
-  }
-  return c.toDataURL('image/png');
-}
-
-// 故障：先画亮色像素，再把红绿蓝三个通道左右错开，最后切几条横带随机平移
-const NEON = {K: '#d7d3ff', r: '#ff4f7b', o: '#ff8a3d', N: '#e0a071', B: '#6f8dff'};
-function glitchIcon(rows, seed){
-  const {c, x, cell, n} = gridCanvas();
-  for (let r = 0; r < n; r++){
-    for (let q = 0; q < n; q++){
-      const ch = rows[r][q];
-      if (ch === '.') continue;
-      x.fillStyle = NEON[ch] || shade(PAL[ch], .15);
-      x.fillRect(q * cell + .5, r * cell + .5, cell - 1, cell - 1);
-    }
-  }
-  const W = c.width;
-  const blank = () => { const k = document.createElement('canvas'); k.width = k.height = W; return k; };
-  const channel = col => {
-    const k = blank(), kx = k.getContext('2d');
-    kx.drawImage(c, 0, 0);
-    kx.globalCompositeOperation = 'multiply';
-    kx.fillStyle = col;
-    kx.fillRect(0, 0, W, W);
-    kx.globalCompositeOperation = 'destination-in';
-    kx.drawImage(c, 0, 0);
-    return k;
-  };
-  const split = blank(), sx = split.getContext('2d');
-  sx.globalCompositeOperation = 'lighter';
-  sx.drawImage(channel('#ff0000'), -7, 0);
-  sx.drawImage(channel('#00ff00'), 0, 0);
-  sx.drawImage(channel('#0000ff'), 7, 0);
-  const out = blank(), ox = out.getContext('2d');
-  ox.drawImage(split, 0, 0);
-  const rnd = rngFrom(seed * 97 + 5);
-  for (let i = 0; i < 3; i++){
-    const y = Math.floor(rnd() * W * .85), h = Math.floor(8 + rnd() * 22), dx = Math.round((rnd() - .5) * 30);
-    ox.clearRect(0, y, W, h);
-    ox.drawImage(split, 0, y, W, h, dx, y, W, h);
-  }
-  return out.toDataURL('image/png');
-}
-
-// 故障背景：零星的品红、青色横条
-function glitchTexture(){
-  const S = 320;
-  const c = document.createElement('canvas');
-  c.width = c.height = S;
-  const x = c.getContext('2d');
-  const rnd = rngFrom(23);
-  for (let i = 0; i < 24; i++){
-    x.fillStyle = rnd() < .5 ? `rgba(255,43,214,${.05 + rnd() * .12})` : `rgba(0,240,255,${.05 + rnd() * .12})`;
-    x.fillRect(rnd() * S * .7, rnd() * S, 30 + rnd() * 200, 1 + rnd() * 5);
-  }
-  for (let i = 0; i < 10; i++){
-    x.fillStyle = `rgba(255,255,255,${.03 + rnd() * .05})`;
-    x.fillRect(rnd() * S, rnd() * S, 4 + rnd() * 24, 2 + rnd() * 8);
   }
   return c.toDataURL('image/png');
 }
@@ -2077,7 +1864,7 @@ function showHelp(){
     '口袋只有 7 格，塞满了还凑不出 3 张，这一局就输了。',
     '三个道具每局各能用 1 次：移出把口袋最左边 3 张挪到上面的架子上，之后还能点回来；撤回退回上一步；洗牌把场上的牌重新打乱。',
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
-    '右上角的调色盘可以换外观，一共七种，换了不影响这一局。',
+    '右上角的调色盘可以换外观，一共五种，换了不影响这一局。',
     '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
     '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。捻开时被压住的牌只显示背面，不会偷看到底下是什么。'
   ], actions: [
@@ -2317,15 +2104,7 @@ const SKINS = {
       bodyStyle.backgroundImage = 'radial-gradient(120% 90% at 50% 40%, rgba(255,255,220,.16), rgba(28,51,24,.2) 100%), linear-gradient(rgba(28,51,24,.07) 1px, rgba(28,51,24,0) 1px), linear-gradient(90deg, rgba(28,51,24,.07) 1px, rgba(28,51,24,0) 1px)';
       bodyStyle.backgroundSize = '100% 100%, 3px 3px, 3px 3px';
     },
-    sw: {bg: '#a3bd4f', tile: 'background:#d6e5a0;box-shadow:inset 0 0 0 2px #1c3318,3px 3px 0 #1c3318'}
-  },
-  porcelain: {
-    group: '经典', name: '青花', desc: '白瓷蓝釉 · 朱漆桌', draw: rows => blueIcon(rows),
-    paint(){
-      bodyStyle.backgroundImage = 'radial-gradient(90% 60% at 50% 0%, rgba(255,170,120,.16), rgba(255,170,120,0) 70%), radial-gradient(120% 90% at 50% 40%, rgba(0,0,0,0) 50%, rgba(0,0,0,.45) 100%), repeating-linear-gradient(97deg, rgba(0,0,0,.05) 0 2px, rgba(0,0,0,0) 2px 11px)';
-      bodyStyle.backgroundSize = '100% 100%, 100% 100%, auto';
-    },
-    sw: {bg: '#3a1611', tile: 'background:#f6f7f3;border-radius:22%;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 3.5px rgba(40,78,165,.5),0 4px 0 #bcc6d2'}
+    sw: {bg: '#a3bd4f', tile: 'background:#e2edb3;box-shadow:inset 0 0 0 2px #1c3318,inset 3px 3px 0 rgba(255,255,255,.4),inset -3px -3px 0 rgba(28,51,24,.16),3px 3px 0 #1c3318'}
   },
   riso: {
     group: '经典', name: '孔版', desc: '粉蓝双色 · 套色错位', draw: (rows, i) => risoIcon(rows, i),
@@ -2338,18 +2117,13 @@ const SKINS = {
   bauhaus: {
     group: '前卫', name: '构成', desc: '红黄蓝黑 · 几何抽象', draw: (rows, i) => bauhausIcon(i),
     paint(){
-      bodyStyle.backgroundImage = 'radial-gradient(circle at 104% -4%, #d6322b 0 30vmin, rgba(214,50,43,0) 30.3vmin), radial-gradient(circle at -6% 106%, #f2c230 0 36vmin, rgba(242,194,48,0) 36.3vmin), linear-gradient(115deg, rgba(21,21,21,0) 0 70%, #151515 70% 72.5%, rgba(21,21,21,0) 72.5%), linear-gradient(25deg, rgba(30,79,163,0) 0 20%, rgba(30,79,163,.9) 20% 21.2%, rgba(30,79,163,0) 21.2%)';
-      bodyStyle.backgroundSize = '100% 100%, 100% 100%, 100% 100%, 100% 100%';
+      // 几何形只放在四个角，不压在文字和牌堆后面
+      bodyStyle.backgroundImage = 'radial-gradient(circle at 100% 0, #d6322b 0 22vmin, rgba(214,50,43,0) 22.3vmin), radial-gradient(circle at 0 100%, #f2c230 0 26vmin, rgba(242,194,48,0) 26.3vmin), linear-gradient(#151515, #151515), linear-gradient(#1e4fa3, #1e4fa3)';
+      bodyStyle.backgroundSize = '100% 100%, 100% 100%, 30vmin 2vmin, 1.6vmin 24vmin';
+      bodyStyle.backgroundPosition = '0 0, 0 0, 100% calc(100% - 5vmin), 3vmin 0';
+      bodyStyle.backgroundRepeat = 'no-repeat';
     },
     sw: {bg: 'radial-gradient(circle at 100% 0, #d6322b 0 26px, rgba(0,0,0,0) 27px), #e9e7e1', tile: 'background:#fff;box-shadow:inset 0 0 0 2.5px #151515,3px 3px 0 #151515'}
-  },
-  glitch: {
-    group: '前卫', name: '故障', desc: '暗屏扫描线 · 三色错位', draw: (rows, i) => glitchIcon(rows, i),
-    paint(){
-      bodyStyle.backgroundImage = `repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, rgba(0,0,0,0) 1px 3px), url(${glitchTexture()}), radial-gradient(120% 90% at 50% 30%, rgba(70,40,170,.35), rgba(0,0,0,0) 70%)`;
-      bodyStyle.backgroundSize = 'auto, 320px 320px, 100% 100%';
-    },
-    sw: {bg: '#0c0a1d', tile: 'background:#17153a;border-radius:6%;box-shadow:inset 0 0 0 1px rgba(0,240,255,.6),2px 2px 0 #ff2bd6'}
   },
   type: {
     group: '前卫', name: '铅字', desc: '只印字 · 纯黑白', draw: null,
@@ -2357,7 +2131,7 @@ const SKINS = {
       bodyStyle.backgroundImage = 'none';
       bodyStyle.backgroundSize = 'auto';
     },
-    sw: {bg: '#f3f3f0', char: '羊', tile: 'background:#fff;box-shadow:inset 0 0 0 1.5px #111,3px 3px 0 #111;color:#111;font-family:"Ma Shan Zheng",serif'}
+    sw: {bg: '#f3f3f0', char: '羊', tile: 'background:#fff;box-shadow:inset 0 0 0 1.5px #111,3px 3px 0 #111;color:#111;font-family:"ZCOOL QingKe HuangYou",sans-serif'}
   }
 };
 const iconCache = {};
@@ -2369,6 +2143,8 @@ function applySkin(id){
   skin = id;
   document.documentElement.dataset.skin = id;
   iconsFor(id).forEach((u, i) => (u ? bodyStyle.setProperty(`--ic-${i}`, `url(${u})`) : bodyStyle.removeProperty(`--ic-${i}`)));
+  bodyStyle.backgroundPosition = '';
+  bodyStyle.backgroundRepeat = '';
   SKINS[id].paint();
   savePrefs({skin: id});
 }
