@@ -184,6 +184,11 @@ button{font:inherit;color:inherit}
 /* 牌桌 */
 .stage{position:relative;isolation:isolate;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
 .stage.tilting .tile.onboard{transition:none}
+/* 牌摞里被压住的牌只露出一窄条；有硬投影的外观里，上一张的影子会正好盖住这一条，所以只留边框 */
+:root[data-skin="pixel"] .tile.pile.blocked .face{box-shadow:inset 0 0 0 2px #1c3318}
+:root[data-skin="riso"] .tile.pile.blocked .face{box-shadow:inset 0 0 0 1.5px #0078bf}
+:root[data-skin="bauhaus"] .tile.pile.blocked .face{box-shadow:inset 0 0 0 2.5px #151515}
+:root[data-skin="type"] .tile.pile.blocked .face{box-shadow:inset 0 0 0 1.5px #111}
 /* 捻开看层次时只看结构：被压住的牌一律扣成背面，松手后再翻回来 */
 .stage.tilting .tile.blocked.onboard .art{opacity:0}
 .peek{width:30px;height:30px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none;
@@ -1140,7 +1145,7 @@ function pilePositions(piles){
     const x0 = p.slot === 'mid' ? (piles.length === 1 ? 3 - (p.n - 1) * .105 / 2 : 2.45) : 0;
     for (let i = 0; i < p.n; i++){
       const x = p.slot === 'right' ? 6 - i * .105 : p.slot === 'left' ? i * .105 : x0 + i * .105;
-      out.push({x, y: 7.62, z: i});
+      out.push({x, y: 7.62, z: i, pile: true});
     }
   }
   return out;
@@ -1177,7 +1182,7 @@ function makeLayout(rng, cfg, arch){
 
 function makeTiles(pos){
   const tiles = pos.map((p, id) => ({
-    id, x: p.x, y: p.y, z: p.z, type: -1, status: 'board', pending: false,
+    id, x: p.x, y: p.y, z: p.z, pile: !!p.pile, type: -1, status: 'board', pending: false,
     covers: [], coveredBy: [], el: null, art: null, shown: -1, si: 0, hc: 0, hd: 0
   }));
   for (let i = 0; i < tiles.length; i++){
@@ -1535,6 +1540,7 @@ function mountTiles(deal){
     const el = document.createElement('button');
     el.type = 'button';
     el.className = 'tile';
+    if (t.pile) el.classList.add('pile');
     const face = document.createElement('span');
     face.className = 'face';
     face.setAttribute('aria-hidden', 'true');
