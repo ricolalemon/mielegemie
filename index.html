@@ -182,7 +182,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{height:100%;background:var(--bg)}
-body{min-height:100%;margin:0;background-color:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+body{min-height:100%;margin:0;overflow-x:hidden;overflow-x:clip;background-color:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
 .icon-btn:focus-visible,.tool:focus-visible,.btn:focus-visible,.skin-opt:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
 .dialog .btn:focus-visible,.dialog .skin-opt:focus-visible{outline-color:var(--paper-ink)}
@@ -1553,9 +1553,10 @@ function render(){
     if (t.shown !== t.type){ t.art.className = 'art ic-' + t.type; el.dataset.ty = t.type; t.shown = t.type; }
     let x = 0, y = 0, s = 1, zi = 0, blocked = false;
     if (t.status === 'board'){
-      const lk = lift(t);
-      x = L.boardX + (t.x + .04) * unit + tilt.x * lk;
-      y = L.boardY + (t.y + .01) * unit + tilt.y * lk;
+      const p = boardPose(t);
+      x = p.x;
+      y = p.y;
+      s = p.s.toFixed(3);
       zi = 10 + Math.min(t.z, 280);
       blocked = !isFree(t);
     } else if (t.status === 'slot'){
@@ -1963,18 +1964,28 @@ function computeHeights(tiles){
   for (const t of tiles) t.h = h(t);
 }
 const lift = t => Math.min(t.h || 1, 12) * L.unit * .075;
+const TILT_MAX = 2.4;
+function boardPose(t){
+  const k = lift(t), mag = Math.hypot(tilt.x, tilt.y);
+  const s = 1 + Math.min(t.h || 1, 12) * .012 * mag, half = (s - 1) * L.unit * .46;
+  return {
+    x: L.boardX + (t.x + .04) * L.unit + tilt.x * k - half,
+    y: L.boardY + (t.y + .01) * L.unit + tilt.y * k - half,
+    s
+  };
+}
 
 function applyTilt(){
   for (const t of G.tiles){
     if (t.status !== 'board' || !t.el) continue;
-    const k = lift(t);
-    const x = L.boardX + (t.x + .04) * L.unit + tilt.x * k, y = L.boardY + (t.y + .01) * L.unit + tilt.y * k;
-    t.el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(1)`;
+    const p = boardPose(t);
+    t.el.style.transform = `translate(${p.x.toFixed(1)}px,${p.y.toFixed(1)}px) scale(${p.s.toFixed(3)})`;
   }
 }
 function setTilt(x, y){
-  tilt.x = Math.max(-1, Math.min(1, x));
-  tilt.y = Math.max(-1, Math.min(1, y));
+  const m = Math.hypot(x, y), f = m > TILT_MAX ? TILT_MAX / m : 1;
+  tilt.x = x * f;
+  tilt.y = y * f;
   if (!tiltRaf) tiltRaf = requestAnimationFrame(() => { tiltRaf = 0; applyTilt(); });
 }
 function startPeek(src){
@@ -2007,8 +2018,8 @@ function sweep(){
   const t0 = performance.now();
   const step = now => {
     if (peekSrc !== 'button') return;
-    const s = (now - t0) / 1000, amp = Math.min(1, s / .3), a = Math.PI / 4 + s * 1.7;
-    setTilt(Math.cos(a) * .9 * amp, Math.sin(a) * .9 * amp);
+    const s = (now - t0) / 1000, amp = 1.7 * Math.min(1, s / .45), a = Math.PI / 4 + s * 1.5;
+    setTilt(Math.cos(a) * amp, Math.sin(a) * amp);
     sweepRaf = requestAnimationFrame(step);
   };
   sweepRaf = requestAnimationFrame(step);
@@ -2048,7 +2059,7 @@ stage.addEventListener('pointermove', e => {
   touches.set(e.pointerId, {x: e.clientX, y: e.clientY});
   if (peekSrc === 'touch' && touches.size >= 2){
     const m = touchMid();
-    setTilt((m.x - touchStart.x) / 70, (m.y - touchStart.y) / 70);
+    setTilt((m.x - touchStart.x) / 50, (m.y - touchStart.y) / 50);
   }
 });
 const dropTouch = e => {
@@ -2063,13 +2074,13 @@ const gyro = {tried: false, b0: null, g0: null};
 function onOrient(e){
   if (e.beta == null || e.gamma == null) return;
   if (gyro.b0 == null){ gyro.b0 = e.beta; gyro.g0 = e.gamma; }
-  const f = d => Math.sign(d) * Math.min(1, Math.max(0, Math.abs(d) - 7) / 13);
+  const f = d => Math.sign(d) * Math.min(TILT_MAX, Math.max(0, Math.abs(d) - 7) / 10);
   const tx = f(e.gamma - gyro.g0), ty = f(e.beta - gyro.b0);
   if (!tx && !ty){ gyro.b0 += (e.beta - gyro.b0) * .03; gyro.g0 += (e.gamma - gyro.g0) * .03; }
   if (peekSrc === 'button' || peekSrc === 'touch') return;
   if (tx || ty){
     if (peekSrc !== 'gyro') startPeek('gyro');
-    setTilt(tx * .9, ty * .9);
+    setTilt(tx, ty);
   } else if (peekSrc === 'gyro') endPeek('gyro');
 }
 function enableGyro(){
