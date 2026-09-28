@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="毛衣与十字绣风格的三消小游戏，每一副牌都保证有解。">
+<title>咩了个咩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Silkscreen&family=ZCOOL+QingKe+HuangYou&display=swap">
+<style>
+/* 一件靛蓝毛衣上的十字绣：整页固定用这一套深色配色 */
+:root{
+  color-scheme:dark;
+  --knit:#22366b;
+  --ink:#fff4de;
+  --ink-soft:#c3cde8;
+  --felt:#f5ead2;
+  --felt-edge:#c9b288;
+  --stitch:rgba(150,108,58,.4);
+  --gold:#f0b545;
+  --madder:#bf3b2c;
+  --madder-deep:#842419;
+  --denim:#15224a;
+  --denim-2:#1d2e5e;
+  --paper:#f7eed9;
+  --paper-ink:#2b2f45;
+  --paper-soft:#5a5c6e;
+  --dim:brightness(.48) saturate(.5);
+  --scrim:rgba(8,12,30,.62);
+  --focus:#ffd772;
+  --font-display:"ZCOOL QingKe HuangYou","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --font-body:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --font-num:"Silkscreen",ui-monospace,"SF Mono",Menlo,monospace;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{height:100%;background:var(--knit)}
+body{min-height:100%;margin:0;background-color:var(--knit);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.icon-btn:focus-visible,.tool:focus-visible,.btn:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.dialog .btn:focus-visible{outline-color:var(--paper-ink)}
+.num{font-family:var(--font-num);font-weight:400;letter-spacing:.02em}
+
+.app{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:12px 22px;display:flex;flex-direction:column;gap:10px}
+
+/* 顶栏：左边一枚衣服标签，右边三颗缝纽扣 */
+.bar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
+.lvl{position:relative;display:inline-flex;align-items:baseline;gap:4px;padding:6px 12px 5px;border-radius:4px;background:var(--felt);color:var(--paper-ink);
+  font-weight:700;font-size:14px;transform:rotate(-2.5deg);box-shadow:0 3px 0 var(--felt-edge),0 3px 0 1px rgba(0,0,0,.28)}
+.lvl::before{content:"";position:absolute;inset:3px;border:1px dashed var(--stitch);border-radius:2px;pointer-events:none}
+.lvl b{font-family:var(--font-num);font-weight:400;font-size:17px;line-height:1;color:var(--madder)}
+.brand{margin:0;text-align:center;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,7vw,32px);line-height:1.05;
+  letter-spacing:.08em;white-space:nowrap;color:var(--ink);text-shadow:0 3px 0 #111c43}
+.acts{display:flex;gap:7px}
+.icon-btn{width:38px;height:38px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;
+  background:var(--felt);color:var(--paper-ink);
+  box-shadow:inset 0 0 0 3px var(--felt),inset 0 0 0 4.5px rgba(120,90,50,.3),0 3px 0 var(--felt-edge),0 3px 0 1px rgba(0,0,0,.28)}
+.icon-btn:active{transform:translateY(2px);box-shadow:inset 0 0 0 3px var(--felt),inset 0 0 0 4.5px rgba(120,90,50,.3),0 1px 0 var(--felt-edge)}
+.icon-btn span{display:grid;place-items:center}
+.icon-btn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+
+/* 进度：一根针带着金线往右缝，缝到头就清空了 */
+.rail{display:flex;align-items:center;gap:12px}
+.thread{position:relative;flex:1;height:26px}
+.thread::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;
+  background:repeating-linear-gradient(90deg,rgba(195,205,232,.32) 0 2px,transparent 2px 9px)}
+.sewn{position:absolute;left:0;top:50%;height:3px;margin-top:-1.5px;width:6px;border-radius:2px;
+  background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 9px);transition:width .6s cubic-bezier(.3,.7,.3,1)}
+.needle{position:absolute;top:50%;left:0;width:40px;height:10px;margin-top:-5px;transition:left .6s cubic-bezier(.3,.7,.3,1)}
+.needle svg{display:block;width:100%;height:100%}
+.count{margin:0;font-size:14px;font-weight:700;white-space:nowrap;color:var(--ink-soft)}
+.count .num{color:var(--ink);font-size:15px}
+
+/* 牌桌 */
+.stage{position:relative;isolation:isolate;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.bed{position:absolute;z-index:0;border-radius:12px;background:rgba(8,14,40,.26);border:1.5px dashed rgba(240,181,69,.32);pointer-events:none}
+.shelf{position:absolute;z-index:0;border:2px dashed rgba(240,181,69,.55);border-radius:12px}
+.meter{position:absolute;z-index:0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+.pips{display:flex;gap:4px}
+.pips i{display:block;width:9px;height:9px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(195,205,232,.45)}
+.pips i.on{background:var(--gold);box-shadow:none}
+.meter.hot{color:#ffb4a4}
+.meter.hot .pips i.on{background:#f06a52}
+
+/* 七格牛仔布口袋 */
+.trough{position:absolute;z-index:0;display:grid;grid-template-columns:repeat(7,1fr);padding:var(--pad);border-radius:calc(var(--cell) * .24);
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.04) 0 2px,transparent 2px 5px),linear-gradient(180deg,var(--denim-2),var(--denim));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 6px 0 rgba(5,9,28,.55),0 14px 26px rgba(0,0,0,.32)}
+.trough::before{content:"";position:absolute;inset:4px;border:2px dashed rgba(240,181,69,.72);border-radius:calc(var(--cell) * .18);pointer-events:none}
+.trough i{display:block;margin:calc(var(--cell) * .05);border-radius:calc(var(--cell) * .14);background:rgba(0,0,0,.2);box-shadow:inset 0 2px 5px rgba(0,0,0,.38)}
+
+/* 一张牌 = 一块毛毡，上面绣着图案 */
+.tile{position:absolute;left:0;top:0;width:var(--ts);height:var(--ts);margin:0;padding:0;border:0;background:none;transform-origin:0 0;
+  transition:transform .26s cubic-bezier(.3,.75,.3,1);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.tile:focus{outline:none}
+.face{position:absolute;inset:0;border-radius:16%;
+  background:radial-gradient(circle at 28% 18%,rgba(255,255,255,.5),rgba(255,255,255,0) 58%),var(--felt);
+  box-shadow:inset 0 0 0 1px rgba(120,86,40,.2),0 calc(var(--ts) * .07) 0 var(--felt-edge),0 calc(var(--ts) * .07 + 1.5px) 0 rgba(6,10,30,.55);
+  transition:filter .2s}
+.face::before{content:"";position:absolute;inset:6%;border:1px dashed var(--stitch);border-radius:12%}
+.art{position:absolute;inset:9%;background:center/contain no-repeat}
+.tile.blocked{cursor:default}
+.tile.blocked .face{filter:var(--dim)}
+.tile.hide{visibility:hidden}
+.tile:focus-visible .face{outline:3px solid var(--focus);outline-offset:2px}
+.stage.instant .tile{transition:none}
+.stage.dealing .tile .face{animation:drop .5s cubic-bezier(.2,.9,.3,1.15) both;animation-delay:var(--d,0ms)}
+.stage .tile.nope .face{animation:nope .25s ease}
+.stage .tile.mix .face{animation:wob .4s ease}
+.stage .tile.pending .face{animation:pulse .25s ease both}
+.stage .tile.gone{pointer-events:none}
+.stage .tile.gone .face{animation:poof .32s ease forwards}
+
+/* 道具：三块缝了边的毛毡补丁 */
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tool{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 9px;border:0;border-radius:14px;cursor:pointer;touch-action:manipulation;
+  background:var(--felt);color:var(--paper-ink);box-shadow:0 5px 0 var(--felt-edge),0 5px 0 1px rgba(0,0,0,.3);
+  font-family:var(--font-display);font-size:18px;line-height:1.1;letter-spacing:.1em}
+.tool::before{content:"";position:absolute;inset:5px;border:1.5px dashed var(--thread);border-radius:10px;pointer-events:none;opacity:.8}
+.tool svg{width:24px;height:24px;fill:none;stroke:var(--thread);stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+#toolOut{--thread:#c98a1c}
+#toolUndo{--thread:#23857d}
+#toolShuffle{--thread:#bf3b2c}
+.tool:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 var(--felt-edge),0 2px 0 1px rgba(0,0,0,.3)}
+.tool .n{position:absolute;top:-8px;right:-6px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;display:grid;place-items:center;
+  background:var(--madder);color:#fff;font:400 12px/1 var(--font-num);letter-spacing:0;box-shadow:0 0 0 2.5px var(--knit)}
+.tool:disabled{cursor:default;opacity:.42;filter:grayscale(.8)}
+.tool:disabled .n{display:none}
+
+/* 弹窗 */
+.scrim{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px 16px;background:var(--scrim)}
+.dialog{position:relative;width:min(340px,100%);max-height:100%;overflow:auto;padding:22px 22px 20px;border-radius:18px;background:var(--paper);color:var(--paper-ink);text-align:center;
+  box-shadow:0 8px 0 var(--felt-edge),0 8px 0 1px rgba(0,0,0,.3),0 22px 44px rgba(0,0,0,.45);animation:pop .28s cubic-bezier(.2,.9,.3,1.3)}
+.dialog::before{content:"";position:absolute;inset:8px;border:2px dashed rgba(191,59,44,.45);border-radius:12px;pointer-events:none}
+.dlg-art{display:grid;place-items:center;margin-bottom:4px}
+.dlg-art .art{position:static;display:block;width:88px;height:88px}
+.dlg-art .hop{animation:hop .9s ease-in-out infinite}
+.dlg-art .sad{transform:rotate(-12deg) translateY(4px);filter:saturate(.6)}
+.dialog h2{margin:2px 0 8px;font:400 29px/1.15 var(--font-display);letter-spacing:.06em;text-wrap:balance}
+.dialog p{margin:0 0 16px;color:var(--paper-soft);line-height:1.65}
+.dialog ul{margin:0 0 16px;padding-left:1.2em;text-align:left;color:var(--paper-soft);line-height:1.65;display:flex;flex-direction:column;gap:6px}
+.dlg-actions{position:relative;display:flex;flex-direction:column;gap:10px}
+.btn{position:relative;border:0;border-radius:12px;padding:12px 14px;font:700 16px/1.25 var(--font-body);cursor:pointer;touch-action:manipulation}
+.btn.primary{background:var(--madder);color:#fff;box-shadow:0 4px 0 var(--madder-deep)}
+.btn.primary::after{content:"";position:absolute;inset:4px;border:1.5px dashed rgba(255,255,255,.5);border-radius:8px;pointer-events:none}
+.btn.primary:active{transform:translateY(2px);box-shadow:0 2px 0 var(--madder-deep)}
+.btn.ghost{background:transparent;color:var(--paper-ink);box-shadow:inset 0 0 0 2px rgba(43,47,69,.2)}
+
+.toast{position:fixed;left:50%;top:calc(116px + env(safe-area-inset-top,0px));z-index:60;max-width:calc(100% - 32px);
+  transform:translate(-50%,-12px);opacity:0;pointer-events:none;padding:8px 16px;border-radius:999px;
+  background:var(--denim);color:var(--ink);border:1.5px dashed rgba(240,181,69,.6);box-shadow:0 8px 20px rgba(0,0,0,.35);
+  font-size:14px;font-weight:700;text-align:center;transition:opacity .25s,transform .25s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@keyframes drop{from{transform:translateY(-38px) scale(.9);opacity:0}to{transform:none;opacity:1}}
+@keyframes poof{0%{transform:scale(1);opacity:1}40%{transform:scale(1.14) rotate(-6deg);opacity:1}100%{transform:scale(.2) rotate(35deg);opacity:0}}
+@keyframes pulse{50%{transform:scale(1.1)}}
+@keyframes nope{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes wob{50%{transform:rotate(10deg) scale(.88)}}
+@keyframes pop{from{transform:scale(.86);opacity:0}}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@media (prefers-reduced-motion: reduce){
+  .tile{transition-duration:.01s}
+  .stage.dealing .tile .face,.stage .tile.mix .face,.stage .tile.nope .face{animation:none}
+  .needle,.sewn{transition:none}
+  .dialog,.dlg-art .hop{animation:none}
+}
+</style>
+</head>
+<body>
+
+<main class="app">
+  <header class="bar" id="bar">
+    <div class="lvl"><span>第</span><b id="lvlNum">1</b><span>关</span></div>
+    <h1 class="brand">咩了个咩</h1>
+    <div class="acts">
+      <button class="icon-btn" id="btnSound" type="button" aria-label="关闭音效" aria-pressed="true">
+        <span class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a8 8 0 0 1 0 11"/></svg></span>
+        <span class="off" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg></span>
+      </button>
+      <button class="icon-btn" id="btnRestart" type="button" aria-label="重新开始这一关">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4.2h-4.2"/></svg>
+      </button>
+      <button class="icon-btn" id="btnHelp" type="button" aria-label="玩法说明">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.3 9.2a2.8 2.8 0 1 1 3.9 2.6c-.8.3-1.2 1-1.2 1.8v.6"/><path d="M12 17.6v.1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="rail" id="rail">
+    <div class="thread" aria-hidden="true">
+      <div class="sewn" id="sewn"></div>
+      <div class="needle" id="needle"><svg viewBox="0 0 40 10"><path d="M2 3.4H30L38 5 30 6.6H2A1.6 1.6 0 0 1 2 3.4Z" fill="#e3e8f2"/><path d="M3 4.1H29" stroke="#fff" stroke-width=".7" stroke-linecap="round"/><rect x="4" y="4.35" width="7" height="1.3" rx=".65" fill="#22366b"/></svg></div>
+    </div>
+    <p class="count">还剩 <b id="left" class="num">0</b> 张 · <span id="clock" class="num">00:00</span></p>
+  </div>
+
+  <section class="stage" id="stage" aria-label="牌堆">
+    <div class="bed" id="bed" aria-hidden="true"></div>
+    <div class="shelf" id="shelf" hidden aria-hidden="true"></div>
+    <div class="meter" id="meter"><span id="meterText">口袋 0/7</span><span class="pips" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+    <div class="trough" id="trough" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </section>
+
+  <nav class="tools" id="tools" aria-label="道具">
+    <button class="tool" id="toolOut" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14V4"/><path d="M8 8l4-4 4 4"/><path d="M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg>
+      <span>移出</span><b class="n" id="nOut" aria-hidden="true">1</b>
+    </button>
+    <button class="tool" id="toolUndo" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      <span>撤回</span><b class="n" id="nUndo" aria-hidden="true">1</b>
+    </button>
+    <button class="tool" id="toolShuffle" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c4.5 0 6.5 10 11 10H21"/><path d="M18 14l3 3-3 3"/><path d="M3 17h3.5c1.6 0 2.9-1.3 4-3"/><path d="M13.5 10c1.1-1.7 2.4-3 4-3H21"/><path d="M18 4l3 3-3 3"/></svg>
+      <span>洗牌</span><b class="n" id="nShuffle" aria-hidden="true">1</b>
+    </button>
+  </nav>
+</main>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <div class="dlg-art" id="dlgArt" hidden></div>
+    <h2 id="dlgTitle"></h2>
+    <p id="dlgBody" hidden></p>
+    <ul id="dlgList" hidden></ul>
+    <div class="dlg-actions" id="dlgActions"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+const BW = 7, BH = 8.72, CAP = 7;
+const ST = {board: 0, slot: 1, hold: 2, gone: 3};
+const STN = ['board', 'slot', 'hold', 'gone'];
+
+/* ---------- 十字绣图案：每个图案是 11×11 的针脚格 ---------- */
+const PAL = {
+  R: '#d8433b', r: '#9c2340', P: '#ee93b3', Y: '#eaa934', O: '#e8762c', o: '#b9521a',
+  G: '#4c9445', g: '#a6c63d', W: '#ffffff', L: '#aab4c8', K: '#3a3740', U: '#8d56a8',
+  u: '#c294d6', T: '#2b9c93', t: '#7fd0c4', B: '#3b5bb0', S: '#57aee0', N: '#93623a', n: '#d6ab74'
+};
+const ICONS = [
+  {n: '爱心', m: ['...........', '.RRR...RRR.', 'RRPRR.RRRRR', 'RPRRRRRRRRR', 'RRRRRRRRRRR', '.RRRRRRRRR.', '..RRRRRRR..', '...RRRRR...', '....RRR....', '.....R.....', '...........']},
+  {n: '星星', m: ['.....Y.....', '....YYY....', '....YYY....', 'YYYYYYYYYYY', '.YYYYYYYYY.', '..YYYYYYY..', '..YYYYYYY..', '.YYYY.YYYY.', '.YYY...YYY.', 'YY.......YY', '...........']},
+  {n: '小花', m: ['...PP.PP...', '..PPPPPPP..', '.PPPYYYPPP.', '.PPYYYYYPP.', '.PPPYYYPPP.', '..PPPPPPP..', '...PP.PP...', '.....G.....', '.GG..G..GG.', '..GGGGGGG..', '.....G.....']},
+  {n: '胡萝卜', m: ['...G.G.G...', '...GGGGG...', '....GGG....', '..OOOOOOO..', '..OOOOoOO..', '...OOOOO...', '...OoOOO...', '....OOO....', '....OoO....', '.....O.....', '.....O.....']},
+  {n: '四叶草', m: ['..GG...GG..', '.GGGG.GGGG.', '.GGGGGGGGG.', '..GGGgGGG..', '.GGGGGGGGG.', '.GGGG.GGGG.', '..GG.G.GG..', '.....G.....', '......G....', '.......G...', '...........']},
+  {n: '小羊', m: ['...........', '..LLLLLLL..', '.LWWWWWWWL.', 'LWWWWWWWWWL', 'LWWKKKKKWWL', 'KKWKKKKKWKK', '.K.KWKWK.K.', '...KKKKK...', '...KKKKK...', '....KPK....', '...........']},
+  {n: '毛线团', m: ['...UUUUU...', '..UuUUUuU..', '.UUuUUuUUU.', 'UUUUuuUUUuU', 'UuUUUUuUuUU', 'UUuUUUUuUUU', 'UUUuUUuUUuU', '.UUUuuUUUU.', '..UUUUUuU..', '...UUUUU..u', '........uu.']},
+  {n: '小鱼', m: ['...........', '...........', '....TTTTT..', 'T..TTTTTTT.', 'TT.TTTTTKTT', 'TTTTTtTTTTT', 'TT.TTtTTTT.', 'T..TTTTTTT.', '....TTTTT..', '...........', '...........']},
+  {n: '手套', m: ['...........', '.....BBBB..', '....BBBBBB.', '....BBBBBB.', '..B.BBBBBB.', '.BBBBBBBBB.', '.BBBYBYBBB.', '..BBBBBBBB.', '...LLLLLLL.', '...LWLWLWL.', '...........']},
+  {n: '水滴', m: ['.....S.....', '.....S.....', '....SSS....', '....SSS....', '...SSSSS...', '..SSSSSSS..', '..SWSSSSS..', '..SWSSSSS..', '..SSSSSSS..', '...SSSSS...', '....SSS....']},
+  {n: '蘑菇', m: ['...........', '...NNNNN...', '..NNWNNNN..', '.NNNNNNWNN.', 'NNWNNNNNNNN', 'NNNNNNNNNNN', '...nnnnn...', '...nnnnn...', '...nnnnn...', '..nnnnnnn..', '...........']},
+  {n: '西瓜', m: ['...........', '...........', 'RRRRRRRRRRR', 'WRRKRRRKRRW', 'GWRRRRRRRWG', '.GWRRKRRWG.', '..GWRRRWG..', '...GWWWG...', '....GGG....', '...........', '...........']},
+  {n: '音符', m: ['...........', '......KK...', '......KKK..', '......K.KK.', '......K..K.', '......K....', '......K....', '...KKKK....', '..KKKKK....', '..KKKK.....', '...........']},
+  {n: '梨', m: ['.....N.....', '.....NGG...', '....ggg....', '....ggg....', '...ggggg...', '..ggggggg..', '.gWggggggg.', '.gWggggggg.', '.ggggggggg.', '..ggggggg..', '...ggggg...']},
+  {n: '雨云', m: ['...........', '....LLL....', '...LWWWL...', '.LLWWWWWLL.', 'LWWWWWWWWWL', 'LWWWWWWWWWL', '.LLLLLLLLL.', '...........', '..S..S..S..', '.S..S..S...', '...........']},
+  {n: '樱桃', m: ['......GG...', '.....G.G...', '....G...G..', '...G....G..', '..G.....G..', '.rrr...rrr.', 'rPrrr.rPrrr', 'rrrrr.rrrrr', 'rrrrr.rrrrr', '.rrr...rrr.', '...........']}
+];
+
+function shade(hex, k){
+  const v = parseInt(hex.slice(1), 16);
+  const f = c => Math.round(k < 0 ? c * (1 + k) : c + (255 - c) * k);
+  return `rgb(${f(v >> 16)},${f((v >> 8) & 255)},${f(v & 255)})`;
+}
+
+// 先画所有针脚的影子，再画底针“\”，最后画面针“/”，像真的线交叉在布上
+function stitchIcon(rows){
+  const cell = 12, n = 11, size = cell * n, dpr = 2;
+  const c = document.createElement('canvas');
+  c.width = c.height = size * dpr;
+  const x = c.getContext('2d');
+  x.scale(dpr, dpr);
+  x.lineCap = 'round';
+  const m = cell * .2, lw = cell * .3;
+  const seg = (a, b, p, q) => { x.beginPath(); x.moveTo(a, b); x.lineTo(p, q); x.stroke(); };
+  for (let pass = 0; pass < 3; pass++){
+    for (let r = 0; r < n; r++){
+      for (let q = 0; q < n; q++){
+        const ch = rows[r][q];
+        if (!ch || ch === '.') continue;
+        const col = PAL[ch], x0 = q * cell, y0 = r * cell;
+        if (pass === 0){
+          x.strokeStyle = 'rgba(60,35,10,.24)';
+          x.lineWidth = lw;
+          seg(x0 + m, y0 + m + 1.3, x0 + cell - m, y0 + cell - m + 1.3);
+          seg(x0 + cell - m, y0 + m + 1.3, x0 + m, y0 + cell - m + 1.3);
+        } else if (pass === 1){
+          x.strokeStyle = shade(col, -.2);
+          x.lineWidth = lw;
+          seg(x0 + m, y0 + m, x0 + cell - m, y0 + cell - m);
+        } else {
+          x.strokeStyle = col;
+          x.lineWidth = lw;
+          seg(x0 + cell - m, y0 + m, x0 + m, y0 + cell - m);
+          x.strokeStyle = 'rgba(255,255,255,.32)';
+          x.lineWidth = lw * .3;
+          seg(x0 + cell - m - .9, y0 + m + .1, x0 + m + .1, y0 + cell - m - .9);
+        }
+      }
+    }
+  }
+  return c.toDataURL('image/png');
+}
+
+// 靛蓝毛衣的平针纹理：每一针是一个 V
+function knitTexture(){
+  const w = 20, h = 17, cols = 4, rows = 4, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const c = document.createElement('canvas');
+  c.width = w * cols * dpr;
+  c.height = h * rows * dpr;
+  const x = c.getContext('2d');
+  x.scale(dpr, dpr);
+  x.fillStyle = '#16255a';
+  x.fillRect(0, 0, w * cols, h * rows);
+  const rnd = rngFrom(7), tone = [];
+  for (let i = 0; i < cols * rows; i++) tone.push(rnd() * .1 - .05);
+  for (let r = -1; r <= rows; r++){
+    for (let q = -1; q <= cols; q++){
+      const k = tone[((r % rows + rows) % rows) * cols + ((q % cols + cols) % cols)];
+      for (const side of [-1, 1]){
+        const cx = q * w + w / 2 + side * w * .22, cy = r * h + h * .5;
+        const g = x.createLinearGradient(cx, cy - h * .55, cx, cy + h * .55);
+        g.addColorStop(0, shade('#3d5da3', k + .05));
+        g.addColorStop(1, shade('#263f7e', k));
+        x.fillStyle = g;
+        x.beginPath();
+        x.ellipse(cx, cy, h * .58, w * .2, -side * 1.08, 0, Math.PI * 2);
+        x.fill();
+      }
+    }
+  }
+  return {url: c.toDataURL('image/png'), w: w * cols, h: h * rows};
+}
+
+const $ = id => document.getElementById(id);
+const stage = $('stage'), trough = $('trough'), shelf = $('shelf'), meter = $('meter');
+const bed = $('bed'), scrim = $('scrim');
+const pips = Array.from(meter.querySelectorAll('.pips i'));
+
+/* ---------- 偏好与音效 ---------- */
+const PREF_KEY = 'mielegemie:v1';
+const prefs = (() => {
+  try { return JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch (e) { return {}; }
+})();
+function savePrefs(p){
+  Object.assign(prefs, p);
+  try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {}
+}
+
+const Sound = {
+  on: prefs.sound !== false,
+  ctx: null,
+  tone(f, d = .09, type = 'triangle', v = .05, at = 0){
+    if (!this.on) return;
+    try {
+      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const c = this.ctx;
+      if (c.state === 'suspended') c.resume();
+      const t0 = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f, t0);
+      g.gain.setValueAtTime(.0001, t0);
+      g.gain.exponentialRampToValueAtTime(v, t0 + .012);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+      o.connect(g); g.connect(c.destination);
+      o.start(t0); o.stop(t0 + d + .03);
+    } catch (e) {}
+  },
+  tap(){ this.tone(540, .07); },
+  bump(){ this.tone(170, .07, 'square', .02); },
+  match(){ this.tone(660, .1, 'sine', .06); this.tone(880, .12, 'sine', .06, .07); this.tone(1320, .16, 'sine', .04, .14); },
+  tool(){ this.tone(420, .1, 'sine', .05); this.tone(630, .12, 'sine', .04, .06); },
+  lose(){ this.tone(260, .22, 'sawtooth', .025); this.tone(180, .34, 'sawtooth', .025, .16); },
+  win(){ [523, 659, 784, 1047].forEach((f, i) => this.tone(f, .2, 'triangle', .06, i * .11)); }
+};
+
+/* ---------- 随机数（同一个种子永远发出同一副牌） ---------- */
+function rngFrom(seed){
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const newSeed = () => 1 + Math.floor(Math.random() * 2147483000);
+const pickOne = (arr, rng) => arr[Math.floor(rng() * arr.length)];
+function shuffled(arr, rng){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ---------- 摆牌：坐标以一张牌的边长为 1 ---------- */
+function introLayout(){
+  const out = [];
+  for (let z = 0; z < 3; z++)
+    for (const y of [1.9, 3.15, 4.4])
+      for (const x of [1.75, 3, 4.25]) out.push({x, y: y - (2 - z) * .17, z});
+  return out;
+}
+
+const OFFSETS = [[0, 0], [.5, .5], [.5, 0], [0, .5]];
+function layerShape(rng){
+  const kind = pickOne(['rect', 'rect', 'twin', 'frame', 'diamond', 'cross'], rng);
+  if (kind === 'rect'){
+    const hw = pickOne([1, 1.5, 2, 2.5, 3], rng) + .01, top = .5 + rng() * 2, bot = 6.5 - rng() * 2;
+    return (dx, dy, cy) => dx <= hw && cy >= top && cy <= bot;
+  }
+  if (kind === 'twin'){
+    const inner = pickOne([.5, 1, 1.5], rng) - .01, outer = inner + pickOne([1.5, 2], rng) + .02;
+    const top = .5 + rng() * 2.5, bot = 6.5 - rng() * 2.5;
+    return (dx, dy, cy) => dx >= inner && dx <= outer && cy >= top && cy <= bot;
+  }
+  if (kind === 'frame'){
+    const hw = pickOne([2.5, 3], rng) + .01, hh = pickOne([2.5, 3], rng) + .01;
+    return (dx, dy) => dx <= hw && dy <= hh && (dx >= hw - 1.05 || dy >= hh - 1.05);
+  }
+  if (kind === 'diamond'){
+    const a = pickOne([2.5, 3, 3.5], rng), b = pickOne([2.5, 3, 3.5], rng);
+    return (dx, dy) => dx / a + dy / b <= 1.02;
+  }
+  const w = pickOne([.5, 1], rng) + .01;
+  return (dx, dy) => dx <= w || dy <= w;
+}
+
+// 一层一层往上叠，左右对称；相邻两层错开半张，露出下面的边
+function genMain(rng, cfg){
+  const out = [];
+  let prev = 0, z = 0, tries = 0;
+  while (z < cfg.maxLayers && out.length < cfg.target && tries++ < 80){
+    let oi = 0;
+    if (z > 0){
+      oi = Math.floor(rng() * 4);
+      if (oi === prev) oi = (oi + 1 + Math.floor(rng() * 3)) % 4;
+    }
+    const [ox, oy] = OFFSETS[oi];
+    const shape = layerShape(rng);
+    const cols = ox ? 6 : 7, rows = oy ? 6 : 7;
+    const layer = [];
+    for (let r = 0; r < rows; r++){
+      const y = r + oy, cy = y + .5, dy = Math.abs(cy - 3.5);
+      for (let c = 0; c < Math.ceil(cols / 2); c++){
+        const x = c + ox, mx = cols - 1 - c + ox, dx = Math.abs(x + .5 - 3.5);
+        if (!shape(dx, dy, cy) || rng() > cfg.density) continue;
+        layer.push({x, y, z});
+        if (mx !== x) layer.push({x: mx, y, z});
+      }
+    }
+    if (layer.length < 6) continue;
+    out.push(...layer);
+    prev = oi;
+    z++;
+  }
+  return out;
+}
+
+// 底部左右两摞，只有最上面一张能拿
+function genPiles(nl, nr){
+  const out = [];
+  for (let i = 0; i < nl; i++) out.push({x: i * .105, y: 7.62, z: i});
+  for (let i = 0; i < nr; i++) out.push({x: 6 - i * .105, y: 7.62, z: i});
+  return out;
+}
+
+function makeTiles(pos){
+  const tiles = pos.map((p, id) => ({
+    id, x: p.x, y: p.y, z: p.z, type: -1, status: 'board', pending: false,
+    covers: [], coveredBy: [], el: null, art: null, shown: -1, si: 0, hc: 0, hd: 0
+  }));
+  for (let i = 0; i < tiles.length; i++){
+    const a = tiles[i];
+    for (let j = i + 1; j < tiles.length; j++){
+      const b = tiles[j];
+      if (a.z === b.z || Math.abs(a.x - b.x) > .999 || Math.abs(a.y - b.y) > .999) continue;
+      const hi = a.z > b.z ? a : b, lo = hi === a ? b : a;
+      hi.covers.push(lo);
+      lo.coveredBy.push(hi);
+    }
+  }
+  return tiles;
+}
+
+/* ---------- 保证有解：先模拟一条通关路线，再按路线给每张牌定图案 ----------
+   每一步从“此刻没被压住”的牌里挑一张，决定它是什么图案，模拟把它放进口袋。
+   只要模拟过程中口袋从不放满，这条路线就是一条真实可走的通关路线。 */
+function plan(pool, o){
+  const rng = o.rng, cap = Math.min(o.maxSlot, 6);
+  const inPool = new Set(pool.map(t => t.id));
+  const cnt = new Map(), free = [];
+  for (const t of pool){
+    let c = 0;
+    for (const a of t.coveredBy) if (inPool.has(a.id)) c++;
+    cnt.set(t.id, c);
+    if (!c) free.push(t);
+  }
+  const supply = new Map(Object.entries(o.supply).map(([k, v]) => [Number(k), v]));
+  const hold = o.hold.slice();
+  const slot = new Map();
+  let slotLen = 0;
+  for (const ty of o.slot){ slot.set(ty, (slot.get(ty) || 0) + 1); slotLen++; }
+  const assign = new Map(), order = [];
+  let left = pool.length;
+  const avail = ty => (supply.get(ty) || 0) + hold.filter(h => h === ty).length;
+
+  while (left > 0 || hold.length){
+    const twos = [], ones = [], opens = [];
+    for (const [ty, c] of slot) if (avail(ty) > 0) (c === 2 ? twos : ones).push(ty);
+    const seen = new Set(slot.keys());
+    for (const ty of [...supply.keys(), ...hold]){
+      if (seen.has(ty)) continue;
+      seen.add(ty);
+      if (avail(ty) > 0) opens.push(ty);
+    }
+    const canOpen = opens.length > 0 && slotLen + 1 <= cap;
+    let ty;
+    if (canOpen && (slotLen === 0 || rng() < o.interleave)){
+      let w = 0;
+      for (const t of opens) w += avail(t);
+      let r = rng() * w;
+      ty = opens[opens.length - 1];
+      for (const t of opens){ r -= avail(t); if (r < 0){ ty = t; break; } }
+    } else if (twos.length) ty = pickOne(twos, rng);
+    else if (ones.length && slotLen + 1 < CAP) ty = pickOne(ones, rng);
+    else if (canOpen) ty = pickOne(opens, rng);
+    else return null;
+
+    const hi = hold.indexOf(ty);
+    if (hi >= 0){
+      hold.splice(hi, 1);
+      order.push(-1);
+    } else {
+      if (!free.length) return null;
+      const i = Math.floor(rng() * free.length), t = free[i];
+      free[i] = free[free.length - 1];
+      free.pop();
+      assign.set(t.id, ty);
+      supply.set(ty, supply.get(ty) - 1);
+      left--;
+      order.push(t.id);
+      for (const b of t.covers){
+        if (!inPool.has(b.id)) continue;
+        const c = cnt.get(b.id) - 1;
+        cnt.set(b.id, c);
+        if (!c) free.push(b);
+      }
+    }
+    const c = (slot.get(ty) || 0) + 1;
+    if (c === 3){ slot.delete(ty); slotLen -= 2; } else { slot.set(ty, c); slotLen++; }
+    if (slotLen >= CAP) return null;
+  }
+  return {assign, order};
+}
+
+// 按真实规则把路线走一遍，确认能清空
+function verify(tiles, order){
+  const onBoard = new Set(tiles.map(t => t.id));
+  const slot = [];
+  for (const id of order){
+    const t = tiles[id];
+    if (!t || !onBoard.has(id) || t.coveredBy.some(a => onBoard.has(a.id))) return false;
+    onBoard.delete(id);
+    slot.push(t.type);
+    if (slot.filter(x => x === t.type).length === 3){
+      for (let k = 0; k < 3; k++) slot.splice(slot.indexOf(t.type), 1);
+    } else if (slot.length >= CAP) return false;
+  }
+  return onBoard.size === 0 && slot.length === 0;
+}
+
+/* ---------- 关卡 ---------- */
+function levelCfg(level){
+  if (level <= 1) return {intro: true, interleave: 0, maxSlot: 3};
+  const k = Math.min(level - 2, 4);
+  return {
+    intro: false, types: Math.min(12 + 2 * k, 16), target: 150 + 20 * k, maxLayers: 8 + k,
+    density: .85, piles: 10 + 2 * k, interleave: .3 + .06 * k, maxSlot: k ? 5 : 4
+  };
+}
+
+function buildLevel(level, seed){
+  const cfg = levelCfg(level);
+  for (let attempt = 0; attempt < 40; attempt++){
+    const rng = rngFrom(seed + attempt * 7919);
+    let pos, types;
+    if (cfg.intro){
+      pos = introLayout();
+      types = [0, 1, 4];
+    } else {
+      pos = genMain(rng, cfg);
+      const nl = cfg.piles, nr = cfg.piles + (3 - (pos.length + cfg.piles * 2) % 3) % 3;
+      pos = pos.concat(genPiles(nl, nr));
+      types = shuffled(ICONS.map((_, i) => i), rng).slice(0, cfg.types);
+    }
+    const tiles = makeTiles(pos);
+    const supply = {};
+    for (let i = 0; i < tiles.length / 3; i++){
+      const ty = types[i % types.length];
+      supply[ty] = (supply[ty] || 0) + 3;
+    }
+    const res = plan(tiles, {supply, slot: [], hold: [], interleave: cfg.interleave, maxSlot: cfg.maxSlot, rng});
+    if (!res) continue;
+    for (const t of tiles) t.type = res.assign.get(t.id);
+    if (verify(tiles, res.order)) return {tiles, cfg};
+  }
+  return null;
+}
+
+/* ---------- 对局状态 ---------- */
+const G = {
+  level: 1, seed: 1, cfg: {intro: true}, tiles: [], slot: [], hold: [[], [], []],
+  tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
+  over: false, won: false, epoch: 0, pending: 0, acc: 0, t0: 0, running: false
+};
+const L = {unit: 40, cell: 40, pad: 6, boardX: 0, boardY: 2, trayX: 0, trayY: 0, trayW: 0, holdX: 0, holdY: 0};
+
+function elapsed(){ return G.acc + (G.running ? performance.now() - G.t0 : 0); }
+function startClock(){ if (!G.running){ G.t0 = performance.now(); G.running = true; } }
+function stopClock(){ if (G.running){ G.acc += performance.now() - G.t0; G.running = false; } }
+const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+const isFree = t => t.coveredBy.every(a => a.status !== 'board');
+
+function layout(){
+  const W = stage.clientWidth;
+  const chrome = $('bar').offsetHeight + $('rail').offsetHeight + $('tools').offsetHeight + 80;
+  const byH = (window.innerHeight - chrome - 22) / 11.2;
+  const unit = Math.floor(Math.max(34, Math.min(60, W / BW, byH)));
+  const cell = Math.floor(Math.min(unit, (W - 12) / 7.34));
+  const pad = Math.max(6, Math.round(cell * .19));
+  Object.assign(L, {unit, cell, pad});
+  L.boardX = Math.round((W - unit * BW) / 2);
+  L.boardY = 2;
+  L.trayW = cell * 7 + pad * 2;
+  L.trayX = Math.round((W - L.trayW) / 2);
+  L.holdY = Math.round(L.boardY + unit * BH + 10);
+  L.holdX = L.trayX + pad;
+  L.trayY = L.holdY + cell + 10;
+  const trayH = cell + pad * 2;
+  stage.style.height = (L.trayY + trayH + 10) + 'px';
+  stage.style.setProperty('--ts', (unit * .92).toFixed(2) + 'px');
+  Object.assign(trough.style, {left: L.trayX + 'px', top: L.trayY + 'px', width: L.trayW + 'px', height: trayH + 'px'});
+  trough.style.setProperty('--cell', cell + 'px');
+  trough.style.setProperty('--pad', pad + 'px');
+  Object.assign(shelf.style, {left: (L.holdX - 5) + 'px', top: (L.holdY - 5) + 'px', width: Math.round(cell * 3.16 + 10) + 'px', height: (cell + 10) + 'px'});
+  Object.assign(meter.style, {right: Math.max(0, W - L.trayX - L.trayW + 2) + 'px', top: Math.round(L.holdY + cell / 2 - 9) + 'px'});
+  Object.assign(bed.style, {left: (L.boardX - 4) + 'px', top: Math.round(L.boardY + unit * 7.5) + 'px', width: (unit * BW + 8) + 'px', height: Math.round(unit * 1.2) + 'px'});
+}
+
+function render(){
+  const {unit, cell, pad} = L, k = (cell / unit).toFixed(4);
+  G.slot.forEach((t, i) => { t.si = i; });
+  G.hold.forEach((col, c) => col.forEach((t, d) => { t.hc = c; t.hd = d; }));
+  for (const t of G.tiles){
+    const el = t.el;
+    if (!el) continue;
+    if (t.shown !== t.type){ t.art.className = 'art ic-' + t.type; t.shown = t.type; }
+    let x = 0, y = 0, s = 1, zi = 0, blocked = false;
+    if (t.status === 'board'){
+      x = L.boardX + (t.x + .04) * unit;
+      y = L.boardY + (t.y + .01) * unit;
+      zi = 10 + t.z * 2;
+      blocked = !isFree(t);
+    } else if (t.status === 'slot'){
+      x = L.trayX + pad + (t.si + .04) * cell;
+      y = L.trayY + pad + .01 * cell;
+      s = k;
+      zi = 400 + t.si;
+    } else if (t.status === 'hold'){
+      const col = G.hold[t.hc];
+      x = L.holdX + (t.hc * 1.08 + .04) * cell;
+      y = L.holdY - t.hd * 5;
+      s = k;
+      zi = 300 + t.hd;
+      blocked = col[col.length - 1] !== t;
+    }
+    if (t.status !== 'gone'){
+      el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${s})`;
+      el.style.zIndex = zi;
+      el.classList.remove('hide');
+    }
+    el.classList.toggle('blocked', blocked);
+    el.classList.toggle('gone', t.status === 'gone');
+    el.classList.toggle('pending', t.pending);
+    const live = (t.status === 'board' || t.status === 'hold') && !blocked;
+    el.tabIndex = live ? 0 : -1;
+    el.setAttribute('aria-label', ICONS[t.type].n + (t.status === 'slot' ? '，在口袋里' : blocked ? '，被压住了' : ''));
+  }
+  hud();
+}
+
+function hud(){
+  const total = G.tiles.length;
+  let left = 0;
+  for (const t of G.tiles) if (t.status !== 'gone') left++;
+  const p = total ? ((total - left) / total).toFixed(4) : 0;
+  $('lvlNum').textContent = G.level;
+  $('left').textContent = left;
+  $('needle').style.left = `calc((100% - 40px) * ${p})`;
+  $('sewn').style.width = `calc((100% - 40px) * ${p} + 6px)`;
+  const n = G.slot.length;
+  $('meterText').textContent = `口袋 ${n}/7`;
+  pips.forEach((pip, i) => pip.classList.toggle('on', i < n));
+  meter.classList.toggle('hot', n >= 5);
+  toolState('toolOut', 'nOut', G.tools.out, '移出');
+  toolState('toolUndo', 'nUndo', G.tools.undo, '撤回');
+  toolState('toolShuffle', 'nShuffle', G.tools.shuffle, '洗牌');
+  shelf.hidden = !G.hold.some(c => c.length);
+}
+function toolState(id, nid, n, name){
+  const b = $(id);
+  b.disabled = n <= 0;
+  $(nid).textContent = n;
+  b.setAttribute('aria-label', n > 0 ? `${name}，还能用 ${n} 次` : `${name}，这一局已经用完`);
+}
+
+function mountTiles(deal){
+  for (const el of stage.querySelectorAll('.tile')) el.remove();
+  const frag = document.createDocumentFragment();
+  const order = G.tiles.slice().sort((a, b) => a.y - b.y || a.x - b.x || a.z - b.z);
+  for (const t of order){
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'tile';
+    const face = document.createElement('span');
+    face.className = 'face';
+    face.setAttribute('aria-hidden', 'true');
+    const art = document.createElement('i');
+    art.className = 'art';
+    face.appendChild(art);
+    el.appendChild(face);
+    el.addEventListener('click', () => onTile(t));
+    if (deal) el.style.setProperty('--d', Math.round(t.z * 50 + Math.random() * 110) + 'ms');
+    if (t.status === 'gone') el.classList.add('gone', 'hide');
+    t.el = el;
+    t.art = art;
+    t.shown = -1;
+    frag.appendChild(el);
+  }
+  stage.appendChild(frag);
+  bed.hidden = !!G.cfg.intro;
+  stage.classList.add('instant');
+  stage.classList.toggle('dealing', !!deal);
+  render();
+  void stage.offsetWidth;
+  stage.classList.remove('instant');
+  clearTimeout(mountTiles.timer);
+  if (deal) mountTiles.timer = setTimeout(() => stage.classList.remove('dealing'), 1500);
+}
+
+function startLevel(level, seed){
+  let built = buildLevel(level, seed);
+  for (let i = 0; !built && i < 3; i++){ seed = newSeed(); built = buildLevel(level, seed); }
+  if (!built){ level = 1; seed = newSeed(); built = buildLevel(1, seed); }
+  G.epoch++;
+  Object.assign(G, {
+    level, seed, cfg: built.cfg, tiles: built.tiles, slot: [], hold: [[], [], []],
+    tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
+    over: false, won: false, pending: 0, acc: 0, running: false
+  });
+  savePrefs({level});
+  closeDialog();
+  mountTiles(true);
+  startClock();
+  toast(level === 1 ? '点亮着的牌，凑齐 3 张一样的就会消掉' : `第 ${level} 关 · ${G.tiles.length} 张牌`);
+}
+
+/* ---------- 点牌 ---------- */
+function onTile(t){
+  if (G.over || G.won) return;
+  if (t.status === 'board'){
+    if (!isFree(t)) return nudge(t);
+  } else if (t.status === 'hold'){
+    const col = G.hold[t.hc];
+    if (col[col.length - 1] !== t) return;
+  } else return;
+  if (G.slot.length >= CAP) return;
+
+  snapshot();
+  if (t.status === 'hold'){
+    const col = G.hold[t.hc];
+    col.splice(col.indexOf(t), 1);
+  }
+  t.status = 'slot';
+  let at = G.slot.length;
+  for (let i = G.slot.length - 1; i >= 0; i--){
+    if (G.slot[i].type === t.type && !G.slot[i].pending){ at = i + 1; break; }
+  }
+  G.slot.splice(at, 0, t);
+  G.moves++;
+  Sound.tap();
+
+  const same = G.slot.filter(s => s.type === t.type && !s.pending);
+  if (same.length >= 3){
+    for (const s of same.slice(0, 3)) s.pending = true;
+    G.pending += 3;
+    const ep = G.epoch;
+    setTimeout(() => settle(ep), 250);
+  } else if (G.slot.length >= CAP && !G.pending){
+    render();
+    lose();
+    return;
+  }
+  render();
+}
+
+function settle(ep){
+  if (ep !== G.epoch) return;
+  const done = G.slot.filter(s => s.pending);
+  if (!done.length) return;
+  G.slot = G.slot.filter(s => !s.pending);
+  for (const s of done){ s.pending = false; s.status = 'gone'; }
+  G.pending = 0;
+  Sound.match();
+  render();
+  if (G.tiles.every(t => t.status === 'gone')) win();
+}
+
+function nudge(t){
+  const el = t.el;
+  el.classList.remove('nope');
+  void el.offsetWidth;
+  el.classList.add('nope');
+  Sound.bump();
+}
+
+/* ---------- 撤回用的快照 ---------- */
+function snapshot(){
+  G.history.push({
+    st: G.tiles.map(t => (t.pending ? 3 : ST[t.status])),
+    ty: G.tiles.map(t => t.type),
+    slot: G.slot.filter(t => !t.pending).map(t => t.id),
+    hold: G.hold.map(c => c.map(t => t.id))
+  });
+  if (G.history.length > 80) G.history.shift();
+}
+function restoreSnap(s){
+  G.epoch++;
+  G.pending = 0;
+  G.tiles.forEach((t, i) => { t.status = STN[s.st[i]]; t.type = s.ty[i]; t.pending = false; });
+  G.slot = s.slot.map(id => G.tiles[id]);
+  G.hold = s.hold.map(c => c.map(id => G.tiles[id]));
+}
+
+/* ---------- 道具 ---------- */
+function revive(){ if (G.over){ G.over = false; startClock(); } }
+function busyToast(){ toast('等这一组消完再用道具'); }
+
+function useOut(){
+  if (G.won) return;
+  if (G.pending) return busyToast();
+  if (G.tools.out <= 0) return toast('「移出」这一局已经用过了');
+  if (!G.slot.length) return toast('口袋是空的，没有牌可以移出');
+  snapshot();
+  G.slot.splice(0, 3).forEach((t, i) => { t.status = 'hold'; G.hold[i].push(t); });
+  G.tools.out--;
+  revive();
+  Sound.tool();
+  render();
+}
+
+function useUndo(){
+  if (G.won) return;
+  if (G.pending) return busyToast();
+  if (G.tools.undo <= 0) return toast('「撤回」这一局已经用过了');
+  if (!G.history.length) return toast('还没有可以撤回的一步');
+  restoreSnap(G.history.pop());
+  G.tools.undo--;
+  revive();
+  Sound.tool();
+  render();
+}
+
+// 洗牌时也按“能走通”的方式重新分配图案，走不通才退回随机打乱
+function reshuffle(pool){
+  const supply = {};
+  for (const t of pool) supply[t.type] = (supply[t.type] || 0) + 1;
+  const res = plan(pool, {
+    supply, slot: G.slot.map(t => t.type), hold: G.hold.flat().map(t => t.type),
+    interleave: .2, maxSlot: 4, rng: Math.random
+  });
+  if (res){
+    for (const t of pool) t.type = res.assign.get(t.id);
+    return;
+  }
+  const types = shuffled(pool.map(t => t.type), Math.random);
+  pool.forEach((t, i) => { t.type = types[i]; });
+}
+
+function useShuffle(){
+  if (G.won) return;
+  if (G.pending) return busyToast();
+  if (G.tools.shuffle <= 0) return toast('「洗牌」这一局已经用过了');
+  if (G.over) return toast('口袋已经满了，洗牌帮不上忙');
+  const pool = G.tiles.filter(t => t.status === 'board');
+  if (pool.length < 3) return toast('场上的牌不多了，不用洗');
+  snapshot();
+  reshuffle(pool);
+  G.tools.shuffle--;
+  pool.forEach(t => t.el.classList.remove('mix'));
+  void stage.offsetWidth;
+  pool.forEach(t => t.el.classList.add('mix'));
+  Sound.tool();
+  render();
+}
+
+/* ---------- 输赢 ---------- */
+function lose(){
+  G.over = true;
+  stopClock();
+  Sound.lose();
+  const ep = G.epoch;
+  setTimeout(() => { if (G.over && ep === G.epoch) showLose(); }, 450);
+}
+function showLose(){
+  const left = G.tiles.filter(t => t.status !== 'gone').length;
+  const actions = [];
+  if (G.tools.out > 0) actions.push({label: '用「移出」腾出 3 格，接着玩', primary: true, run: () => { closeDialog(); useOut(); }});
+  if (G.tools.undo > 0 && G.history.length) actions.push({label: '撤回最后一步', primary: !actions.length, run: () => { closeDialog(); useUndo(); }});
+  actions.push({label: '重玩这一副牌', primary: !actions.length, run: () => startLevel(G.level, G.seed)});
+  actions.push({label: '换一副新牌', run: () => startLevel(G.level, newSeed())});
+  openDialog({kind: 'lose', art: 'sad', title: '口袋满了', body: `7 格都塞满了，还没凑出 3 张一样的。场上还剩 ${left} 张牌。`, actions});
+}
+
+function win(){
+  G.won = true;
+  stopClock();
+  Sound.win();
+  const secs = Math.round(elapsed() / 1000), lv = G.level;
+  const best = (prefs.best || {})[lv];
+  const record = !best || secs < best;
+  if (record) savePrefs({best: Object.assign({}, prefs.best, {[lv]: secs})});
+  savePrefs({level: lv + 1});
+  setTimeout(() => {
+    if (lv === 1){
+      openDialog({kind: 'win', art: 'hop', title: '热身完成', body: '第 2 关才是正题：牌多、压得深。放心，发牌前已经算好了一条能清空的路线。', actions: [
+        {label: '进入第 2 关', primary: true, run: () => startLevel(2, newSeed())}
+      ]});
+    } else {
+      openDialog({kind: 'win', art: 'hop', title: `第 ${lv} 关通关！`,
+        body: `用时 ${fmt(secs)}，点了 ${G.moves} 次。` + (record ? '这是你这一关最快的一次。' : `这一关最快 ${fmt(best)}。`),
+        actions: [
+          {label: `挑战第 ${lv + 1} 关`, primary: true, run: () => startLevel(lv + 1, newSeed())},
+          {label: `再来一副第 ${lv} 关`, run: () => startLevel(lv, newSeed())}
+        ]});
+    }
+  }, 520);
+}
+
+/* ---------- 弹窗与提示 ---------- */
+let dlgKind = '';
+function openDialog(o){
+  dlgKind = o.kind || '';
+  const art = $('dlgArt');
+  art.innerHTML = o.art ? `<div class="${o.art}"><i class="art ic-5"></i></div>` : '';
+  art.hidden = !o.art;
+  $('dlgTitle').textContent = o.title;
+  const body = $('dlgBody');
+  body.textContent = o.body || '';
+  body.hidden = !o.body;
+  const ul = $('dlgList');
+  ul.replaceChildren(...(o.list || []).map(s => { const li = document.createElement('li'); li.textContent = s; return li; }));
+  ul.hidden = !o.list;
+  const box = $('dlgActions');
+  box.replaceChildren();
+  for (const a of o.actions){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn ' + (a.primary ? 'primary' : 'ghost');
+    b.textContent = a.label;
+    b.addEventListener('click', a.run);
+    box.appendChild(b);
+  }
+  scrim.hidden = false;
+  const first = box.querySelector('button');
+  if (first) first.focus({preventScroll: true});
+}
+function closeDialog(){ scrim.hidden = true; dlgKind = ''; }
+const dismissable = () => dlgKind === 'help' || dlgKind === 'menu';
+scrim.addEventListener('click', e => { if (e.target === scrim && dismissable()) closeDialog(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !scrim.hidden && dismissable()) closeDialog(); });
+
+let toastTimer = 0;
+function toast(msg){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1900);
+}
+
+function showHelp(){
+  openDialog({kind: 'help', title: '怎么玩', list: [
+    '只有亮着的牌能点。暗下去的牌被上面的牌压住了，要先把上面的拿走。',
+    '点中的牌会收进下面的牛仔布口袋，凑齐 3 张一样的就会消掉。',
+    '口袋只有 7 格，塞满了还凑不出 3 张，这一局就输了。',
+    '三个道具每局各能用 1 次：移出把口袋最左边 3 张挪到上面的架子上，之后还能点回来；撤回退回上一步；洗牌把场上的牌重新打乱。',
+    '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。'
+  ], actions: [
+    {label: '接着玩', primary: true, run: closeDialog},
+    G.level === 1
+      ? {label: '跳过热身，直接去第 2 关', run: () => startLevel(2, newSeed())}
+      : {label: '从第 1 关重新开始', run: () => startLevel(1, newSeed())}
+  ]});
+}
+
+function showRestart(){
+  openDialog({kind: 'menu', title: `重开第 ${G.level} 关？`, body: '这一局的进度会清掉。', actions: [
+    {label: '换一副新牌', primary: true, run: () => startLevel(G.level, newSeed())},
+    {label: '重玩同一副牌', run: () => startLevel(G.level, G.seed)},
+    {label: '取消', run: closeDialog}
+  ]});
+}
+
+function syncSound(){
+  const b = $('btnSound');
+  b.setAttribute('aria-pressed', String(Sound.on));
+  b.setAttribute('aria-label', Sound.on ? '关闭音效' : '打开音效');
+  b.querySelector('.on').hidden = !Sound.on;
+  b.querySelector('.off').hidden = Sound.on;
+}
+
+$('toolOut').addEventListener('click', useOut);
+$('toolUndo').addEventListener('click', useUndo);
+$('toolShuffle').addEventListener('click', useShuffle);
+$('btnHelp').addEventListener('click', showHelp);
+$('btnRestart').addEventListener('click', showRestart);
+$('btnSound').addEventListener('click', () => {
+  Sound.on = !Sound.on;
+  savePrefs({sound: Sound.on});
+  syncSound();
+  Sound.tap();
+});
+
+function relayout(){
+  layout();
+  stage.classList.add('instant');
+  render();
+  void stage.offsetWidth;
+  stage.classList.remove('instant');
+}
+let rz = 0;
+window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(relayout); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+setInterval(() => { $('clock').textContent = fmt(Math.floor(elapsed() / 1000)); }, 500);
+
+/* ---------- 页面更新时保留对局 ---------- */
+function serialize(){
+  return {
+    v: 1, level: G.level, seed: G.seed, n: G.tiles.length,
+    st: G.tiles.map(t => (t.pending ? 3 : ST[t.status])), ty: G.tiles.map(t => t.type),
+    slot: G.slot.filter(t => !t.pending).map(t => t.id), hold: G.hold.map(c => c.map(t => t.id)),
+    tools: Object.assign({}, G.tools), moves: G.moves, ms: elapsed(), over: G.over, won: G.won
+  };
+}
+function resume(s){
+  if (!s || s.v !== 1 || s.won) return false;
+  const built = buildLevel(s.level, s.seed);
+  if (!built || built.tiles.length !== s.n) return false;
+  G.epoch++;
+  Object.assign(G, {
+    level: s.level, seed: s.seed, cfg: built.cfg, tiles: built.tiles, slot: [], hold: [[], [], []],
+    tools: s.tools, history: [], moves: s.moves, over: false, won: false, pending: 0, acc: s.ms || 0, running: false
+  });
+  restoreSnap(s);
+  if (G.tiles.every(t => t.status === 'gone')) return false;
+  mountTiles(false);
+  if (s.over && G.slot.length >= CAP){ G.over = true; showLose(); } else startClock();
+  return true;
+}
+
+function paintCloth(){
+  const css = ICONS.map((ic, i) => `.ic-${i}{background-image:url(${stitchIcon(ic.m)})}`).join('\n');
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+  const kn = knitTexture();
+  document.body.style.backgroundImage = `radial-gradient(120% 90% at 50% 35%, rgba(10,18,50,0) 55%, rgba(6,10,30,.5) 100%), url(${kn.url})`;
+  document.body.style.backgroundSize = `100% 100%, ${kn.w}px ${kn.h}px`;
+}
+
+function boot(data){
+  layout();
+  syncSound();
+  const lv = Math.min(Math.max(Number(prefs.level) || 1, 1), 99);
+  if (!resume(data && data.game)) startLevel(lv, newSeed());
+}
+paintCloth();
+try {
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({game: serialize()}));
+} catch (e) {}
+const hot = window.claude && window.claude.hot;
+if (hot && hot.ready) hot.ready(boot); else boot((hot && hot.data) || {});
+})();
+</script>
+
+</body>
+</html>
