@@ -1966,13 +1966,8 @@ function computeHeights(tiles){
 const lift = t => Math.min(t.h || 1, 12) * L.unit * .075;
 const TILT_MAX = 2.4;
 function boardPose(t){
-  const k = lift(t), mag = Math.hypot(tilt.x, tilt.y);
-  const s = 1 + Math.min(t.h || 1, 12) * .012 * mag, half = (s - 1) * L.unit * .46;
-  return {
-    x: L.boardX + (t.x + .04) * L.unit + tilt.x * k - half,
-    y: L.boardY + (t.y + .01) * L.unit + tilt.y * k - half,
-    s
-  };
+  const k = lift(t);
+  return {x: L.boardX + (t.x + .04) * L.unit + tilt.x * k, y: L.boardY + (t.y + .01) * L.unit + tilt.y * k, s: 1};
 }
 
 function applyTilt(){
