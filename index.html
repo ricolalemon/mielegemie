@@ -257,7 +257,7 @@ button{font:inherit;color:inherit}
 .face{position:absolute;inset:0;border-radius:16%;
   background:radial-gradient(circle at 28% 18%,var(--tile-hi),rgba(255,255,255,0) 58%),var(--tile);
   box-shadow:inset 0 0 0 1px rgba(120,86,40,.2),0 calc(var(--ts) * .07) 0 #c9b288,0 calc(var(--ts) * .07 + 1.5px) 0 rgba(6,10,30,.55);
-  transition:filter .2s}
+  transition:filter .2s,translate .15s}
 .art{position:absolute;inset:9%;background:center/contain no-repeat}
 /* 图案图片由脚本按当前外观画好，放进 --ic-N 变量 */
 .ic-0{background-image:var(--ic-0)}.ic-1{background-image:var(--ic-1)}.ic-2{background-image:var(--ic-2)}.ic-3{background-image:var(--ic-3)}
@@ -268,13 +268,34 @@ button{font:inherit;color:inherit}
 .tile.blocked .face{filter:var(--dim)}
 .tile.hide{visibility:hidden}
 .tile:focus-visible .face{outline:3px solid var(--focus);outline-offset:2px}
+.stage .tile.inslot{transition:transform .3s cubic-bezier(.3,1.35,.5,1)}
 .stage.instant .tile{transition:none}
 .stage.dealing .tile .face{animation:drop .5s cubic-bezier(.2,.9,.3,1.15) both;animation-delay:var(--d,0ms)}
 .stage .tile.nope .face{animation:nope .25s ease}
 .stage .tile.mix .face{animation:wob .4s ease}
-.stage .tile.pending .face{animation:pulse .25s ease both}
+.stage .tile.freed .face{animation:freed .36s cubic-bezier(.3,1.5,.5,1)}
+.stage .tile.hint .face{animation:hint .55s ease}
+.stage .tile.shake .face{animation:shake .42s ease}
+.stage .tile.flip .face{animation:flip .36s ease-in-out both;animation-delay:var(--fd,0ms)}
+.stage .tile.back .face{animation:back .28s cubic-bezier(.3,1.4,.5,1)}
+.stage .tile.pending .face{filter:brightness(1.12)}
 .stage .tile.gone{pointer-events:none}
-.stage .tile.gone .face{animation:poof .32s ease forwards}
+.stage .tile.gone .face{animation:poof .3s ease forwards}
+.stage .tile.leaving{pointer-events:none}
+.stage .tile.leaving .face{animation:leave .26s ease-in forwards}
+/* ---- 动效 ---- */
+.tile.flying{z-index:900!important;transition:none!important}
+.tile.flying .face{filter:drop-shadow(0 10px 12px rgba(0,0,0,.28))}
+.spark{position:absolute;z-index:950;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;pointer-events:none}
+.spark.confetti{width:8px;height:12px;margin:-6px 0 0 -4px;border-radius:2px}
+:root[data-skin="pixel"] .spark,:root[data-skin="bauhaus"] .spark,:root[data-skin="type"] .spark{border-radius:0}
+.trough.shake{animation:shake .42s ease}
+.tool .n.bump{animation:bump .35s cubic-bezier(.3,1.6,.5,1)}
+.dlg-actions .btn{animation:rise .32s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--i, 0) * 55ms + 120ms)}
+@media (hover:hover){
+  .tile.onboard:not(.blocked):hover .face{translate:0 -2px}
+}
+
 
 /* 道具 */
 .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -603,7 +624,15 @@ button{font:inherit;color:inherit}
   92%{transform:none;text-shadow:-2px 0 0 #ff2bd6,2px 0 0 #00f0ff}
 }
 
-@keyframes drop{from{transform:translateY(-38px) scale(.9);opacity:0}to{transform:none;opacity:1}}
+@keyframes drop{from{transform:translateY(-38px) rotate(var(--r,0deg)) scale(.9);opacity:0}70%{opacity:1}to{transform:none;opacity:1}}
+@keyframes freed{0%{transform:scale(.93)}55%{transform:scale(1.06)}100%{transform:none}}
+@keyframes hint{0%,100%{transform:none}30%{transform:translateY(-5px)}60%{transform:translateY(0)}80%{transform:translateY(-2px)}}
+@keyframes flip{0%,100%{transform:scaleX(1)}50%{transform:scaleX(0)}}
+@keyframes back{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{0%,100%{transform:none}15%{transform:translateX(-7px)}35%{transform:translateX(6px)}55%{transform:translateX(-4px)}75%{transform:translateX(2px)}}
+@keyframes leave{to{transform:translateY(26px) scale(.86);opacity:0}}
+@keyframes bump{50%{transform:scale(1.35)}}
+@keyframes rise{from{transform:translateY(8px);opacity:0}}
 @keyframes poof{0%{transform:scale(1);opacity:1}40%{transform:scale(1.14) rotate(-6deg);opacity:1}100%{transform:scale(.2) rotate(35deg);opacity:0}}
 @keyframes pulse{50%{transform:scale(1.1)}}
 @keyframes nope{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
@@ -613,7 +642,9 @@ button{font:inherit;color:inherit}
 @keyframes blink{50%{opacity:.2}}
 @media (prefers-reduced-motion: reduce){
   .tile{transition-duration:.01s}
-  .stage.dealing .tile .face,.stage .tile.mix .face,.stage .tile.nope .face{animation:none}
+  .stage.dealing .tile .face,.stage .tile.mix .face,.stage .tile.nope .face,.stage .tile.freed .face,.stage .tile.hint .face,
+  .stage .tile.shake .face,.stage .tile.flip .face,.stage .tile.back .face,.trough.shake,.tool .n.bump,.dlg-actions .btn{animation:none}
+  .stage .tile.inslot{transition-duration:.01s}
   .needle,.sewn{transition:none}
   .dialog,.dlg-art .hop,.meter.hot .pips i.on,:root[data-skin="glitch"] .brand{animation:none}
 }
@@ -1543,6 +1574,83 @@ function layout(){
   Object.assign(bed.style, {left: (L.boardX - 4) + 'px', top: Math.round(L.boardY + unit * 7.5) + 'px', width: (unit * BW + 8) + 'px', height: Math.round(unit * 1.2) + 'px'});
 }
 
+/* ---------- 动效小工具 ---------- */
+const REDUCED = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const tf = (x, y, s) => `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${(+s).toFixed(3)})`;
+function replay(el, cls){
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+}
+function updateArt(t){
+  if (t.shown === t.type) return;
+  t.art.className = 'art ic-' + t.type;
+  t.el.dataset.ty = t.type;
+  t.shown = t.type;
+}
+// 牌在牌堆、口袋、架子之间移动时走一道弧线：先抬起、在空中略放大，落下时轻轻一顿
+function flyArc(t, x0, y0, s0, x1, y1, s1){
+  const el = t.el;
+  if (!el.animate) return;
+  if (t.anim){ t.anim.cancel(); t.anim = null; }
+  const lift = Math.min(64, 14 + Math.hypot(x1 - x0, y1 - y0) * .16), ms = Math.max(s0, s1) * 1.1;
+  el.classList.add('flying');
+  const a = el.animate([
+    {transform: tf(x0, y0, s0)},
+    {transform: tf((x0 + x1) / 2, (y0 + y1) / 2 - lift, ms), offset: .5},
+    {transform: tf(x1, y1 + 2, s1 * 1.05), offset: .86},
+    {transform: tf(x1, y1, s1)}
+  ], {duration: 320, easing: 'cubic-bezier(.3,.6,.35,1)'});
+  t.anim = a;
+  const done = () => { if (t.anim === a){ t.anim = null; el.classList.remove('flying'); } };
+  a.onfinish = done;
+  a.oncancel = done;
+  setTimeout(() => { if (t.anim === a) el.classList.remove('flying'); }, 380);
+}
+// 消掉时从中间迸出一圈小碎片，颜色跟着当前外观走
+function burst(cx, cy){
+  if (REDUCED || !stage.animate) return;
+  const vars = ['--accent', '--thread', '--pip-on'];
+  for (let i = 0; i < 10; i++){
+    const p = document.createElement('i');
+    p.className = 'spark';
+    p.style.left = cx + 'px';
+    p.style.top = cy + 'px';
+    p.style.background = `var(${vars[i % 3]})`;
+    stage.appendChild(p);
+    const ang = i / 10 * Math.PI * 2 + Math.random() * .6, d = L.cell * (.55 + Math.random() * .6);
+    const a = p.animate([
+      {transform: 'translate(0,0) scale(1)', opacity: 1},
+      {transform: `translate(${(Math.cos(ang) * d).toFixed(1)}px,${(Math.sin(ang) * d).toFixed(1)}px) scale(.2)`, opacity: 0}
+    ], {duration: 420 + Math.random() * 180, easing: 'cubic-bezier(.2,.7,.3,1)'});
+    a.onfinish = () => p.remove();
+  }
+}
+// 通关撒彩纸
+function confetti(){
+  if (REDUCED || !stage.animate) return;
+  const W = stage.clientWidth, H = L.holdY, vars = ['--accent', '--thread', '--pip-on', '--badge'];
+  for (let i = 0; i < 44; i++){
+    const p = document.createElement('i');
+    p.className = 'spark confetti';
+    p.style.left = (W * (.08 + Math.random() * .84)).toFixed(1) + 'px';
+    p.style.top = '-14px';
+    p.style.background = `var(${vars[i % vars.length]})`;
+    stage.appendChild(p);
+    const drift = (Math.random() - .5) * 140, rot = (Math.random() - .5) * 760;
+    const a = p.animate([
+      {transform: 'translate(0,0) rotate(0deg)', opacity: 1},
+      {transform: `translate(${drift.toFixed(1)}px,${(H * (.75 + Math.random() * .35)).toFixed(1)}px) rotate(${rot.toFixed(0)}deg)`, opacity: 0}
+    ], {duration: 1100 + Math.random() * 700, delay: Math.random() * 260, easing: 'cubic-bezier(.25,.6,.4,1)', fill: 'backwards'});
+    a.onfinish = () => p.remove();
+  }
+}
+function shakePocket(){
+  if (REDUCED) return;
+  replay(trough, 'shake');
+  for (const t of G.slot) replay(t.el, 'shake');
+}
+
 function render(){
   const {unit, cell, pad} = L, k = (cell / unit).toFixed(4);
   G.slot.forEach((t, i) => { t.si = i; });
@@ -1550,7 +1658,7 @@ function render(){
   for (const t of G.tiles){
     const el = t.el;
     if (!el) continue;
-    if (t.shown !== t.type){ t.art.className = 'art ic-' + t.type; el.dataset.ty = t.type; t.shown = t.type; }
+    if (t.shown !== t.type && !t.artLock) updateArt(t);
     let x = 0, y = 0, s = 1, zi = 0, blocked = false;
     if (t.status === 'board'){
       const p = boardPose(t);
@@ -1573,12 +1681,21 @@ function render(){
       blocked = col[col.length - 1] !== t;
     }
     if (t.status !== 'gone'){
+      if (!REDUCED && t.prev && t.prev !== t.status && t.prev !== 'gone' && t.px !== undefined) flyArc(t, t.px, t.py, t.ps, x, y, +s);
       el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${s})`;
       el.style.zIndex = zi;
       el.classList.remove('hide');
+      if (t.prev === 'gone' && !REDUCED) replay(el, 'back');
+      t.px = x;
+      t.py = y;
+      t.ps = +s;
     }
+    if (t.status === 'board' && t.wasBlocked && !blocked && !REDUCED) replay(el, 'freed');
+    t.wasBlocked = t.status === 'board' ? blocked : undefined;
+    t.prev = t.status;
     el.classList.toggle('blocked', blocked);
     el.classList.toggle('onboard', t.status === 'board');
+    el.classList.toggle('inslot', t.status === 'slot');
     el.classList.toggle('gone', t.status === 'gone');
     el.classList.toggle('pending', t.pending);
     const live = (t.status === 'board' || t.status === 'hold') && !blocked;
@@ -1610,13 +1727,20 @@ function hud(){
 function toolState(id, nid, n, name){
   const b = $(id);
   b.disabled = n <= 0;
-  $(nid).textContent = n;
+  const nEl = $(nid);
+  if (nEl.textContent !== String(n)){
+    if (+nEl.textContent > n && !REDUCED) replay(nEl, 'bump');
+    nEl.textContent = n;
+  }
   b.setAttribute('aria-label', n > 0 ? `${name}，还能用 ${n} 次` : `${name}，这一局已经用完`);
 }
 
 function mountTiles(deal){
   computeHeights(G.tiles);
-  for (const el of stage.querySelectorAll('.tile')) el.remove();
+  for (const el of stage.querySelectorAll('.tile:not(.leaving)')){
+    if (REDUCED || !deal) el.remove();
+    else { el.classList.add('leaving'); setTimeout(() => el.remove(), 300); }
+  }
   const frag = document.createDocumentFragment();
   const order = G.tiles.slice().sort((a, b) => a.y - b.y || a.x - b.x || a.z - b.z);
   const maxZ = Math.max(1, ...G.tiles.map(t => t.z));
@@ -1632,7 +1756,10 @@ function mountTiles(deal){
     face.appendChild(art);
     el.appendChild(face);
     el.addEventListener('click', () => onTile(t));
-    if (deal) el.style.setProperty('--d', Math.round(t.z / maxZ * 700 + Math.random() * 110) + 'ms');
+    if (deal){
+      el.style.setProperty('--d', Math.round(t.z / maxZ * 700 + Math.random() * 110) + 'ms');
+      el.style.setProperty('--r', (Math.random() * 12 - 6).toFixed(1) + 'deg');
+    }
     if (t.status === 'gone') el.classList.add('gone', 'hide');
     t.el = el;
     t.art = art;
@@ -1673,7 +1800,8 @@ function startLevel(level, seed){
 
 /* ---------- 点牌 ---------- */
 function onTile(t){
-  if (G.over || G.won) return;
+  if (G.tiles[t.id] !== t || G.over || G.won) return;
+  if (performance.now() < (G.flipUntil || 0)) return;
   if ((peekSrc && peekSrc !== 'gyro') || performance.now() - peekEndedAt < 350) return;
   if (t.status === 'board'){
     if (!isFree(t)) return nudge(t);
@@ -1702,7 +1830,7 @@ function onTile(t){
     for (const s of same.slice(0, 3)) s.pending = true;
     G.pending += 3;
     const ep = G.epoch;
-    setTimeout(() => settle(ep), 250);
+    setTimeout(() => settle(ep), REDUCED ? 220 : 340);
   } else if (G.slot.length >= CAP && !G.pending){
     render();
     lose();
@@ -1715,8 +1843,35 @@ function settle(ep){
   if (ep !== G.epoch) return;
   const done = G.slot.filter(s => s.pending);
   if (!done.length) return;
-  G.slot = G.slot.filter(s => !s.pending);
-  for (const s of done){ s.pending = false; s.status = 'gone'; }
+  const groups = {};
+  for (const s of done) (groups[s.type] = groups[s.type] || []).push(s);
+  if (!REDUCED && stage.animate){
+    for (const g of Object.values(groups)){
+      const mid = g[Math.floor(g.length / 2)];
+      for (const s of g){
+        if (s === mid) continue;
+        if (s.anim) s.anim.cancel();
+        s.anim = s.el.animate([{transform: tf(s.px, s.py, s.ps)}, {transform: tf(mid.px, mid.py, mid.ps)}],
+          {duration: 150, easing: 'cubic-bezier(.55,0,.8,.3)', fill: 'forwards'});
+      }
+    }
+    setTimeout(() => finishSettle(ep, done, groups), 150);
+  } else finishSettle(ep, done, groups);
+}
+function finishSettle(ep, done, groups){
+  if (ep !== G.epoch) return;
+  G.slot = G.slot.filter(s => !done.includes(s));
+  for (const g of Object.values(groups)){
+    const mid = g[Math.floor(g.length / 2)];
+    for (const s of g){
+      if (s.anim){ s.anim.cancel(); s.anim = null; }
+      s.el.classList.remove('flying');
+      s.el.style.transform = tf(mid.px, mid.py, mid.ps);
+      s.pending = false;
+      s.status = 'gone';
+    }
+    burst(mid.px + L.cell * .46, mid.py + L.cell * .46);
+  }
   G.pending = 0;
   Sound.match();
   render();
@@ -1724,11 +1879,12 @@ function settle(ep){
 }
 
 function nudge(t){
-  const el = t.el;
-  el.classList.remove('nope');
-  void el.offsetWidth;
-  el.classList.add('nope');
+  replay(t.el, 'nope');
   Sound.bump();
+  if (REDUCED) return;
+  const above = t.coveredBy.filter(a => a.status === 'board');
+  const tops = above.filter(isFree);
+  for (const a of (tops.length ? tops : above)) replay(a.el, 'hint');
 }
 
 /* ---------- 撤回用的快照 ---------- */
@@ -1804,9 +1960,21 @@ function useShuffle(){
   snapshot();
   reshuffle(pool);
   G.tools.shuffle--;
-  pool.forEach(t => t.el.classList.remove('mix'));
-  void stage.offsetWidth;
-  pool.forEach(t => t.el.classList.add('mix'));
+  if (!REDUCED){
+    const base = Math.min(...pool.map(t => t.x + t.y));
+    let last = 0;
+    pool.forEach(t => t.el.classList.remove('flip'));
+    void stage.offsetWidth;
+    for (const t of pool){
+      const d = Math.round((t.x + t.y - base) * 22);
+      last = Math.max(last, d);
+      t.artLock = true;
+      t.el.style.setProperty('--fd', d + 'ms');
+      t.el.classList.add('flip');
+      setTimeout(() => { t.artLock = false; updateArt(t); }, d + 180);
+    }
+    G.flipUntil = performance.now() + last + 380;
+  }
   Sound.tool();
   render();
 }
@@ -1817,7 +1985,8 @@ function lose(){
   stopClock();
   Sound.lose();
   const ep = G.epoch;
-  setTimeout(() => { if (G.over && ep === G.epoch) showLose(); }, 450);
+  setTimeout(shakePocket, REDUCED ? 0 : 330);
+  setTimeout(() => { if (G.over && ep === G.epoch) showLose(); }, REDUCED ? 450 : 900);
 }
 function showLose(){
   const left = G.tiles.filter(t => t.status !== 'gone').length;
@@ -1833,6 +2002,7 @@ function win(){
   G.won = true;
   stopClock();
   Sound.win();
+  confetti();
   const secs = Math.round(elapsed() / 1000), lv = G.level;
   const best = (prefs.best || {})[lv];
   const record = !best || secs < best;
@@ -1851,7 +2021,7 @@ function win(){
           {label: `再来一副第 ${lv} 关`, run: () => startLevel(lv, freshSeed(lv))}
         ]});
     }
-  }, 520);
+  }, REDUCED ? 520 : 800);
 }
 
 /* ---------- 弹窗与提示 ---------- */
@@ -1873,9 +2043,10 @@ function openDialog(o){
   ex.hidden = !o.extra;
   const box = $('dlgActions');
   box.replaceChildren();
-  for (const a of o.actions){
+  for (const [i, a] of o.actions.entries()){
     const b = document.createElement('button');
     b.type = 'button';
+    b.style.setProperty('--i', i);
     b.className = 'btn ' + (a.primary ? 'primary' : 'ghost');
     b.textContent = a.label;
     b.addEventListener('click', a.run);
