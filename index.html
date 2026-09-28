@@ -99,6 +99,11 @@ button{font:inherit;color:inherit}
   box-shadow:inset 0 0 0 1px rgba(120,86,40,.2),0 calc(var(--ts) * .07) 0 var(--felt-edge),0 calc(var(--ts) * .07 + 1.5px) 0 rgba(6,10,30,.55);
   transition:filter .2s}
 .art{position:absolute;inset:9%;background:center/contain no-repeat}
+/* 图案图片由脚本画好后放进 --ic-N 变量 */
+.ic-0{background-image:var(--ic-0)}.ic-1{background-image:var(--ic-1)}.ic-2{background-image:var(--ic-2)}.ic-3{background-image:var(--ic-3)}
+.ic-4{background-image:var(--ic-4)}.ic-5{background-image:var(--ic-5)}.ic-6{background-image:var(--ic-6)}.ic-7{background-image:var(--ic-7)}
+.ic-8{background-image:var(--ic-8)}.ic-9{background-image:var(--ic-9)}.ic-10{background-image:var(--ic-10)}.ic-11{background-image:var(--ic-11)}
+.ic-12{background-image:var(--ic-12)}.ic-13{background-image:var(--ic-13)}.ic-14{background-image:var(--ic-14)}.ic-15{background-image:var(--ic-15)}
 .tile.blocked{cursor:default}
 .tile.blocked .face{filter:var(--dim)}
 .tile.hide{visibility:hidden}
@@ -1074,10 +1079,7 @@ function resume(s){
 }
 
 function paintCloth(){
-  const css = ICONS.map((ic, i) => `.ic-${i}{background-image:url(${stitchIcon(ic.m)})}`).join('\n');
-  const style = document.createElement('style');
-  style.textContent = css;
-  document.head.appendChild(style);
+  ICONS.forEach((ic, i) => document.body.style.setProperty(`--ic-${i}`, `url(${stitchIcon(ic.m)})`));
   const kn = knitTexture();
   document.body.style.backgroundImage = `radial-gradient(120% 90% at 50% 35%, rgba(10,18,50,0) 55%, rgba(6,10,30,.5) 100%), url(${kn.url})`;
   document.body.style.backgroundSize = `100% 100%, ${kn.w}px ${kn.h}px`;
