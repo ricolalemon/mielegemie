@@ -237,7 +237,6 @@ button{font:inherit;color:inherit}
 .stage.dealing .tile .face{animation:drop .5s cubic-bezier(.2,.9,.3,1.15) both;animation-delay:var(--d,0ms)}
 .stage .tile.nope .face{animation:nope .25s ease}
 .stage .tile.mix .face{animation:wob .4s ease}
-.stage .tile.freed .face{animation:freed .36s cubic-bezier(.3,1.5,.5,1)}
 .stage .tile.hint .face{animation:hint .55s ease}
 .stage .tile.shake .face{animation:shake .42s ease}
 .stage .tile.flip .face{animation:flip .36s ease-in-out both;animation-delay:var(--fd,0ms)}
@@ -249,7 +248,6 @@ button{font:inherit;color:inherit}
 .stage .tile.leaving .face{animation:leave .26s ease-in forwards}
 /* ---- 动效 ---- */
 .tile.flying{z-index:900!important;transition:none!important}
-.tile.flying .face{filter:drop-shadow(0 10px 12px rgba(0,0,0,.28))}
 .spark{position:absolute;z-index:950;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;pointer-events:none}
 .spark.confetti{width:8px;height:12px;margin:-6px 0 0 -4px;border-radius:2px}
 :root[data-skin="pixel"] .spark,:root[data-skin="bauhaus"] .spark,:root[data-skin="type"] .spark{border-radius:0}
@@ -516,7 +514,6 @@ button{font:inherit;color:inherit}
 
 
 @keyframes drop{from{transform:translateY(-38px) rotate(var(--r,0deg)) scale(.9);opacity:0}70%{opacity:1}to{transform:none;opacity:1}}
-@keyframes freed{0%{transform:scale(.93)}55%{transform:scale(1.06)}100%{transform:none}}
 @keyframes hint{0%,100%{transform:none}30%{transform:translateY(-5px)}60%{transform:translateY(0)}80%{transform:translateY(-2px)}}
 @keyframes flip{0%,100%{transform:scaleX(1)}50%{transform:scaleX(0)}}
 @keyframes back{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
@@ -533,7 +530,7 @@ button{font:inherit;color:inherit}
 @keyframes blink{50%{opacity:.2}}
 @media (prefers-reduced-motion: reduce){
   .tile{transition-duration:.01s}
-  .stage.dealing .tile .face,.stage .tile.mix .face,.stage .tile.nope .face,.stage .tile.freed .face,.stage .tile.hint .face,
+  .stage.dealing .tile .face,.stage .tile.mix .face,.stage .tile.nope .face,.stage .tile.hint .face,
   .stage .tile.shake .face,.stage .tile.flip .face,.stage .tile.back .face,.trough.shake,.tool .n.bump,.dlg-actions .btn{animation:none}
   .stage .tile.inslot{transition-duration:.01s}
   .needle,.sewn{transition:none}
@@ -1399,11 +1396,12 @@ function flyArc(t, x0, y0, s0, x1, y1, s1){
   if (t.anim){ t.anim.cancel(); t.anim = null; }
   const lift = Math.min(64, 14 + Math.hypot(x1 - x0, y1 - y0) * .16), ms = Math.max(s0, s1) * 1.1;
   el.classList.add('flying');
+  const shadow = k => `drop-shadow(0 ${(10 * k).toFixed(1)}px ${(12 * k).toFixed(1)}px rgba(0,0,0,${(.28 * k).toFixed(3)}))`;
   const a = el.animate([
-    {transform: tf(x0, y0, s0)},
-    {transform: tf((x0 + x1) / 2, (y0 + y1) / 2 - lift, ms), offset: .5},
-    {transform: tf(x1, y1 + 2, s1 * 1.05), offset: .86},
-    {transform: tf(x1, y1, s1)}
+    {transform: tf(x0, y0, s0), filter: shadow(0)},
+    {transform: tf((x0 + x1) / 2, (y0 + y1) / 2 - lift, ms), filter: shadow(1), offset: .5},
+    {transform: tf(x1, y1 + 2, s1 * 1.05), filter: shadow(.25), offset: .86},
+    {transform: tf(x1, y1, s1), filter: shadow(0)}
   ], {duration: 320, easing: 'cubic-bezier(.3,.6,.35,1)'});
   t.anim = a;
   const done = () => { if (t.anim === a){ t.anim = null; el.classList.remove('flying'); } };
@@ -1494,8 +1492,6 @@ function render(){
       t.py = y;
       t.ps = +s;
     }
-    if (t.status === 'board' && t.wasBlocked && !blocked && !REDUCED) replay(el, 'freed');
-    t.wasBlocked = t.status === 'board' ? blocked : undefined;
     t.prev = t.status;
     el.classList.toggle('blocked', blocked);
     el.classList.toggle('onboard', t.status === 'board');
