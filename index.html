@@ -2184,7 +2184,7 @@ function showLose(){
     actions.push({label: '换个模式', run: showTrialPicker});
     actions.push({label: backLabel(), run: backToLevels});
   } else if (G.mode === 'daily'){
-    actions.push({label: '重玩今天这一局', primary: !actions.length, run: startDaily});
+    actions.push({label: '换一副牌再来', primary: !actions.length, run: startDaily});
     actions.push({label: backLabel(), run: backToLevels});
   } else {
     actions.push({label: '重玩这一副牌', primary: !actions.length, run: () => startLevel(G.level, G.seed)});
@@ -2319,7 +2319,7 @@ function showHelp(){
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
     `一共 ${FINAL} 关，打通第 ${FINAL} 关就算通关；之后还可以接着玩无尽模式。`,
     '右上角的小房子是主菜单：在闯关、每日挑战和练习之间切换，看排行榜。练习可以任选每日挑战的规则和形状，不计成绩。',
-    ...(BOARD.url ? ['每日挑战：每天所有人玩同一副牌，没用道具的排前面，同样再比谁清得快。牌堆摆成当天专属的形状，还有一条按星期轮换的特殊规则（少一格、蒙眼、空手、定时炸弹、牌山、大场面，星期天是双重），难度比第 6 关还高。排行榜每天零点（北京时间）换新。'] : []),
+    ...(BOARD.url ? ['每日挑战：每天所有人同一条规则、同一个牌堆形状，每局都是新的一副牌；没用道具的排前面，同样再比谁清得快。牌堆形状每天换，规则按星期轮换（少一格、蒙眼、空手、定时炸弹、牌山、大场面，星期天是双重），难度比第 6 关还高。排行榜每天零点（北京时间）换新。'] : []),
     '右上角的调色盘可以换外观，一共五种，换了不影响这一局。',
     '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
     '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。捻开时被压住的牌只显示背面，不会偷看到底下是什么。'
@@ -2337,8 +2337,8 @@ function showRestart(){
     {label: '换个模式', run: showTrialPicker},
     {label: '取消', run: closeDialog}
   ]});
-  if (G.mode === 'daily') return openDialog({kind: 'menu', title: '重开每日挑战？', body: '这一局的进度会清掉，排行榜上保留你今天最快的一次。', actions: [
-    {label: '重玩今天这一局', primary: true, run: startDaily},
+  if (G.mode === 'daily') return openDialog({kind: 'menu', title: '重开每日挑战？', body: '这一局的进度会清掉，换一副新牌重来；排行榜上保留你今天最好的一次。', actions: [
+    {label: '换一副牌重来', primary: true, run: startDaily},
     {label: backLabel(), run: backToLevels},
     {label: '取消', run: closeDialog}
   ]});
@@ -2350,7 +2350,7 @@ function showRestart(){
 }
 
 
-/* ---------- 每日挑战：每天所有人同一副牌，比谁清得最快 ---------- */
+/* ---------- 每日挑战：每天同一条规则、同一个牌堆形状，每局发一副新牌，比谁清得最快 ---------- */
 // Supabase 项目的地址和公开 key（公开 key 本来就是给网页用的，能读榜、能交成绩，改不了别人的）
 const BOARD = {url: 'https://ghjrmmqnajguwkfoplgo.supabase.co', key: 'sb_publishable_1YWUN4fZ3c_TjQD9p6Lmlg_K-vDB6y_'};
 const DAILY_LEVEL = 6;
@@ -2361,14 +2361,6 @@ function beijingDay(offset = 0){
 function dayLabel(day){
   const [, m, d] = day.split('-').map(Number);
   return `${m} 月 ${d} 日`;
-}
-function dailySeed(day){
-  let h = 2166136261;
-  for (const ch of 'mielegemie-daily-' + day){
-    h ^= ch.charCodeAt(0);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0) % 2000000000 + 1;
 }
 // 每日挑战的规则，按星期轮换（下标 0 是星期天）
 const DAILY_RULES = [
@@ -2457,8 +2449,8 @@ function dailySpec(day, ri, si){
   const arch = {id: 'daily', name: shape.name, build: (rng, c) => buildShape(rng, c, grid)};
   return {rule, shape, cfg, arch};
 }
-function buildDaily(day){
-  const spec = dailySpec(day), seed0 = dailySeed(day);
+function buildDaily(day, seed0 = newSeed()){
+  const spec = dailySpec(day);
   for (let k = 0; k < 20; k++){
     const built = buildWith(spec.cfg, seed0 + k, spec.arch);
     if (built) return Object.assign(built, {seed: seed0 + k, rule: spec.rule, label: `${spec.rule.name}·${spec.shape.name}`});
@@ -2645,7 +2637,7 @@ function showBoard(o = {}){
   wrap.appendChild(link);
 
   const spec = dailySpec(today);
-  let title = '每日挑战', body = `${dayLabel(today)} · 今天是「${spec.rule.name}」：${spec.rule.desc}；牌堆摆成「${spec.shape.name}」。所有人同一副牌：没用道具的排前面，同样再比谁清得快。`, actions;
+  let title = '每日挑战', body = `${dayLabel(today)} · 今天是「${spec.rule.name}」：${spec.rule.desc}；牌堆摆成「${spec.shape.name}」。每局都是新的一副牌，没用道具的排前面，同样再比谁清得快。`, actions;
   if (o.result){
     const r = o.result;
     title = '每日挑战完成！';
@@ -3134,7 +3126,7 @@ function resume(s){
   const mode = s.mode === 'daily' ? 'daily' : 'normal';
   // 过了零点，昨天没打完的每日挑战就不接着打了
   if (mode === 'daily' && s.day !== beijingDay()) return false;
-  const built = mode === 'daily' ? buildDaily(s.day) : buildLevel(s.level, s.seed);
+  const built = mode === 'daily' ? buildDaily(s.day, s.seed) : buildLevel(s.level, s.seed);
   if (!built || built.tiles.length !== s.n || (mode === 'daily' && built.seed !== s.seed)) return false;
   // 游戏更新后摆牌方式可能变了，同一个种子摆出来的牌对不上就不恢复
   if (s.sig != null && s.sig !== layoutSig(built.tiles)) return false;
