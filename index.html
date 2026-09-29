@@ -2649,7 +2649,7 @@ function showBoard(o = {}){
   if (o.result){
     const r = o.result;
     title = '每日挑战完成！';
-    body = `用时 ${fmtMs(r.ms)}，点了 ${r.moves} 次，${r.tools ? `用了 ${r.tools} 个道具` : '没用道具'}。` + (r.record ? (r.prev ? '比你今天之前的成绩更好。' : '') : `你今天最好是 ${scoreText(r.prev)}。`);
+    body = `用时 ${fmtMs(r.ms)}，${r.tools ? `用了 ${r.tools} 个道具` : '没用道具'}。` + (r.record ? (r.prev ? '比你今天之前的成绩更好。' : '') : `你今天最好是 ${scoreText(r.prev)}。`);
     actions = [{label: '再挑战一次', primary: true, run: startDaily}, {label: backLabel(), run: backToLevels}];
   } else if (G.mode === 'daily' && !G.won && G.day === today){
     actions = [{label: '接着玩', primary: true, run: closeDialog}, {label: '重开今天这一局', run: startDaily}, {label: backLabel(), run: backToLevels}];
