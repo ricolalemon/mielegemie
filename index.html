@@ -2319,7 +2319,7 @@ function showHelp(){
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
     `一共 ${FINAL} 关，打通第 ${FINAL} 关就算通关；之后还可以接着玩无尽模式。`,
     '右上角的小房子是主菜单：在闯关、每日挑战和练习之间切换，看排行榜。练习可以任选每日挑战的规则和形状，不计成绩。',
-    ...(BOARD.url ? ['每日挑战：每天所有人玩同一副牌，比谁清得最快。牌堆摆成当天专属的形状，还有一条按星期轮换的特殊规则（少一格、蒙眼、空手、定时炸弹、牌山、大场面，星期天是双重），难度比第 6 关还高。排行榜每天零点（北京时间）换新。'] : []),
+    ...(BOARD.url ? ['每日挑战：每天所有人玩同一副牌，没用道具的排前面，同样再比谁清得快。牌堆摆成当天专属的形状，还有一条按星期轮换的特殊规则（少一格、蒙眼、空手、定时炸弹、牌山、大场面，星期天是双重），难度比第 6 关还高。排行榜每天零点（北京时间）换新。'] : []),
     '右上角的调色盘可以换外观，一共五种，换了不影响这一局。',
     '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
     '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。捻开时被压住的牌只显示背面，不会偷看到底下是什么。'
@@ -2493,11 +2493,15 @@ async function api(path, body){
     clearTimeout(timer);
   }
 }
-const fetchBoard = day => api(`daily_scores?select=tag,name,ms,moves&day=eq.${day}&order=ms.asc,updated_at.asc&limit=50`);
+// 排名：先比用了几个道具（少的在前），同样再比用时
+const fetchBoard = day => api(`daily_scores?select=tag,name,ms,moves,tools&day=eq.${day}&order=tools.asc,ms.asc,updated_at.asc&limit=50`);
 function submitScore(sc){
   ident();
-  return api('rpc/submit_daily', {p_day: sc.day, p_player: prefs.pid, p_tag: prefs.tag, p_name: prefs.name, p_ms: sc.ms, p_moves: sc.moves});
+  return api('rpc/submit_daily', {p_day: sc.day, p_player: prefs.pid, p_tag: prefs.tag, p_name: prefs.name, p_ms: sc.ms, p_moves: sc.moves, p_tools: sc.tools || 0});
 }
+const toolsLabel = n => (n ? `道具 ×${n}` : '无道具');
+const betterScore = (a, b) => (a.tools || 0) < (b.tools || 0) || ((a.tools || 0) === (b.tools || 0) && a.ms < b.ms);
+const scoreText = sc => `${fmtMs(sc.ms)} · ${toolsLabel(sc.tools || 0)}`;
 
 function startDaily(){
   startDailyFor(beijingDay());
@@ -2550,16 +2554,18 @@ function backToLevels(){
 
 function winDaily(){
   const ms = Math.round(elapsed()), day = G.day, moves = G.moves;
+  const tools = G.rule && G.rule.bare ? 0 : 3 - (G.tools.out + G.tools.undo + G.tools.shuffle);
+  const sc = {day, ms, moves, tools};
   Sound.win();
   confetti();
   const prev = prefs.dailyBest && prefs.dailyBest.day === day ? prefs.dailyBest : null;
-  const record = !prev || ms < prev.ms;
-  if (record) savePrefs({dailyBest: {day, ms, moves}});
+  const record = !prev || betterScore(sc, prev);
+  if (record) savePrefs({dailyBest: sc});
   // 先记下来等着交；断网了下次打开排行榜再交
   const pend = prefs.pendingScore;
-  if (!pend || pend.day !== day || ms < pend.ms) savePrefs({pendingScore: {day, ms, moves}});
+  if (!pend || pend.day !== day || betterScore(sc, pend)) savePrefs({pendingScore: sc});
   setTimeout(() => {
-    const go = () => showBoard({day, result: {ms, moves, record, prev}});
+    const go = () => showBoard({day, result: {ms, moves, tools, record, prev}});
     if (prefs.name || prefs.namePrompted) go();
     else {
       savePrefs({namePrompted: true});
@@ -2639,19 +2645,19 @@ function showBoard(o = {}){
   wrap.appendChild(link);
 
   const spec = dailySpec(today);
-  let title = '每日挑战', body = `${dayLabel(today)} · 今天是「${spec.rule.name}」：${spec.rule.desc}；牌堆摆成「${spec.shape.name}」。所有人同一副牌，比谁清得最快。`, actions;
+  let title = '每日挑战', body = `${dayLabel(today)} · 今天是「${spec.rule.name}」：${spec.rule.desc}；牌堆摆成「${spec.shape.name}」。所有人同一副牌：没用道具的排前面，同样再比谁清得快。`, actions;
   if (o.result){
     const r = o.result;
     title = '每日挑战完成！';
-    body = `用时 ${fmtMs(r.ms)}，点了 ${r.moves} 次。` + (r.record ? (r.prev ? '比你今天之前最快的还快。' : '') : `你今天最快是 ${fmtMs(r.prev.ms)}。`);
+    body = `用时 ${fmtMs(r.ms)}，点了 ${r.moves} 次，${r.tools ? `用了 ${r.tools} 个道具` : '没用道具'}。` + (r.record ? (r.prev ? '比你今天之前的成绩更好。' : '') : `你今天最好是 ${scoreText(r.prev)}。`);
     actions = [{label: '再挑战一次', primary: true, run: startDaily}, {label: backLabel(), run: backToLevels}];
   } else if (G.mode === 'daily' && !G.won && G.day === today){
     actions = [{label: '接着玩', primary: true, run: closeDialog}, {label: '重开今天这一局', run: startDaily}, {label: backLabel(), run: backToLevels}];
   } else {
     const saved = loadGame('daily');
     const going = saved && saved.day === today && !saved.won;
-    const best = prefs.dailyBest && prefs.dailyBest.day === today ? prefs.dailyBest.ms : 0;
-    if (best) body += `你今天最快 ${fmtMs(best)}。`;
+    const best = prefs.dailyBest && prefs.dailyBest.day === today ? prefs.dailyBest : null;
+    if (best) body += `你今天最好 ${scoreText(best)}。`;
     actions = [{label: going ? '接着今天的挑战' : best ? '再挑战一次' : '挑战今天这一局', primary: true, run: enterDaily}, {label: '关闭', run: closeDialog}];
   }
   openDialog({kind: o.result ? 'win' : 'menu', art: o.result ? 'hop' : null, title, body, extra: wrap, actions});
@@ -2661,7 +2667,7 @@ function showBoard(o = {}){
   function row(rank, r, me){
     const li = document.createElement('li');
     if (me) li.className = 'me';
-    const cells = [['rk', String(rank)], ['nm', r.name], ['tm', fmtMs(r.ms)], ['mv', r.moves ? `${r.moves} 步` : '']];
+    const cells = [['rk', String(rank)], ['nm', r.name], ['tm', fmtMs(r.ms)], ['mv', toolsLabel(r.tools || 0)]];
     for (const [cls, text] of cells){
       const span = document.createElement('span');
       span.className = cls;
@@ -2700,7 +2706,7 @@ function showBoard(o = {}){
         gap.className = 'gap';
         gap.textContent = '…';
         list.appendChild(gap);
-        list.appendChild(row(mine.rank, {name: prefs.name, ms: mine.best}, true));
+        list.appendChild(row(mine.rank, {name: prefs.name, ms: mine.best, tools: mine.tools}, true));
       }
       const me = list.querySelector('.me');
       if (me) me.scrollIntoView({block: 'nearest'});
@@ -2838,11 +2844,11 @@ function showHome(){
   // 每日挑战和排行榜
   if (BOARD.url){
     const today = beijingDay(), spec = dailySpec(today);
-    const best = prefs.dailyBest && prefs.dailyBest.day === today ? prefs.dailyBest.ms : 0;
+    const best = prefs.dailyBest && prefs.dailyBest.day === today ? prefs.dailyBest : null;
     const here = G.mode === 'daily' && !G.won && G.day === today;
     const ds = here ? null : loadGame('daily');
     const dGoing = here || !!(ds && ds.day === today && !ds.won);
-    const status = dGoing ? '打到一半' : best ? `今天最快 ${fmtMs(best)}` : '';
+    const status = dGoing ? '打到一半' : best ? `今天最好 ${scoreText(best)}` : '';
     list.appendChild(homeItem(tone('daily'), '每日挑战', [`今天：${spec.rule.name} · ${spec.shape.name}`, status].filter(Boolean).join(' · '),
       () => (here ? hideHome() : enterDaily())));
     list.appendChild(homeItem('ghost', '排行榜', '看看今天谁最快', () => showBoard()));
