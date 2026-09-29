@@ -157,6 +157,7 @@ button{font:inherit;color:inherit}
 .brand{margin:0;text-align:center;font-family:var(--font-display);font-weight:400;font-size:clamp(21px,6.2vw,32px);line-height:1.05;
   letter-spacing:.08em;white-space:nowrap;color:var(--ink);text-shadow:var(--brand-shadow)}
 .acts{display:flex;gap:6px}
+@media (max-width:380px){.bar{gap:6px}.lvl{padding-inline:9px}.acts{gap:3px}.acts .icon-btn{width:31px;height:31px}.acts .icon-btn svg{width:18px;height:18px}}
 .icon-btn{width:36px;height:36px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;
   background:var(--btn);color:var(--btn-ink);
   box-shadow:inset 0 0 0 3px var(--btn),inset 0 0 0 4.5px rgba(120,90,50,.3),0 3px 0 var(--btn-edge),0 3px 0 1px rgba(0,0,0,.28)}
@@ -293,6 +294,25 @@ button{font:inherit;color:inherit}
 .dialog p{margin:0 0 16px;color:var(--paper-soft);line-height:1.65}
 .dialog ul{margin:0 0 16px;padding-left:1.2em;text-align:left;color:var(--paper-soft);line-height:1.65;display:flex;flex-direction:column;gap:6px}
 .dlg-extra{margin:0 0 16px}
+/* 每日挑战排行榜 */
+.board-tabs{display:flex;justify-content:center;gap:6px;margin:0 0 10px}
+.board-tabs button{padding:6px 16px;border:0;border-radius:999px;background:transparent;color:var(--paper-soft);font:700 14px/1.2 var(--font-body);box-shadow:inset 0 0 0 1.5px var(--ghost-line);cursor:pointer}
+.board-tabs button[aria-pressed="true"]{background:var(--paper-ink);color:var(--paper);box-shadow:none}
+.dialog .board-note{margin:0 0 8px;font-size:13px;line-height:1.5}
+.board-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:min(42vh,330px);overflow:auto;text-align:left}
+.board-list li{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto auto;align-items:baseline;gap:8px;padding:8px 10px;border-radius:9px;box-shadow:inset 0 0 0 1.5px var(--ghost-line);font-variant-numeric:tabular-nums}
+.board-list .rk{font:400 15px/1 var(--font-num);color:var(--paper-soft);text-align:center}
+.board-list li:nth-child(-n+3) .rk{color:var(--accent)}
+.board-list .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--paper-ink)}
+.board-list .tm{font:400 15px/1 var(--font-num);color:var(--paper-ink)}
+.board-list .mv{min-width:3.2em;text-align:right;font-size:12px;color:var(--paper-soft)}
+.board-list li.me{background:var(--paper-ink);box-shadow:none}
+.board-list li.me .rk,.board-list li.me .nm,.board-list li.me .tm,.board-list li.me .mv{color:var(--paper)}
+.board-list li.gap{display:block;padding:0;box-shadow:none;text-align:center;color:var(--paper-soft)}
+.board-link{margin:10px 0 0;padding:4px;border:0;background:none;color:var(--paper-soft);font:700 13px/1.2 var(--font-body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.name-field{display:block;width:100%;box-sizing:border-box;padding:11px 12px;border:0;border-radius:10px;background:var(--tile);color:var(--paper-ink);font:700 17px/1.2 var(--font-body);text-align:center;box-shadow:inset 0 0 0 1.5px var(--ghost-line)}
+.name-field:focus-visible{outline:3px solid var(--paper-ink);outline-offset:2px}
+.dialog .name-err{margin:8px 0 0;min-height:1.3em;font-size:13px;color:var(--accent)}
 .dlg-actions{position:relative;display:flex;flex-direction:column;gap:10px}
 .btn{position:relative;border:0;border-radius:12px;padding:12px 14px;font:700 16px/1.25 var(--font-body);cursor:pointer;touch-action:manipulation}
 .btn.primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 var(--accent-deep)}
@@ -542,13 +562,16 @@ button{font:inherit;color:inherit}
 
 <main class="app">
   <header class="bar" id="bar">
-    <div class="lvl"><span>第</span><b id="lvlNum">1</b><span>关</span></div>
+    <div class="lvl"><span id="lvlPre">第</span><b id="lvlNum">1</b><span id="lvlPost">关</span></div>
     <h1 class="brand">咩了个咩</h1>
     <div class="acts">
+      <button class="icon-btn" id="btnBoard" type="button" aria-label="每日挑战和排行榜">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.5h8v5.2a4 4 0 0 1-8 0z"/><path d="M8 6.5H5.2a2.8 2.8 0 0 0 3.1 3.6M16 6.5h2.8a2.8 2.8 0 0 1-3.1 3.6"/><path d="M12 13.7v3.3M8.6 19.5h6.8"/></svg>
+      </button>
       <button class="icon-btn" id="btnSkin" type="button" aria-label="换个风格">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 1 0 0 17c1 0 1.6-.7 1.6-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.8.7-1.5 1.5-1.5h1.9a4.8 4.8 0 0 0 4.8-4.8c0-3.9-4-7-9-7z"/><path d="M7.6 11.2v.1M10 7.4v.1M14.3 7.4v.1"/></svg>
       </button>
-      <button class="icon-btn" id="btnSound" type="button" aria-label="关闭音效" aria-pressed="true">
+      <button class="icon-btn" id="btnSound" type="button" aria-label="关闭音效和音乐" aria-pressed="true">
         <span class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a8 8 0 0 1 0 11"/></svg></span>
         <span class="off" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg></span>
       </button>
@@ -873,6 +896,238 @@ const Sound = {
     [523, 659, 784, 1047].forEach(f => this.tone(f, .9, 'sine', .035, .9));
   }
 };
+
+/* ---------- 背景音乐：《老麦克唐纳有块地》（英美童谣，早已是公版），全部现场合成 ---------- */
+const Music = (() => {
+  const VOL = .2;           // 比点牌的音效轻
+  const BPM = 132;
+  let out = null, master = null, noiseBuf = null, timer = 0, step = 0, next = 0, playing = false;
+  const C = () => Sound.ctx;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  function vca(t, peak, a, hold, rel){
+    const g = C().createGain();
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    g.gain.setValueAtTime(peak, t + a + hold);
+    g.gain.exponentialRampToValueAtTime(.0001, t + a + hold + rel);
+    return g;
+  }
+  function osc(type, f, t, end){
+    const o = C().createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(f, t);
+    o.start(t);
+    o.stop(end);
+    return o;
+  }
+  function noise(t, end){
+    const n = C().createBufferSource();
+    n.buffer = noiseBuf;
+    n.loop = true;
+    n.start(t, Math.random() * .5);
+    n.stop(end);
+    return n;
+  }
+  function filt(type, f, q = 1){
+    const b = C().createBiquadFilter();
+    b.type = type;
+    b.frequency.value = f;
+    b.Q.value = q;
+    return b;
+  }
+  function gain(v){
+    const g = C().createGain();
+    g.gain.value = v;
+    return g;
+  }
+  function chain(...nodes){
+    for (let i = 0; i < nodes.length - 1; i++) nodes[i].connect(nodes[i + 1]);
+  }
+
+  // 乐器：大号、拨弦、梆子、底鼓、沙锤、口哨，还有小羊
+  const I = {
+    kick(t, v){
+      const o = osc('sine', 150, t, t + .32);
+      o.frequency.exponentialRampToValueAtTime(44, t + .11);
+      chain(o, vca(t, .95 * v, .003, .02, .24), out);
+    },
+    shaker(t, v){
+      chain(noise(t, t + .1), filt('highpass', 5500, .7), vca(t, .07 * v, .006, 0, .05), out);
+    },
+    block(t, m, v){
+      const f = mtof(m), o = osc('sine', f, t, t + .1);
+      o.frequency.exponentialRampToValueAtTime(f * .94, t + .06);
+      chain(o, vca(t, .3 * v, .001, 0, .06), out);
+      chain(osc('triangle', f * 2.63, t, t + .05), vca(t, .06 * v, .001, 0, .025), out);
+    },
+    tuba(t, m, dur, v){
+      const o = osc('sawtooth', mtof(m), t, t + dur + .1), lp = filt('lowpass', 260, 1.5);
+      lp.frequency.setValueAtTime(260, t);
+      lp.frequency.linearRampToValueAtTime(560, t + .05);
+      chain(o, lp, vca(t, .5 * v, .03, dur * .5, dur * .4 + .05), out);
+    },
+    pizz(t, ms){
+      for (const m of ms){
+        const f = mtof(m), lp = filt('lowpass', 2600, .8), g2 = gain(.3);
+        osc('triangle', f, t, t + .3).connect(lp);
+        osc('sawtooth', f, t, t + .3).connect(g2);
+        g2.connect(lp);
+        chain(lp, vca(t, .07, .003, 0, .18), out);
+      }
+    },
+    whistle(t, m, dur){
+      const f = mtof(m), end = t + dur + .06, o = osc('sine', f * .97, t, end);
+      o.frequency.exponentialRampToValueAtTime(f, t + .04);
+      const l = osc('sine', 6, t, end), d = gain(f * .01);
+      l.connect(d);
+      d.connect(o.frequency);
+      chain(o, vca(t, .16, .02, Math.max(0, dur - .05), .05), out);
+      chain(noise(t, end), filt('bandpass', f * 2, 8), vca(t, .05, .02, Math.max(0, dur - .05), .05), out);
+    },
+    // 羊叫：锯齿波过三个元音共振峰，每秒抖十七下，开头嘴闭着像「m」
+    baa(t, m, dur){
+      const f0 = mtof(m), end = t + dur + .06;
+      const o = osc('sawtooth', f0 * 1.06, t, end);
+      o.frequency.linearRampToValueAtTime(f0, t + .08);
+      o.frequency.linearRampToValueAtTime(f0 * .9, end);
+      const trem = osc('sine', 17, t, end), am = gain(.55), amDepth = gain(.45), wob = gain(f0 * .025);
+      trem.connect(amDepth);
+      amDepth.connect(am.gain);
+      trem.connect(wob);
+      wob.connect(o.frequency);
+      const lp = filt('lowpass', 350, .7);
+      lp.frequency.setValueAtTime(350, t);
+      lp.frequency.exponentialRampToValueAtTime(5000, t + .07);
+      o.connect(am);
+      am.connect(lp);
+      const sum = gain(1.6);
+      for (const [f, q, lv] of [[560, 5, 1], [1750, 7, .7], [2600, 8, .3]]){
+        const b = filt('bandpass', f, q), g = gain(lv);
+        lp.connect(b);
+        b.connect(g);
+        g.connect(sum);
+      }
+      const env = C().createGain();
+      env.gain.setValueAtTime(.0001, t);
+      env.gain.exponentialRampToValueAtTime(.9, t + .03);
+      env.gain.setValueAtTime(.9, t + Math.max(.035, dur * .7));
+      env.gain.exponentialRampToValueAtTime(.0001, end);
+      chain(sum, env, out);
+    }
+  };
+
+  // 记谱：每小节 16 格，一格一个十六分音符。「.」休止，「-」延长上一个音，带「*」的音由小羊来唱
+  function nm(x){
+    const r = /^([A-G])(#|b)?(-?\d)$/.exec(x);
+    return {C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11}[r[1]] + (r[2] === '#' ? 1 : r[2] === 'b' ? -1 : 0) + (+r[3] + 1) * 12;
+  }
+  function bar(str){
+    const tok = str.trim().split(/\s+/), ev = [];
+    tok.forEach((x, i) => {
+      if (x === '.') return;
+      if (x === '-'){
+        const e = ev[ev.length - 1];
+        if (e && e.step + e.len === i) e.len++;
+        return;
+      }
+      ev.push({step: i, m: nm(x.replace('*', '')), len: 1, baa: x[0] === '*'});
+    });
+    ev.forEach((e, k) => {
+      const nx = k + 1 < ev.length ? ev[k + 1].step : 16;
+      e.len = Math.max(e.len, Math.min(3, nx - e.step));
+    });
+    const at = {};
+    for (const e of ev) at[e.step] = e;
+    return at;
+  }
+  const VERSE = [
+    'G5 - . . G5 - . . G5 - . . D5 - . .',
+    'E5 - . . E5 - . . D5 - - - - - . .',
+    'B5 - . . B5 - . . A5 - . . A5 - . .'
+  ];
+  const SONG = [
+    ...VERSE, 'G5 - - - - - - - - - - - . . . .',
+    ...VERSE, 'G5 - - - - - - - - - - . D5 . D5 .',
+    '*G4 - - . *G4 - - . G5 - - . D5 . D5 .',
+    '*G4 - - . *G4 - - . G5 - - - - - - .',
+    'G5 . G5 . *G4 - - . G5 . G5 . *G4 - - .',
+    'G5 . G5 . G5 . G5 . *G4 - - . *G4 - - .',
+    ...VERSE, 'G5 - - - - - - - - - - - . . . .'
+  ].map(bar);
+  const HALVES = [[43, 43], [48, 43], [43, 38], [43, 43]];
+  const CHORD = {43: [62, 67, 71], 48: [60, 64, 67], 38: [62, 66, 69]};
+
+  function play(b, s, t, d){
+    const root = (b >= 8 && b < 12 ? (b === 11 ? [43, 38] : [43, 43]) : HALVES[b % 4])[s < 8 ? 0 : 1];
+    if (s === 0 || s === 8){
+      I.tuba(t, root, d * 3, s ? .9 : 1);
+      I.kick(t, .45);
+    }
+    if (s === 4 || s === 12){
+      I.pizz(t, CHORD[root]);
+      I.block(t, 76, .45);
+    }
+    if (s % 2 === 0) I.shaker(t, s % 4 ? .7 : 1);
+    const e = SONG[b][s];
+    if (e){
+      if (e.baa) I.baa(t, e.m, e.len * d * .95);
+      else I.whistle(t, e.m, e.len * d);
+    }
+  }
+  function pump(){
+    const c = C(), d = 60 / BPM / 4;
+    while (next < c.currentTime + .15){
+      play(Math.floor(step / 16) % SONG.length, step % 16, next, d);
+      next += d;
+      step++;
+    }
+  }
+  function setup(c){
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -16;
+    comp.knee.value = 8;
+    comp.ratio.value = 4;
+    comp.attack.value = .003;
+    comp.release.value = .18;
+    out = c.createGain();
+    master = c.createGain();
+    master.gain.value = 0;
+    out.connect(comp);
+    comp.connect(master);
+    master.connect(c.destination);
+    const len = c.sampleRate, d = (noiseBuf = c.createBuffer(1, len, len)).getChannelData(0), rnd = rngFrom(3);
+    for (let i = 0; i < len; i++) d[i] = rnd() * 2 - 1;
+  }
+  function fade(to, secs){
+    const now = C().currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(to, now + secs);
+  }
+  return {
+    // 浏览器要等玩家点一下才让出声，所以每次点屏幕都试着开一次
+    start(){
+      if (!Sound.on) return;
+      try {
+        const c = Sound.ctx || (Sound.ctx = new (window.AudioContext || window.webkitAudioContext)());
+        if (c.state === 'suspended' && document.visibilityState === 'visible') c.resume();
+        if (playing) return;
+        if (!master) setup(c);
+        playing = true;
+        fade(VOL, 1.2);
+        next = c.currentTime + .1;
+        timer = setInterval(pump, 25);
+        pump();
+      } catch (e) {}
+    },
+    stop(){
+      if (!playing) return;
+      playing = false;
+      clearInterval(timer);
+      fade(0, .3);
+    }
+  };
+})();
 
 /* ---------- 随机数（同一个种子永远发出同一副牌） ---------- */
 function rngFrom(seed){
@@ -1336,7 +1591,7 @@ function buildLevel(level, seed){
 
 /* ---------- 对局状态 ---------- */
 const G = {
-  level: 1, seed: 1, cfg: {intro: true}, tiles: [], slot: [], hold: [[], [], []],
+  mode: 'normal', day: '', level: 1, seed: 1, cfg: {intro: true}, tiles: [], slot: [], hold: [[], [], []],
   tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
   over: false, won: false, epoch: 0, pending: 0, acc: 0, t0: 0, running: false
 };
@@ -1511,7 +1766,10 @@ function hud(){
   let left = 0;
   for (const t of G.tiles) if (t.status !== 'gone') left++;
   const p = total ? ((total - left) / total).toFixed(4) : 0;
-  $('lvlNum').textContent = G.level;
+  const daily = G.mode === 'daily';
+  $('lvlPre').hidden = daily;
+  $('lvlPost').hidden = daily;
+  $('lvlNum').textContent = daily ? '每日' : G.level;
   $('left').textContent = left;
   $('layoutName').textContent = G.cfg.intro ? '' : `${G.label} · `;
   $('needle').style.left = `calc((100% - 40px) * ${p})`;
@@ -1585,11 +1843,11 @@ function startLevel(level, seed){
   if (!built){ level = 1; seed = newSeed(); built = buildLevel(1, seed); }
   G.epoch++;
   Object.assign(G, {
-    level, seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
+    mode: 'normal', day: '', level, seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
     tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
     over: false, won: false, pending: 0, acc: 0, running: false
   });
-  savePrefs(built.cfg.intro ? {level} : {level, lastArch: archOf(seed).id});
+  savePrefs(built.cfg.intro ? {level, mode: 'normal'} : {level, mode: 'normal', lastArch: archOf(seed).id});
   closeDialog();
   mountTiles(true);
   startClock();
@@ -1799,8 +2057,13 @@ function showLose(){
   const actions = [];
   if (G.tools.out > 0) actions.push({label: '用「移出」腾出 3 格，接着玩', primary: true, run: () => { closeDialog(); useOut(); }});
   if (G.tools.undo > 0 && G.history.length) actions.push({label: '撤回最后一步', primary: !actions.length, run: () => { closeDialog(); useUndo(); }});
-  actions.push({label: '重玩这一副牌', primary: !actions.length, run: () => startLevel(G.level, G.seed)});
-  actions.push({label: '换一副新牌', run: () => startLevel(G.level, freshSeed(G.level))});
+  if (G.mode === 'daily'){
+    actions.push({label: '重玩今天这一局', primary: !actions.length, run: startDaily});
+    actions.push({label: backLabel(), run: backToLevels});
+  } else {
+    actions.push({label: '重玩这一副牌', primary: !actions.length, run: () => startLevel(G.level, G.seed)});
+    actions.push({label: '换一副新牌', run: () => startLevel(G.level, freshSeed(G.level))});
+  }
   openDialog({kind: 'lose', art: 'sad', title: '口袋满了', body: `7 格都塞满了，还没凑出 3 张一样的。场上还剩 ${left} 张牌。`, actions});
 }
 
@@ -1808,6 +2071,7 @@ function win(){
   G.won = true;
   stopClock();
   saveGame();
+  if (G.mode === 'daily') return winDaily();
   const secs = Math.round(elapsed() / 1000), lv = G.level;
   const best = (prefs.best || {})[lv];
   const record = !best || secs < best;
@@ -1927,6 +2191,7 @@ function showHelp(){
     '三个道具每局各能用 1 次：移出把口袋最左边 3 张挪到上面的架子上，之后还能点回来；撤回退回上一步；洗牌把场上的牌重新打乱。',
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
     `一共 ${FINAL} 关，打通第 ${FINAL} 关就算通关；之后还可以接着玩无尽模式。`,
+    ...(BOARD.url ? ['右上角的奖杯是每日挑战：每天所有人玩同一副牌，比谁清得最快，排行榜每天零点（北京时间）换新。'] : []),
     '右上角的调色盘可以换外观，一共五种，换了不影响这一局。',
     '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
     '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。捻开时被压住的牌只显示背面，不会偷看到底下是什么。'
@@ -1939,6 +2204,11 @@ function showHelp(){
 }
 
 function showRestart(){
+  if (G.mode === 'daily') return openDialog({kind: 'menu', title: '重开每日挑战？', body: '这一局的进度会清掉，排行榜上保留你今天最快的一次。', actions: [
+    {label: '重玩今天这一局', primary: true, run: startDaily},
+    {label: backLabel(), run: backToLevels},
+    {label: '取消', run: closeDialog}
+  ]});
   openDialog({kind: 'menu', title: `重开第 ${G.level} 关？`, body: '这一局的进度会清掉。', actions: [
     {label: '换一副新牌', primary: true, run: () => startLevel(G.level, freshSeed(G.level))},
     {label: '重玩同一副牌', run: () => startLevel(G.level, G.seed)},
@@ -1946,10 +2216,270 @@ function showRestart(){
   ]});
 }
 
+
+/* ---------- 每日挑战：每天所有人同一副牌，比谁清得最快 ---------- */
+// Supabase 项目的地址和公开 key（公开 key 本来就是给网页用的，能读榜、能交成绩，改不了别人的）
+const BOARD = {url: '', key: ''};
+const DAILY_LEVEL = 4;
+// 按北京时间算日期，零点换新的一局
+function beijingDay(offset = 0){
+  return new Date(Date.now() + 8 * 3600e3 + offset * 864e5).toISOString().slice(0, 10);
+}
+function dayLabel(day){
+  const [, m, d] = day.split('-').map(Number);
+  return `${m} 月 ${d} 日`;
+}
+function dailySeed(day){
+  let h = 2166136261;
+  for (const ch of 'mielegemie-daily-' + day){
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) % 2000000000 + 1;
+}
+// 带一位小数的用时，排行榜上同秒的也分得出先后
+function fmtMs(ms){
+  const t = Math.floor(ms / 100);
+  return `${fmt(Math.floor(t / 10))}.${t % 10}`;
+}
+// 每个人一个只存在自己手机上的编号（交成绩用），和一个公开的短标记（榜上认出自己用）
+function ident(){
+  if (!prefs.pid){
+    const hex = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2, '0')).join('');
+    const h = hex(16);
+    savePrefs({pid: `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`, tag: hex(4)});
+  }
+}
+async function api(path, body){
+  if (!BOARD.url) throw new Error('offline');
+  const headers = {apikey: BOARD.key, 'Content-Type': 'application/json'};
+  if (BOARD.key.startsWith('eyJ')) headers.Authorization = 'Bearer ' + BOARD.key;
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 8000);
+  try {
+    const r = await fetch(BOARD.url.replace(/\/$/, '') + '/rest/v1/' + path,
+      body ? {method: 'POST', headers, body: JSON.stringify(body), signal: ctl.signal} : {headers, signal: ctl.signal});
+    if (!r.ok) throw new Error('http ' + r.status);
+    const txt = await r.text();
+    return txt ? JSON.parse(txt) : null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+const fetchBoard = day => api(`daily_scores?select=tag,name,ms,moves&day=eq.${day}&order=ms.asc,updated_at.asc&limit=50`);
+function submitScore(sc){
+  ident();
+  return api('rpc/submit_daily', {p_day: sc.day, p_player: prefs.pid, p_tag: prefs.tag, p_name: prefs.name, p_ms: sc.ms, p_moves: sc.moves});
+}
+
+function startDaily(){
+  const day = beijingDay();
+  if (G.mode !== 'daily' && G.tiles.length && !G.won) saveGame();
+  let seed = dailySeed(day), built = null;
+  for (let k = 0; k < 40 && !built; k++){
+    // 漩涡摆法用到三角函数，不同手机算出来可能差一丁点，每日挑战不用它
+    if (archOf(seed + k).id === 'swirl') continue;
+    built = buildLevel(DAILY_LEVEL, seed + k);
+    if (built) seed += k;
+  }
+  if (!built) return toast('今天的挑战没排出来，过一会儿再试');
+  G.epoch++;
+  Object.assign(G, {
+    mode: 'daily', day, level: DAILY_LEVEL, seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
+    tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
+    over: false, won: false, pending: 0, acc: 0, running: false
+  });
+  savePrefs({mode: 'daily'});
+  closeDialog();
+  mountTiles(true);
+  startClock();
+  toast(`每日挑战 · ${dayLabel(day)} · ${G.tiles.length} 张牌，大家都是这一副`, 2800);
+}
+function enterDaily(){
+  if (G.mode !== 'daily' && G.tiles.length && !G.won) saveGame();
+  if (resume(loadGame('daily'))){
+    savePrefs({mode: 'daily'});
+    closeDialog();
+    toast('接着今天的每日挑战');
+  } else startDaily();
+}
+function backLabel(){
+  const s = loadGame('normal');
+  return `回到第 ${(s && s.level) || prefs.level || 1} 关`;
+}
+function backToLevels(){
+  if (G.mode === 'daily' && !G.won) saveGame();
+  closeDialog();
+  if (resume(loadGame('normal'))){
+    savePrefs({mode: 'normal'});
+    if (!G.over) toast(`回到第 ${G.level} 关`);
+    return;
+  }
+  const lv = Math.min(Math.max(Number(prefs.level) || 1, 1), 99);
+  startLevel(lv, freshSeed(lv));
+}
+
+function winDaily(){
+  const ms = Math.round(elapsed()), day = G.day, moves = G.moves;
+  Sound.win();
+  confetti();
+  const prev = prefs.dailyBest && prefs.dailyBest.day === day ? prefs.dailyBest : null;
+  const record = !prev || ms < prev.ms;
+  if (record) savePrefs({dailyBest: {day, ms, moves}});
+  // 先记下来等着交；断网了下次打开排行榜再交
+  const pend = prefs.pendingScore;
+  if (!pend || pend.day !== day || ms < pend.ms) savePrefs({pendingScore: {day, ms, moves}});
+  setTimeout(() => {
+    const go = () => showBoard({day, result: {ms, moves, record, prev}});
+    if (prefs.name) go(); else askName(go);
+  }, REDUCED ? 520 : 800);
+}
+
+function askName(then){
+  const wrap = document.createElement('div');
+  const input = document.createElement('input');
+  input.className = 'name-field';
+  input.type = 'text';
+  input.maxLength = 12;
+  input.placeholder = '比如：咩咩大王';
+  input.value = prefs.name || '';
+  input.autocomplete = 'nickname';
+  input.enterKeyHint = 'done';
+  input.setAttribute('aria-label', '昵称');
+  const err = document.createElement('p');
+  err.className = 'name-err';
+  err.setAttribute('role', 'alert');
+  wrap.append(input, err);
+  const ok = () => {
+    const name = input.value.trim().slice(0, 12);
+    if (!name){
+      err.textContent = '先起个名字';
+      input.focus();
+      return;
+    }
+    const renamed = prefs.name && prefs.name !== name;
+    savePrefs({name});
+    ident();
+    if (renamed && BOARD.url) api('rpc/rename_daily', {p_player: prefs.pid, p_name: name}).catch(() => {});
+    then();
+  };
+  // 回车只算一次：不拦住的话，这一下还会按到下一个弹窗里的按钮
+  input.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.isComposing) return;
+    e.preventDefault();
+    ok();
+  });
+  openDialog({kind: 'name', title: prefs.name ? '改个名字' : '起个名字上榜', body: '排行榜上显示这个名字，最多 12 个字。', extra: wrap, actions: [
+    {label: '好了', primary: true, run: ok},
+    {label: prefs.name ? '不改了' : '先不上榜', run: then}
+  ]});
+  setTimeout(() => input.focus(), 60);
+}
+
+let boardReq = 0;
+function showBoard(o = {}){
+  const today = beijingDay();
+  let day = o.day || today;
+  const wrap = document.createElement('div');
+  const tabs = document.createElement('div');
+  tabs.className = 'board-tabs';
+  const note = document.createElement('p');
+  note.className = 'board-note';
+  note.setAttribute('aria-live', 'polite');
+  const list = document.createElement('ol');
+  list.className = 'board-list';
+  const tabBtns = [[today, '今天'], [beijingDay(-1), '昨天']].map(([d, label]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.addEventListener('click', () => { day = d; sync(); load(); });
+    tabs.appendChild(b);
+    return [d, b];
+  });
+  const sync = () => tabBtns.forEach(([d, b]) => b.setAttribute('aria-pressed', String(d === day)));
+  wrap.append(tabs, note, list);
+  const link = document.createElement('button');
+  link.type = 'button';
+  link.className = 'board-link';
+  link.textContent = prefs.name ? `改名（现在叫「${prefs.name}」）` : '起个名字上榜';
+  link.addEventListener('click', () => askName(() => showBoard(o)));
+  wrap.appendChild(link);
+
+  let title = '每日挑战', body = `${dayLabel(today)} · 所有人玩同一副牌，比谁清得最快。`, actions;
+  if (o.result){
+    const r = o.result;
+    title = '每日挑战完成！';
+    body = `用时 ${fmtMs(r.ms)}，点了 ${r.moves} 次。` + (r.record ? (r.prev ? '比你今天之前最快的还快。' : '') : `你今天最快是 ${fmtMs(r.prev.ms)}。`);
+    actions = [{label: '再挑战一次', primary: true, run: startDaily}, {label: backLabel(), run: backToLevels}];
+  } else if (G.mode === 'daily' && !G.won && G.day === today){
+    actions = [{label: '接着玩', primary: true, run: closeDialog}, {label: '重开今天这一局', run: startDaily}, {label: backLabel(), run: backToLevels}];
+  } else {
+    const saved = loadGame('daily');
+    const going = saved && saved.day === today && !saved.won;
+    const best = prefs.dailyBest && prefs.dailyBest.day === today ? prefs.dailyBest.ms : 0;
+    if (best) body += `你今天最快 ${fmtMs(best)}。`;
+    actions = [{label: going ? '接着今天的挑战' : best ? '再挑战一次' : '挑战今天这一局', primary: true, run: enterDaily}, {label: '关闭', run: closeDialog}];
+  }
+  openDialog({kind: o.result ? 'win' : 'menu', art: o.result ? 'hop' : null, title, body, extra: wrap, actions});
+  sync();
+  load();
+
+  function row(rank, r, me){
+    const li = document.createElement('li');
+    if (me) li.className = 'me';
+    const cells = [['rk', String(rank)], ['nm', r.name], ['tm', fmtMs(r.ms)], ['mv', r.moves ? `${r.moves} 步` : '']];
+    for (const [cls, text] of cells){
+      const span = document.createElement('span');
+      span.className = cls;
+      span.textContent = text;
+      li.appendChild(span);
+    }
+    return li;
+  }
+  async function load(){
+    const req = ++boardReq;
+    note.textContent = '正在读取排行榜…';
+    list.replaceChildren();
+    if (!BOARD.url){
+      note.textContent = '排行榜还没接上服务器，成绩先记在你手机上。';
+      return;
+    }
+    let mine = null;
+    try {
+      const pend = prefs.pendingScore;
+      if (pend && pend.day < beijingDay(-1)) savePrefs({pendingScore: null});
+      else if (pend && prefs.name){
+        const res = await submitScore(pend);
+        savePrefs({pendingScore: null});
+        if (pend.day === day) mine = res;
+      }
+      const rows = await fetchBoard(day);
+      if (req !== boardReq) return;
+      const meIn = rows.some(r => r.tag === prefs.tag);
+      if (!rows.length) note.textContent = day === today ? '今天还没有人上榜，第一个就是你。' : '这一天没有人上榜。';
+      else if (mine) note.textContent = `你排第 ${mine.rank} 名，一共 ${mine.total} 人。`;
+      else note.textContent = `${dayLabel(day)} · ${rows.length >= 50 ? '前 50 名' : `${rows.length} 人上榜`}`;
+      if (!prefs.name && o.result) note.textContent = '起个名字才能上榜，成绩先记在你手机上。';
+      rows.forEach((r, i) => list.appendChild(row(i + 1, r, r.tag === prefs.tag)));
+      if (mine && !meIn){
+        const gap = document.createElement('li');
+        gap.className = 'gap';
+        gap.textContent = '…';
+        list.appendChild(gap);
+        list.appendChild(row(mine.rank, {name: prefs.name, ms: mine.best}, true));
+      }
+      const me = list.querySelector('.me');
+      if (me) me.scrollIntoView({block: 'nearest'});
+    } catch (e) {
+      if (req !== boardReq) return;
+      note.textContent = '连不上排行榜，检查一下网络，过一会儿再点开看看。' + (prefs.pendingScore ? '你的成绩已经记下了，连上以后会自动交。' : '');
+    }
+  }
+}
+
 function syncSound(){
   const b = $('btnSound');
   b.setAttribute('aria-pressed', String(Sound.on));
-  b.setAttribute('aria-label', Sound.on ? '关闭音效' : '打开音效');
+  b.setAttribute('aria-label', Sound.on ? '关闭音效和音乐' : '打开音效和音乐');
   b.querySelector('.on').hidden = !Sound.on;
   b.querySelector('.off').hidden = Sound.on;
 }
@@ -1958,6 +2488,8 @@ $('toolOut').addEventListener('click', useOut);
 $('toolUndo').addEventListener('click', useUndo);
 $('toolShuffle').addEventListener('click', useShuffle);
 $('btnHelp').addEventListener('click', showHelp);
+$('btnBoard').addEventListener('click', () => showBoard());
+$('btnBoard').hidden = !BOARD.url;
 $('btnRestart').addEventListener('click', showRestart);
 $('btnSkin').addEventListener('click', showSkins);
 $('btnSound').addEventListener('click', () => {
@@ -1965,6 +2497,16 @@ $('btnSound').addEventListener('click', () => {
   savePrefs({sound: Sound.on});
   syncSound();
   Sound.tap();
+  if (Sound.on) Music.start(); else Music.stop();
+});
+// 第一次点屏幕时开始放音乐；从后台回来后第一次点也会接上
+for (const ev of ['pointerdown', 'touchend', 'keydown']) document.addEventListener(ev, () => Music.start(), true);
+// 切到后台整个声音停住，回来接着放
+document.addEventListener('visibilitychange', () => {
+  const c = Sound.ctx;
+  if (!c) return;
+  if (document.visibilityState === 'hidden') c.suspend();
+  else if (Sound.on) c.resume();
 });
 
 /* ---------- 看层次：越高的牌往倾斜方向挪得越多，像把一叠牌捻开 ---------- */
@@ -2125,7 +2667,7 @@ if (document.fonts && document.fonts.addEventListener) document.fonts.addEventLi
 setInterval(() => { $('clock').textContent = fmt(Math.floor(elapsed() / 1000)); }, 500);
 
 /* ---------- 存档：刷新页面、从后台清掉再打开，都接着上次的进度 ---------- */
-const SAVE_KEY = 'mielegemie:game';
+const saveKey = mode => (mode === 'daily' ? 'mielegemie:daily' : 'mielegemie:game');
 let saveTimer = 0;
 // 摆牌的指纹：每张牌的位置和层数算一个哈希
 function layoutSig(tiles){
@@ -2142,15 +2684,16 @@ function saveGame(){
   clearTimeout(saveTimer);
   saveTimer = 0;
   try {
-    if (G.won || !G.tiles.length) localStorage.removeItem(SAVE_KEY);
-    else localStorage.setItem(SAVE_KEY, JSON.stringify(serialize()));
+    const key = saveKey(G.mode);
+    if (G.won || !G.tiles.length) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(serialize()));
   } catch (e) {}
 }
 function saveSoon(){
   if (!saveTimer) saveTimer = setTimeout(saveGame, 250);
 }
-function loadGame(){
-  try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { return null; }
+function loadGame(mode = 'normal'){
+  try { return JSON.parse(localStorage.getItem(saveKey(mode))); } catch (e) { return null; }
 }
 // 切到后台时先存一下；计时也停下来，回来再接着走
 let hiddenPause = false;
@@ -2171,7 +2714,7 @@ window.addEventListener('pagehide', saveGame);
 /* ---------- 页面更新时保留对局 ---------- */
 function serialize(){
   return {
-    v: 1, level: G.level, seed: G.seed, n: G.tiles.length,
+    v: 1, mode: G.mode, day: G.day, level: G.level, seed: G.seed, n: G.tiles.length,
     st: G.tiles.map(t => (t.pending ? 3 : ST[t.status])), ty: G.tiles.map(t => t.type),
     slot: G.slot.filter(t => !t.pending).map(t => t.id), hold: G.hold.map(c => c.map(t => t.id)),
     tools: Object.assign({}, G.tools), moves: G.moves, ms: elapsed(), over: G.over, won: G.won,
@@ -2180,13 +2723,16 @@ function serialize(){
 }
 function resume(s){
   if (!s || s.v !== 1 || s.won) return false;
+  const mode = s.mode === 'daily' ? 'daily' : 'normal';
+  // 过了零点，昨天没打完的每日挑战就不接着打了
+  if (mode === 'daily' && s.day !== beijingDay()) return false;
   const built = buildLevel(s.level, s.seed);
   if (!built || built.tiles.length !== s.n) return false;
   // 游戏更新后摆牌方式可能变了，同一个种子摆出来的牌对不上就不恢复
   if (s.sig != null && s.sig !== layoutSig(built.tiles)) return false;
   G.epoch++;
   Object.assign(G, {
-    level: s.level, seed: s.seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
+    mode, day: mode === 'daily' ? s.day : '', level: s.level, seed: s.seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
     tools: s.tools, history: [], moves: s.moves, over: false, won: false, pending: 0, acc: s.ms || 0, running: false
   });
   restoreSnap(s);
@@ -2318,9 +2864,11 @@ function boot(data){
   syncSound();
   const lv = Math.min(Math.max(Number(prefs.level) || 1, 1), 99);
   if (resume(data && data.game)) return;
-  if (resume(loadGame())){
-    if (!G.over) toast(`接着上次的进度 · 第 ${G.level} 关`);
-    return;
+  for (const mode of prefs.mode === 'daily' ? ['daily', 'normal'] : ['normal']){
+    if (resume(loadGame(mode))){
+      if (!G.over) toast(G.mode === 'daily' ? '接着今天的每日挑战' : `接着上次的进度 · 第 ${G.level} 关`);
+      return;
+    }
   }
   startLevel(lv, freshSeed(lv));
 }
