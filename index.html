@@ -192,6 +192,15 @@ button{font:inherit;color:inherit}
 :root[data-skin="type"] .tile.pile.blocked .face{box-shadow:inset 0 0 0 1.5px #111}
 /* 捻开看层次时只看结构：被压住的牌一律扣成背面，松手后再翻回来 */
 .stage.tilting .tile.blocked.onboard .art{opacity:0}
+/* 每日挑战「蒙眼」：口袋里的牌扣着，只露出一个缝线方框 */
+.stage .tile.facedown .art{opacity:0}
+#trough.bombs i.dead{opacity:1;background:linear-gradient(45deg,transparent 43%,rgba(0,0,0,.6) 43% 57%,transparent 57%),linear-gradient(-45deg,transparent 43%,rgba(0,0,0,.6) 43% 57%,transparent 57%),radial-gradient(circle,#2a1a10 30%,#6b3a1c 58%,var(--tray-cell) 75%);box-shadow:none}
+/* 定时炸弹：牌角上的倒计时，快炸了会变红跳动 */
+.fuse{position:absolute;top:-10%;right:-10%;z-index:2;display:grid;place-items:center;width:44%;height:44%;border-radius:50%;
+  background:#2b2f45;color:#fff4de;font:400 calc(var(--ts) * .25)/1 var(--font-num);box-shadow:0 0 0 calc(var(--ts) * .035) var(--tile),0 2px 4px rgba(0,0,0,.35)}
+.fuse::before{content:"";position:absolute;top:-16%;right:6%;width:22%;height:26%;border-radius:40%;background:#f0b545;box-shadow:0 0 5px 2px rgba(240,181,69,.75)}
+.fuse.hot{background:var(--accent);animation:pulse .7s ease-in-out infinite}
+.stage .tile.facedown .face::after{content:"";position:absolute;inset:20%;border-radius:18%;border:2px dashed var(--paper-soft);opacity:.45}
 .peek{width:30px;height:30px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none;
   background:var(--btn);color:var(--btn-ink);box-shadow:0 2px 0 var(--btn-edge),0 2px 0 1px rgba(0,0,0,.2);
   touch-action:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
@@ -253,6 +262,8 @@ button{font:inherit;color:inherit}
 .spark.confetti{width:8px;height:12px;margin:-6px 0 0 -4px;border-radius:2px}
 :root[data-skin="pixel"] .spark,:root[data-skin="bauhaus"] .spark,:root[data-skin="type"] .spark{border-radius:0}
 .trough.shake{animation:shake .42s ease}
+/* 每日挑战「少一格」：第 7 格用线缝死；「定时炸弹」炸坏的格子是焦黑的 */
+#trough i.dead{opacity:.75;background:linear-gradient(45deg,transparent 44%,var(--tray-line) 44% 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,var(--tray-line) 44% 56%,transparent 56%),var(--tray-cell);box-shadow:none}
 .tool .n.bump{animation:bump .35s cubic-bezier(.3,1.6,.5,1)}
 .dlg-actions .btn{animation:rise .32s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--i, 0) * 55ms + 120ms)}
 @media (hover:hover){
@@ -273,6 +284,20 @@ button{font:inherit;color:inherit}
 .tool:disabled .n{display:none}
 
 /* 弹窗 */
+/* 主菜单：盖在牌桌上，背后的牌桌虚化 */
+.home{position:fixed;inset:0;z-index:45;display:grid;place-items:center;overflow:auto;padding:24px 16px;
+  padding-block:calc(24px + env(safe-area-inset-top,0px)) calc(24px + env(safe-area-inset-bottom,0px));
+  background:var(--scrim);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.home-card{width:min(360px,100%);padding:22px 22px 18px;border-radius:20px;background:var(--paper);color:var(--paper-ink);text-align:center;
+  box-shadow:0 8px 0 var(--paper-edge),0 8px 0 1px rgba(0,0,0,.3),0 22px 44px rgba(0,0,0,.45);animation:pop .28s cubic-bezier(.2,.9,.3,1.3)}
+.home-title{margin:4px 0 2px;font:400 46px/1.05 var(--font-display);letter-spacing:.08em}
+.dialog .home-sub,.home-sub{margin:0 0 18px;color:var(--paper-soft);font-size:14px}
+.home-list{display:flex;flex-direction:column;gap:10px}
+.home-item{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%}
+.home-item .hi-sub{font-size:12.5px;font-weight:400;line-height:1.45;opacity:.85;text-wrap:balance}
+.home-foot{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:16px}
+.home-foot button{padding:7px 14px;border:0;border-radius:999px;background:transparent;color:var(--paper-soft);font:700 14px/1.2 var(--font-body);box-shadow:inset 0 0 0 1.5px var(--ghost-line);cursor:pointer}
+.home-foot button:focus-visible,.home-item:focus-visible{outline:3px solid var(--paper-ink);outline-offset:2px}
 .scrim{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px 16px;background:var(--scrim)}
 .dialog{position:relative;width:min(350px,100%);max-height:100%;overflow:auto;padding:22px 22px 20px;border-radius:18px;background:var(--paper);color:var(--paper-ink);text-align:center;
   box-shadow:0 8px 0 var(--paper-edge),0 8px 0 1px rgba(0,0,0,.3),0 22px 44px rgba(0,0,0,.45);animation:pop .28s cubic-bezier(.2,.9,.3,1.3)}
@@ -551,7 +576,7 @@ button{font:inherit;color:inherit}
 @media (prefers-reduced-motion: reduce){
   .tile{transition-duration:.01s}
   .stage.dealing .tile .face,.stage .tile.mix .face,.stage .tile.nope .face,.stage .tile.hint .face,
-  .stage .tile.shake .face,.stage .tile.flip .face,.stage .tile.back .face,.trough.shake,.tool .n.bump,.dlg-actions .btn{animation:none}
+  .stage .tile.shake .face,.stage .tile.flip .face,.stage .tile.back .face,.trough.shake,.tool .n.bump,.dlg-actions .btn,.fuse.hot{animation:none}
   .stage .tile.inslot{transition-duration:.01s}
   .needle,.sewn{transition:none}
   .dialog,.dlg-art .hop,.dlg-art .herd .art,.meter.hot .pips i.on{animation:none}
@@ -565,8 +590,8 @@ button{font:inherit;color:inherit}
     <div class="lvl"><span id="lvlPre">第</span><b id="lvlNum">1</b><span id="lvlPost">关</span></div>
     <h1 class="brand">咩了个咩</h1>
     <div class="acts">
-      <button class="icon-btn" id="btnBoard" type="button" aria-label="每日挑战和排行榜">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.5h8v5.2a4 4 0 0 1-8 0z"/><path d="M8 6.5H5.2a2.8 2.8 0 0 0 3.1 3.6M16 6.5h2.8a2.8 2.8 0 0 1-3.1 3.6"/><path d="M12 13.7v3.3M8.6 19.5h6.8"/></svg>
+      <button class="icon-btn" id="btnHome" type="button" aria-label="主菜单">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v8.5h11V10"/><path d="M10.2 18.5v-4.3h3.6v4.3"/></svg>
       </button>
       <button class="icon-btn" id="btnSkin" type="button" aria-label="换个风格">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 1 0 0 17c1 0 1.6-.7 1.6-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.8.7-1.5 1.5-1.5h1.9a4.8 4.8 0 0 0 4.8-4.8c0-3.9-4-7-9-7z"/><path d="M7.6 11.2v.1M10 7.4v.1M14.3 7.4v.1"/></svg>
@@ -615,6 +640,15 @@ button{font:inherit;color:inherit}
   </nav>
 </main>
 
+<section class="home" id="home" hidden aria-label="主菜单">
+  <div class="home-card">
+    <div class="dlg-art" id="homeArt" aria-hidden="true"></div>
+    <h2 class="home-title">咩了个咩</h2>
+    <p class="home-sub" id="homeSub"></p>
+    <div class="home-list" id="homeList"></div>
+    <div class="home-foot" id="homeFoot"></div>
+  </div>
+</section>
 <div class="scrim" id="scrim" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
     <div class="dlg-art" id="dlgArt" hidden></div>
@@ -890,6 +924,7 @@ const Sound = {
   match(){ this.tone(660, .1, 'sine', .06); this.tone(880, .12, 'sine', .06, .07); this.tone(1320, .16, 'sine', .04, .14); },
   tool(){ this.tone(420, .1, 'sine', .05); this.tone(630, .12, 'sine', .04, .06); },
   lose(){ this.tone(260, .22, 'sawtooth', .025); this.tone(180, .34, 'sawtooth', .025, .16); },
+  boom(){ this.tone(120, .32, 'sawtooth', .07); this.tone(62, .5, 'square', .05, .03); this.tone(40, .6, 'sine', .08, .05); },
   win(){ [523, 659, 784, 1047].forEach((f, i) => this.tone(f, .2, 'triangle', .06, i * .11)); },
   fanfare(){
     [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, .22, 'triangle', .06, i * .12));
@@ -1429,10 +1464,10 @@ function centerMain(pos, hasPiles){
 }
 
 function makeLayout(rng, cfg, arch){
-  const piles = pilePlan(rng, cfg.piles * 2);
+  const piles = cfg.fixedPiles ? cfg.fixedPiles.map(p => Object.assign({}, p)) : pilePlan(rng, cfg.piles * 2);
   const pileSum = piles.reduce((s, p) => s + p.n, 0);
   const meta = {label: arch.name};
-  let main = arch.build(rng, {target: cfg.target + cfg.piles * 2 - pileSum, maxLayers: cfg.maxLayers, density: cfg.density}, meta);
+  let main = arch.build(rng, Object.assign({}, cfg, {target: cfg.target + cfg.piles * 2 - pileSum}), meta);
   if (arch.flip){
     if (rng() < .5) main = main.map(p => ({x: 6 - p.x, y: p.y, z: p.z}));
     if (rng() < .5) main = main.map(p => ({x: p.x, y: 6.5 - p.y, z: p.z}));
@@ -1466,7 +1501,7 @@ function makeTiles(pos){
    每一步从“此刻没被压住”的牌里挑一张，决定它是什么图案，模拟把它放进口袋。
    只要模拟过程中口袋从不放满，这条路线就是一条真实可走的通关路线。 */
 function plan(pool, o){
-  const rng = o.rng, cap = Math.min(o.maxSlot, 6);
+  const rng = o.rng, full = o.cap || CAP, cap = Math.min(o.maxSlot, full - 1);
   const inPool = new Set(pool.map(t => t.id));
   const cnt = new Map(), free = [];
   for (const t of pool){
@@ -1502,7 +1537,7 @@ function plan(pool, o){
       ty = opens[opens.length - 1];
       for (const t of opens){ r -= avail(t); if (r < 0){ ty = t; break; } }
     } else if (twos.length) ty = pickOne(twos, rng);
-    else if (ones.length && slotLen + 1 < CAP) ty = pickOne(ones, rng);
+    else if (ones.length && slotLen + 1 < full) ty = pickOne(ones, rng);
     else if (canOpen) ty = pickOne(opens, rng);
     else return null;
 
@@ -1528,13 +1563,13 @@ function plan(pool, o){
     }
     const c = (slot.get(ty) || 0) + 1;
     if (c === 3){ slot.delete(ty); slotLen -= 2; } else { slot.set(ty, c); slotLen++; }
-    if (slotLen >= CAP) return null;
+    if (slotLen >= full) return null;
   }
   return {assign, order};
 }
 
 // 按真实规则把路线走一遍，确认能清空
-function verify(tiles, order){
+function verify(tiles, order, full = CAP){
   const onBoard = new Set(tiles.map(t => t.id));
   const slot = [];
   for (const id of order){
@@ -1544,9 +1579,27 @@ function verify(tiles, order){
     slot.push(t.type);
     if (slot.filter(x => x === t.type).length === 3){
       for (let k = 0; k < 3; k++) slot.splice(slot.indexOf(t.type), 1);
-    } else if (slot.length >= CAP) return false;
+    } else if (slot.length >= full) return false;
   }
   return onBoard.size === 0 && slot.length === 0;
+}
+
+// 定时炸弹：沿着算好的通关路线走一遍，看每张牌从进口袋到被消掉隔了几步；
+// 只挑隔 2～8 步的牌当炸弹，倒数的数字再多留一两步，保证照这条路线走一颗都不会炸
+function pickBombs(tiles, order, rng, count){
+  const slot = [], at = new Map(), gone = new Map();
+  order.forEach((id, i) => {
+    const t = tiles[id];
+    at.set(id, i);
+    slot.push(t);
+    const same = slot.filter(x => x.type === t.type);
+    if (same.length === 3) for (const x of same){ gone.set(x.id, i); slot.splice(slot.indexOf(x), 1); }
+  });
+  const cands = shuffled(tiles.filter(t => {
+    const d = gone.get(t.id) - at.get(t.id);
+    return !t.pile && d >= 2 && d <= 8;
+  }), rng);
+  for (const t of cands.slice(0, count)) t.bomb = Math.min(9, gone.get(t.id) - at.get(t.id) + 1 + (rng() < .4 ? 1 : 0));
 }
 
 /* ---------- 关卡 ---------- */
@@ -1560,7 +1613,9 @@ function levelCfg(level){
 }
 
 function buildLevel(level, seed){
-  const cfg = levelCfg(level);
+  return buildWith(levelCfg(level), seed, archOf(seed));
+}
+function buildWith(cfg, seed, arch){
   for (let attempt = 0; attempt < 40; attempt++){
     const rng = rngFrom(seed + attempt * 7919);
     let pos, types;
@@ -1569,7 +1624,7 @@ function buildLevel(level, seed){
       pos = introLayout();
       types = [0, 1, 4];
     } else {
-      const lay = makeLayout(rng, cfg, archOf(seed));
+      const lay = makeLayout(rng, cfg, arch);
       pos = lay.pos;
       label = lay.label;
       const tc = Math.max(10, Math.min(16, cfg.types + pickOne([-1, 0, 0, 1], rng)));
@@ -1581,17 +1636,19 @@ function buildLevel(level, seed){
       const ty = types[i % types.length];
       supply[ty] = (supply[ty] || 0) + 3;
     }
-    const res = plan(tiles, {supply, slot: [], hold: [], interleave: cfg.interleave, maxSlot: cfg.maxSlot, rng});
+    const res = plan(tiles, {supply, slot: [], hold: [], interleave: cfg.interleave, maxSlot: cfg.maxSlot, cap: cfg.cap, rng});
     if (!res) continue;
     for (const t of tiles) t.type = res.assign.get(t.id);
-    if (verify(tiles, res.order)) return {tiles, cfg, label};
+    if (!verify(tiles, res.order, cfg.cap || CAP)) continue;
+    if (cfg.bombs) pickBombs(tiles, res.order, rng, cfg.bombs);
+    return {tiles, cfg, label};
   }
   return null;
 }
 
 /* ---------- 对局状态 ---------- */
 const G = {
-  mode: 'normal', day: '', level: 1, seed: 1, cfg: {intro: true}, tiles: [], slot: [], hold: [[], [], []],
+  mode: 'normal', day: '', rule: null, cap: CAP, level: 1, seed: 1, cfg: {intro: true}, tiles: [], slot: [], hold: [[], [], []],
   tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
   over: false, won: false, epoch: 0, pending: 0, acc: 0, t0: 0, running: false
 };
@@ -1755,10 +1812,44 @@ function render(){
     el.classList.toggle('pending', t.pending);
     const live = (t.status === 'board' || t.status === 'hold') && !blocked;
     el.tabIndex = live ? 0 : -1;
-    el.setAttribute('aria-label', ICONS[t.type].n + (t.status === 'slot' ? '，在口袋里' : blocked ? '，被压住了' : ''));
+    el.setAttribute('aria-label', ICONS[t.type].n + (t.bomb > 0 ? `，炸弹 ${t.bomb}` : '') + (t.status === 'slot' ? '，在口袋里' : blocked ? '，被压住了' : ''));
+    if (t.bomb > 0 || t.fuseEl){
+      if (!t.fuseEl){
+        t.fuseEl = document.createElement('b');
+        t.fuseEl.className = 'fuse';
+        t.art.parentElement.appendChild(t.fuseEl);
+      }
+      t.fuseEl.hidden = !(t.bomb > 0);
+      if (t.bomb > 0){
+        t.fuseEl.textContent = t.bomb;
+        t.fuseEl.classList.toggle('hot', t.status === 'slot' && t.bomb <= 2);
+      }
+    }
   }
   hud();
+  syncBlind();
   saveSoon();
+}
+// 蒙眼：口袋里的牌扣着；刚放进来的那张、消掉一组后剩下的牌会亮一会儿；输了全部翻开
+let blindTimer = 0;
+function syncBlind(){
+  const blind = !!(G.rule && G.rule.blind) && !G.over && !G.won, now = performance.now();
+  let next = Infinity;
+  for (const t of G.tiles){
+    if (!t.el) continue;
+    const showing = now < (t.revealUntil || 0);
+    const down = blind && t.status === 'slot' && !t.pending && !showing;
+    if (t.el.classList.contains('facedown') !== down){
+      t.el.classList.toggle('facedown', down);
+      if (!REDUCED && t.status === 'slot'){
+        t.el.style.setProperty('--fd', '0ms');
+        replay(t.el, 'flip');
+      }
+    }
+    if (blind && t.status === 'slot' && showing) next = Math.min(next, t.revealUntil);
+  }
+  clearTimeout(blindTimer);
+  if (next < Infinity) blindTimer = setTimeout(syncBlind, next - now + 20);
 }
 
 function hud(){
@@ -1766,18 +1857,20 @@ function hud(){
   let left = 0;
   for (const t of G.tiles) if (t.status !== 'gone') left++;
   const p = total ? ((total - left) / total).toFixed(4) : 0;
-  const daily = G.mode === 'daily';
+  const daily = G.mode === 'daily' || G.mode === 'trial';
   $('lvlPre').hidden = daily;
   $('lvlPost').hidden = daily;
-  $('lvlNum').textContent = daily ? '每日' : G.level;
+  $('lvlNum').textContent = G.mode === 'trial' ? '练习' : daily ? '每日' : G.level;
   $('left').textContent = left;
   $('layoutName').textContent = G.cfg.intro ? '' : `${G.label} · `;
   $('needle').style.left = `calc((100% - 40px) * ${p})`;
   $('sewn').style.width = `calc((100% - 40px) * ${p} + 6px)`;
   const n = G.slot.length;
-  $('meterText').textContent = `口袋 ${n}/7`;
-  pips.forEach((pip, i) => pip.classList.toggle('on', i < n));
-  meter.classList.toggle('hot', n >= 5);
+  $('meterText').textContent = `口袋 ${n}/${G.cap}`;
+  pips.forEach((pip, i) => { pip.classList.toggle('on', i < n); pip.hidden = i >= G.cap; });
+  meter.classList.toggle('hot', n >= G.cap - 2);
+  [...trough.children].forEach((c, i) => c.classList.toggle('dead', i >= G.cap));
+  trough.classList.toggle('bombs', !!(G.rule && G.rule.bomb));
   toolState('toolOut', 'nOut', G.tools.out, '移出');
   toolState('toolUndo', 'nUndo', G.tools.undo, '撤回');
   toolState('toolShuffle', 'nShuffle', G.tools.shuffle, '洗牌');
@@ -1795,6 +1888,7 @@ function toolState(id, nid, n, name){
 }
 
 function mountTiles(deal){
+  homeEl.hidden = true;
   computeHeights(G.tiles);
   for (const el of stage.querySelectorAll('.tile:not(.leaving)')){
     if (REDUCED || !deal) el.remove();
@@ -1843,7 +1937,7 @@ function startLevel(level, seed){
   if (!built){ level = 1; seed = newSeed(); built = buildLevel(1, seed); }
   G.epoch++;
   Object.assign(G, {
-    mode: 'normal', day: '', level, seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
+    mode: 'normal', day: '', rule: null, cap: CAP, level, seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
     tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
     over: false, won: false, pending: 0, acc: 0, running: false
   });
@@ -1872,7 +1966,7 @@ function onTile(t){
     const col = G.hold[t.hc];
     if (col[col.length - 1] !== t) return;
   } else return;
-  if (G.slot.length >= CAP) return;
+  if (G.slot.length >= G.cap) return;
 
   snapshot();
   if (t.status === 'hold'){
@@ -1885,21 +1979,43 @@ function onTile(t){
     if (G.slot[i].type === t.type && !G.slot[i].pending){ at = i + 1; break; }
   }
   G.slot.splice(at, 0, t);
+  t.revealUntil = performance.now() + 900;
   G.moves++;
   Sound.tap();
 
+  // 口袋里别的炸弹各走一步（刚放进来的这颗从下一步开始数），记下这一步数到 0 的
+  const lit = [];
+  if (G.rule && G.rule.bomb){
+    for (const b of G.slot){
+      if (b === t || !(b.bomb > 0) || b.pending) continue;
+      b.bomb--;
+      if (b.bomb === 0) lit.push(b);
+    }
+  }
   const same = G.slot.filter(s => s.type === t.type && !s.pending);
   if (same.length >= 3){
     for (const s of same.slice(0, 3)) s.pending = true;
     G.pending += 3;
     const ep = G.epoch;
     setTimeout(() => settle(ep), REDUCED ? 220 : 340);
-  } else if (G.slot.length >= CAP && !G.pending){
+  }
+  // 数到 0 还没凑齐的炸弹爆炸；正好这一步凑齐的就算拆掉了
+  for (const b of lit) if (!b.pending) explode(b);
+  if (!G.pending && G.slot.length >= G.cap){
     render();
     lose();
     return;
   }
   render();
+}
+// 炸弹爆炸：炸坏最右边一格口袋；炸弹本身变回普通牌，还留在口袋里
+function explode(b){
+  b.bomb = -1;
+  G.cap = Math.max(1, G.cap - 1);
+  Sound.boom();
+  if (b.px !== undefined) burst(b.px + L.cell * .46, b.py + L.cell * .46);
+  shakePocket();
+  toast(`轰！炸坏了一格口袋，还剩 ${G.cap} 格`);
 }
 
 function settle(ep){
@@ -1936,9 +2052,11 @@ function finishSettle(ep, done, groups){
     burst(mid.px + L.cell * .46, mid.py + L.cell * .46);
   }
   G.pending = 0;
+  if (G.rule && G.rule.blind) for (const t of G.slot) t.revealUntil = performance.now() + 2000;
   Sound.match();
   render();
   if (G.tiles.every(t => t.status === 'gone')) win();
+  else if (G.slot.length >= G.cap && !G.pending) lose();
 }
 
 function nudge(t){
@@ -1956,7 +2074,8 @@ function snapshot(){
     st: G.tiles.map(t => (t.pending ? 3 : ST[t.status])),
     ty: G.tiles.map(t => t.type),
     slot: G.slot.filter(t => !t.pending).map(t => t.id),
-    hold: G.hold.map(c => c.map(t => t.id))
+    hold: G.hold.map(c => c.map(t => t.id)),
+    bm: G.tiles.map(t => t.bomb || 0), cap: G.cap
   });
   if (G.history.length > 80) G.history.shift();
 }
@@ -1966,6 +2085,8 @@ function restoreSnap(s){
   G.tiles.forEach((t, i) => { t.status = STN[s.st[i]]; t.type = s.ty[i]; t.pending = false; });
   G.slot = s.slot.map(id => G.tiles[id]);
   G.hold = s.hold.map(c => c.map(id => G.tiles[id]));
+  if (s.bm) G.tiles.forEach((t, i) => { t.bomb = s.bm[i]; });
+  if (s.cap) G.cap = s.cap;
 }
 
 /* ---------- 道具 ---------- */
@@ -1975,7 +2096,7 @@ function busyToast(){ toast('等这一组消完再用道具'); }
 function useOut(){
   if (G.won) return;
   if (G.pending) return busyToast();
-  if (G.tools.out <= 0) return toast('「移出」这一局已经用过了');
+  if (G.tools.out <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : '「移出」这一局已经用过了');
   if (!G.slot.length) return toast('口袋是空的，没有牌可以移出');
   snapshot();
   G.slot.splice(0, 3).forEach((t, i) => { t.status = 'hold'; G.hold[i].push(t); });
@@ -1988,7 +2109,7 @@ function useOut(){
 function useUndo(){
   if (G.won) return;
   if (G.pending) return busyToast();
-  if (G.tools.undo <= 0) return toast('「撤回」这一局已经用过了');
+  if (G.tools.undo <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : '「撤回」这一局已经用过了');
   if (!G.history.length) return toast('还没有可以撤回的一步');
   restoreSnap(G.history.pop());
   G.tools.undo--;
@@ -2003,7 +2124,7 @@ function reshuffle(pool){
   for (const t of pool) supply[t.type] = (supply[t.type] || 0) + 1;
   const res = plan(pool, {
     supply, slot: G.slot.map(t => t.type), hold: G.hold.flat().map(t => t.type),
-    interleave: .2, maxSlot: 4, rng: Math.random
+    interleave: .2, maxSlot: Math.min(4, G.cap - 2), cap: G.cap, rng: Math.random
   });
   if (res){
     for (const t of pool) t.type = res.assign.get(t.id);
@@ -2016,7 +2137,7 @@ function reshuffle(pool){
 function useShuffle(){
   if (G.won) return;
   if (G.pending) return busyToast();
-  if (G.tools.shuffle <= 0) return toast('「洗牌」这一局已经用过了');
+  if (G.tools.shuffle <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : '「洗牌」这一局已经用过了');
   if (G.over) return toast('口袋已经满了，洗牌帮不上忙');
   const pool = G.tiles.filter(t => t.status === 'board');
   if (pool.length < 3) return toast('场上的牌不多了，不用洗');
@@ -2047,6 +2168,7 @@ function lose(){
   G.over = true;
   stopClock();
   saveGame();
+  syncBlind();
   Sound.lose();
   const ep = G.epoch;
   setTimeout(shakePocket, REDUCED ? 0 : 330);
@@ -2057,7 +2179,11 @@ function showLose(){
   const actions = [];
   if (G.tools.out > 0) actions.push({label: '用「移出」腾出 3 格，接着玩', primary: true, run: () => { closeDialog(); useOut(); }});
   if (G.tools.undo > 0 && G.history.length) actions.push({label: '撤回最后一步', primary: !actions.length, run: () => { closeDialog(); useUndo(); }});
-  if (G.mode === 'daily'){
+  if (G.mode === 'trial'){
+    actions.push({label: '同样的模式再来一副', primary: !actions.length, run: () => startTrial(...trialPick)});
+    actions.push({label: '换个模式', run: showTrialPicker});
+    actions.push({label: backLabel(), run: backToLevels});
+  } else if (G.mode === 'daily'){
     actions.push({label: '重玩今天这一局', primary: !actions.length, run: startDaily});
     actions.push({label: backLabel(), run: backToLevels});
   } else {
@@ -2072,6 +2198,7 @@ function win(){
   stopClock();
   saveGame();
   if (G.mode === 'daily') return winDaily();
+  if (G.mode === 'trial') return winTrial();
   const secs = Math.round(elapsed() / 1000), lv = G.level;
   const best = (prefs.best || {})[lv];
   const record = !best || secs < best;
@@ -2191,7 +2318,8 @@ function showHelp(){
     '三个道具每局各能用 1 次：移出把口袋最左边 3 张挪到上面的架子上，之后还能点回来；撤回退回上一步；洗牌把场上的牌重新打乱。',
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
     `一共 ${FINAL} 关，打通第 ${FINAL} 关就算通关；之后还可以接着玩无尽模式。`,
-    ...(BOARD.url ? ['右上角的奖杯是每日挑战：每天所有人玩同一副牌，比谁清得最快，排行榜每天零点（北京时间）换新。'] : []),
+    '右上角的小房子是主菜单：在闯关、每日挑战和练习之间切换，看排行榜。练习可以任选每日挑战的规则和形状，不计成绩。',
+    ...(BOARD.url ? ['每日挑战：每天所有人玩同一副牌，比谁清得最快。牌堆摆成当天专属的形状，还有一条按星期轮换的特殊规则（少一格、蒙眼、空手、定时炸弹、牌山、大场面，星期天是双重），难度比第 6 关还高。排行榜每天零点（北京时间）换新。'] : []),
     '右上角的调色盘可以换外观，一共五种，换了不影响这一局。',
     '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
     '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。捻开时被压住的牌只显示背面，不会偷看到底下是什么。'
@@ -2204,6 +2332,11 @@ function showHelp(){
 }
 
 function showRestart(){
+  if (G.mode === 'trial') return openDialog({kind: 'menu', title: '重开这局练习？', body: '练习不计成绩，随时可以重来。', actions: [
+    {label: '同样的模式再来一副', primary: true, run: () => startTrial(...trialPick)},
+    {label: '换个模式', run: showTrialPicker},
+    {label: '取消', run: closeDialog}
+  ]});
   if (G.mode === 'daily') return openDialog({kind: 'menu', title: '重开每日挑战？', body: '这一局的进度会清掉，排行榜上保留你今天最快的一次。', actions: [
     {label: '重玩今天这一局', primary: true, run: startDaily},
     {label: backLabel(), run: backToLevels},
@@ -2220,7 +2353,7 @@ function showRestart(){
 /* ---------- 每日挑战：每天所有人同一副牌，比谁清得最快 ---------- */
 // Supabase 项目的地址和公开 key（公开 key 本来就是给网页用的，能读榜、能交成绩，改不了别人的）
 const BOARD = {url: 'https://ghjrmmqnajguwkfoplgo.supabase.co', key: 'sb_publishable_1YWUN4fZ3c_TjQD9p6Lmlg_K-vDB6y_'};
-const DAILY_LEVEL = 4;
+const DAILY_LEVEL = 6;
 // 按北京时间算日期，零点换新的一局
 function beijingDay(offset = 0){
   return new Date(Date.now() + 8 * 3600e3 + offset * 864e5).toISOString().slice(0, 10);
@@ -2236,6 +2369,101 @@ function dailySeed(day){
     h = Math.imul(h, 16777619);
   }
   return (h >>> 0) % 2000000000 + 1;
+}
+// 每日挑战的规则，按星期轮换（下标 0 是星期天）
+const DAILY_RULES = [
+  {name: '双重', desc: '蒙眼加少一格，口袋里的牌扣着，而且只有 6 格', blind: true, cap: 6},
+  {name: '少一格', desc: '口袋只有 6 格', cap: 6},
+  {name: '蒙眼', desc: '口袋里的牌都扣着，只在消掉一组的时候亮几秒，要靠记性', blind: true},
+  {name: '空手', desc: '三个道具都不能用', bare: true},
+  {name: '定时炸弹', desc: '带数字的牌进了口袋就开始倒数，每点一张减 1，数完还没消掉就会炸坏一格口袋', bomb: true},
+  {name: '牌山', desc: '底下两摞牌各 24 张，只能从最上面拿', piles: true},
+  {name: '大场面', desc: '牌比平时多得多，叠得也更高', big: true}
+];
+// 每日专属的牌堆形状：14×14 的半格网格，一张牌占 2×2，X 是能放牌的地方
+const DAILY_SHAPES = [
+  {name: '今天的日期'},
+  {name: '蘑菇', grid: [
+    '....XXXXXX....', '..XXXXXXXXXX..', '.XXXXXXXXXXXX.', 'XXXXXXXXXXXXXX', 'XXXXXXXXXXXXXX', 'XXXXXXXXXXXXXX', '....XXXXXX....',
+    '....XXXXXX....', '....XXXXXX....', '....XXXXXX....', '...XXXXXXXX...', '...XXXXXXXX...', '..............', '..............']},
+  {name: '月亮', grid: [
+    '.....XXXXXX...', '...XXXXXXX....', '..XXXXXX......', '.XXXXXX.......', '.XXXXX........', 'XXXXXX........', 'XXXXXX........',
+    'XXXXXX........', 'XXXXXX........', '.XXXXX........', '.XXXXXX.......', '..XXXXXX......', '...XXXXXXX....', '.....XXXXXX...']},
+  {name: '房子', grid: [
+    '......XX......', '.....XXXX.....', '....XXXXXX....', '...XXXXXXXX...', '..XXXXXXXXXX..', '.XXXXXXXXXXXX.', 'XXXXXXXXXXXXXX',
+    '..XXXXXXXXXX..', '..XXXXXXXXXX..', '..XXXXXXXXXX..', '..XXXX..XXXX..', '..XXXX..XXXX..', '..XXXX..XXXX..', '..XXXX..XXXX..']},
+  {name: '蝴蝶', grid: [
+    '..............', 'XXXX......XXXX', 'XXXXXX..XXXXXX', 'XXXXXXXXXXXXXX', 'XXXXXXXXXXXXXX', '.XXXXXXXXXXXX.', '..XXXXXXXXXX..',
+    '..XXXXXXXXXX..', '.XXXXXXXXXXXX.', 'XXXXXXXXXXXXXX', 'XXXXXX..XXXXXX', 'XXXXX....XXXXX', '.XXX......XXX.', '..............']},
+  {name: '松树', grid: [
+    '......XX......', '.....XXXX.....', '....XXXXXX....', '...XXXXXXXX...', '.....XXXX.....', '...XXXXXXXX...', '..XXXXXXXXXX..',
+    '.XXXXXXXXXXXX.', '....XXXXXX....', '..XXXXXXXXXX..', '.XXXXXXXXXXXX.', 'XXXXXXXXXXXXXX', '......XX......', '......XX......']},
+  {name: '雨伞', grid: [
+    '......XX......', '...XXXXXXXX...', '.XXXXXXXXXXXX.', 'XXXXXXXXXXXXXX', 'XXXXXXXXXXXXXX', 'XX..XXXXXX..XX', '......XX......',
+    '......XX......', '......XX......', '......XX......', '......XX......', '..XX..XX......', '..XXXXXX......', '...XXXX.......']},
+  {name: '杯子', grid: [
+    '..............', 'XXXXXXXXXX....', 'XXXXXXXXXX....', 'XXXXXXXXXXXXX.', 'XXXXXXXXXXXXXX', 'XXXXXXXXXX..XX', 'XXXXXXXXXX..XX',
+    'XXXXXXXXXX..XX', 'XXXXXXXXXXXXXX', 'XXXXXXXXXXXXX.', 'XXXXXXXXXX....', '.XXXXXXXX.....', '..XXXXXX......', '..............']}
+];
+const DIGITS = {
+  0: ['XXX', 'X.X', 'X.X', 'X.X', 'XXX'], 1: ['.X.', 'XX.', '.X.', '.X.', 'XXX'], 2: ['XXX', '..X', 'XXX', 'X..', 'XXX'],
+  3: ['XXX', '..X', 'XXX', '..X', 'XXX'], 4: ['X.X', 'X.X', 'XXX', '..X', '..X'], 5: ['XXX', 'X..', 'XXX', '..X', 'XXX'],
+  6: ['XXX', 'X..', 'XXX', 'X.X', 'XXX'], 7: ['XXX', '..X', '..X', '..X', '..X'], 8: ['XXX', 'X.X', 'XXX', 'X.X', 'XXX'],
+  9: ['XXX', 'X.X', 'XXX', '..X', 'XXX']
+};
+// 把当天几号画成两个大数字，比如 29 号就是「29」，5 号是「05」
+function dateGrid(day){
+  const rows = Array.from({length: 14}, () => Array(14).fill('.'));
+  [...day.slice(8, 10)].forEach((ch, k) => {
+    DIGITS[ch].forEach((line, r) => [...line].forEach((v, c) => {
+      if (v !== 'X') return;
+      for (const dr of [0, 1]) for (const dc of [0, 1]) rows[2 + r * 2 + dr][(k ? 8 : 0) + c * 2 + dc] = 'X';
+    }));
+  });
+  return rows.map(r => r.join(''));
+}
+// 按网格一层层往上摞：每层整体错开半张，越往上越稀
+function buildShape(rng, cfg, grid){
+  const H = grid.length, W = grid[0].length;
+  const on = (r, c) => r >= 0 && c >= 0 && r < H && c < W && grid[r][c] === 'X';
+  const fits = (x, y) => on(y * 2, x * 2) && on(y * 2, x * 2 + 1) && on(y * 2 + 1, x * 2) && on(y * 2 + 1, x * 2 + 1);
+  const out = [];
+  for (let z = 0; out.length < cfg.target && z < cfg.maxZ; z++){
+    const [ox, oy] = OFFSETS[z % 4];
+    const dens = Math.max(cfg.minDens, cfg.dens - z * .03);
+    for (let y = oy; (y + 1) * 2 <= H && out.length < cfg.target; y++){
+      for (let x = ox; (x + 1) * 2 <= W && out.length < cfg.target; x++){
+        if (fits(x, y) && rng() < dens) out.push({x, y, z});
+      }
+    }
+  }
+  return out;
+}
+const dayIndex = day => Math.floor(Date.parse(day + 'T00:00:00Z') / 864e5);
+// 某一天的规则、形状和参数：比第 6 关还难一点，再叠上当天的规则
+function dailySpec(day, ri, si){
+  const rule = DAILY_RULES[ri != null ? ri : new Date(day + 'T00:00:00Z').getUTCDay()];
+  const shape = DAILY_SHAPES[si != null ? si : dayIndex(day) % DAILY_SHAPES.length];
+  const cfg = {intro: false, types: 16, target: 240, piles: 16, interleave: .55, maxSlot: 5, cap: CAP,
+    density: .9, dens: .92, minDens: .5, maxZ: 22};
+  if (rule.cap){
+    cfg.cap = rule.cap;
+    cfg.maxSlot = 4;
+  }
+  if (rule.bomb) cfg.bombs = 12;
+  if (rule.big) Object.assign(cfg, {target: 285, maxZ: 32});
+  if (rule.piles) Object.assign(cfg, {piles: 24, fixedPiles: [{slot: 'left', n: 24}, {slot: 'right', n: 24}]});
+  const grid = shape.grid || dateGrid(day);
+  const arch = {id: 'daily', name: shape.name, build: (rng, c) => buildShape(rng, c, grid)};
+  return {rule, shape, cfg, arch};
+}
+function buildDaily(day){
+  const spec = dailySpec(day), seed0 = dailySeed(day);
+  for (let k = 0; k < 20; k++){
+    const built = buildWith(spec.cfg, seed0 + k, spec.arch);
+    if (built) return Object.assign(built, {seed: seed0 + k, rule: spec.rule, label: `${spec.rule.name}·${spec.shape.name}`});
+  }
+  return null;
 }
 // 带一位小数的用时，排行榜上同秒的也分得出先后
 function fmtMs(ms){
@@ -2272,29 +2500,31 @@ function submitScore(sc){
 }
 
 function startDaily(){
-  const day = beijingDay();
+  startDailyFor(beijingDay());
+}
+function startDailyFor(day){
   if (G.mode !== 'daily' && G.tiles.length && !G.won) saveGame();
-  let seed = dailySeed(day), built = null;
-  for (let k = 0; k < 40 && !built; k++){
-    // 漩涡摆法用到三角函数，不同手机算出来可能差一丁点，每日挑战不用它
-    if (archOf(seed + k).id === 'swirl') continue;
-    built = buildLevel(DAILY_LEVEL, seed + k);
-    if (built) seed += k;
-  }
+  const built = buildDaily(day);
   if (!built) return toast('今天的挑战没排出来，过一会儿再试');
+  const r = built.rule;
   G.epoch++;
   Object.assign(G, {
-    mode: 'daily', day, level: DAILY_LEVEL, seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
-    tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
+    mode: 'daily', day, rule: r, cap: built.cfg.cap || CAP, level: DAILY_LEVEL, seed: built.seed, cfg: built.cfg,
+    tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
+    tools: r.bare ? {out: 0, undo: 0, shuffle: 0} : {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
     over: false, won: false, pending: 0, acc: 0, running: false
   });
   savePrefs({mode: 'daily'});
   closeDialog();
   mountTiles(true);
   startClock();
-  toast(`每日挑战 · ${dayLabel(day)} · ${G.tiles.length} 张牌，大家都是这一副`, 2800);
+  toast(`每日挑战 · 今天是「${r.name}」：${r.desc}`, 3600);
 }
 function enterDaily(){
+  if (!prefs.name && !prefs.namePrompted){
+    savePrefs({namePrompted: true});
+    return askName(enterDaily, {skip: '先不起', body: '每日挑战的成绩会上排行榜，起个名字吧，最多 12 个字。以后可以在排行榜里改。'});
+  }
   if (G.mode !== 'daily' && G.tiles.length && !G.won) saveGame();
   if (resume(loadGame('daily'))){
     savePrefs({mode: 'daily'});
@@ -2330,11 +2560,15 @@ function winDaily(){
   if (!pend || pend.day !== day || ms < pend.ms) savePrefs({pendingScore: {day, ms, moves}});
   setTimeout(() => {
     const go = () => showBoard({day, result: {ms, moves, record, prev}});
-    if (prefs.name) go(); else askName(go);
+    if (prefs.name || prefs.namePrompted) go();
+    else {
+      savePrefs({namePrompted: true});
+      askName(go);
+    }
   }, REDUCED ? 520 : 800);
 }
 
-function askName(then){
+function askName(then, o = {}){
   const wrap = document.createElement('div');
   const input = document.createElement('input');
   input.className = 'name-field';
@@ -2368,9 +2602,9 @@ function askName(then){
     e.preventDefault();
     ok();
   });
-  openDialog({kind: 'name', title: prefs.name ? '改个名字' : '起个名字上榜', body: '排行榜上显示这个名字，最多 12 个字。', extra: wrap, actions: [
+  openDialog({kind: 'name', title: prefs.name ? '改个名字' : '起个名字上榜', body: o.body || '排行榜上显示这个名字，最多 12 个字。', extra: wrap, actions: [
     {label: '好了', primary: true, run: ok},
-    {label: prefs.name ? '不改了' : '先不上榜', run: then}
+    {label: o.skip || (prefs.name ? '不改了' : '先不上榜'), run: then}
   ]});
   setTimeout(() => input.focus(), 60);
 }
@@ -2404,7 +2638,8 @@ function showBoard(o = {}){
   link.addEventListener('click', () => askName(() => showBoard(o)));
   wrap.appendChild(link);
 
-  let title = '每日挑战', body = `${dayLabel(today)} · 所有人玩同一副牌，比谁清得最快。`, actions;
+  const spec = dailySpec(today);
+  let title = '每日挑战', body = `${dayLabel(today)} · 今天是「${spec.rule.name}」：${spec.rule.desc}；牌堆摆成「${spec.shape.name}」。所有人同一副牌，比谁清得最快。`, actions;
   if (o.result){
     const r = o.result;
     title = '每日挑战完成！';
@@ -2476,6 +2711,173 @@ function showBoard(o = {}){
   }
 }
 
+/* ---------- 练习：任选每日挑战的一条规则和一个形状开一局，不计成绩、不存档 ---------- */
+let trialPick = null;
+function startTrial(ri, si){
+  trialPick = [ri, si];
+  const day = beijingDay(), spec = dailySpec(day, ri, si);
+  let seed = newSeed(), built = null;
+  for (let k = 0; k < 20 && !built; k++){
+    built = buildWith(spec.cfg, seed + k, spec.arch);
+    if (built) seed += k;
+  }
+  if (!built) return toast('这一局没排出来，再点一次');
+  // 先把正在打的闯关或每日挑战存好
+  if (G.mode !== 'trial' && G.tiles.length && !G.won) saveGame();
+  const r = spec.rule;
+  G.epoch++;
+  Object.assign(G, {
+    mode: 'trial', day, rule: r, cap: spec.cfg.cap || CAP, level: DAILY_LEVEL, seed, cfg: built.cfg,
+    tiles: built.tiles, label: `${r.name}·${spec.shape.name}`, slot: [], hold: [[], [], []],
+    tools: r.bare ? {out: 0, undo: 0, shuffle: 0} : {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
+    over: false, won: false, pending: 0, acc: 0, running: false
+  });
+  closeDialog();
+  mountTiles(true);
+  startClock();
+  toast(`练习「${r.name}」：${r.desc}`, 3200);
+}
+function showTrialPicker(){
+  const today = dailySpec(beijingDay());
+  let ri = trialPick ? trialPick[0] : DAILY_RULES.indexOf(today.rule);
+  let si = trialPick ? trialPick[1] : DAILY_SHAPES.indexOf(today.shape);
+  const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const wrap = document.createElement('div');
+  const group = (title, labels, get, set) => {
+    const h = document.createElement('p');
+    h.className = 'board-note';
+    h.textContent = title;
+    const box = document.createElement('div');
+    box.className = 'board-tabs';
+    box.style.flexWrap = 'wrap';
+    const btns = labels.map((label, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.addEventListener('click', () => { set(i); sync(); });
+      box.appendChild(b);
+      return b;
+    });
+    const sync = () => btns.forEach((b, i) => b.setAttribute('aria-pressed', String(i === get())));
+    sync();
+    wrap.append(h, box);
+  };
+  const desc = document.createElement('p');
+  desc.className = 'board-note';
+  const upd = () => { desc.textContent = `「${DAILY_RULES[ri].name}」：${DAILY_RULES[ri].desc}`; };
+  group('规则', DAILY_RULES.map((r, i) => `${WEEK[i]} ${r.name}`), () => ri, i => { ri = i; upd(); });
+  wrap.appendChild(desc);
+  upd();
+  group('形状', DAILY_SHAPES.map(x => x.name), () => si, i => { si = i; });
+  const practicing = G.mode === 'trial' && !G.won;
+  openDialog({kind: 'menu', title: '练习', body: '挑一条规则、一个形状开一局，不计成绩，每次都是新的一副牌。', extra: wrap, actions: [
+    ...(practicing ? [{label: `继续刚才那局（${G.label}）`, primary: true, run: () => { closeDialog(); hideHome(); }}] : []),
+    {label: '开始练习', primary: !practicing, run: () => startTrial(ri, si)},
+    {label: '关闭', run: closeDialog}
+  ]});
+}
+function winTrial(){
+  const ms = Math.round(elapsed());
+  Sound.win();
+  confetti();
+  setTimeout(() => openDialog({kind: 'win', art: 'hop', title: '练习通关！', body: `「${G.rule.name}」用时 ${fmtMs(ms)}，点了 ${G.moves} 次。练习不计入排行榜。`, actions: [
+    {label: '同样的模式再来一副', primary: true, run: () => startTrial(...trialPick)},
+    {label: '换个模式', run: showTrialPicker},
+    {label: backLabel(), run: backToLevels}
+  ]}), REDUCED ? 520 : 800);
+}
+
+/* ---------- 主菜单 ---------- */
+const homeEl = $('home');
+function homeItem(cls, title, sub, run){
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'btn ' + cls + ' home-item';
+  const t = document.createElement('span');
+  t.textContent = title;
+  b.appendChild(t);
+  if (sub){
+    const x = document.createElement('span');
+    x.className = 'hi-sub';
+    x.textContent = sub;
+    b.appendChild(x);
+  }
+  b.addEventListener('click', run);
+  return b;
+}
+function showHome(){
+  stopClock();
+  closeDialog();
+  $('toast').classList.remove('show');
+  // 一排蹦跳的小羊
+  const art = $('homeArt');
+  if (!art.firstChild){
+    const herd = document.createElement('div');
+    herd.className = 'herd';
+    for (let k = 0; k < 5; k++){
+      const sheep = document.createElement('i');
+      sheep.className = 'art ic-5';
+      sheep.style.setProperty('--k', k);
+      herd.appendChild(sheep);
+    }
+    art.appendChild(herd);
+  }
+  const finished = prefs.finished || 0;
+  $('homeSub').textContent = finished ? `已经全部通关 ${finished} 次` : `一共 ${FINAL} 关，每一副牌都保证有解`;
+  const list = $('homeList');
+  list.replaceChildren();
+  // 闯关
+  const ns = G.mode === 'normal' ? null : loadGame('normal');
+  const lv = G.mode === 'normal' ? G.level : ((ns && ns.level) || prefs.level || 1);
+  const going = G.mode === 'normal' ? (!G.won && G.moves > 0) : !!(ns && !ns.won);
+  // 大字是模式名，小字一行说状态；红色（主按钮）跟着当前所在的模式走
+  const tone = mode => (G.mode === mode ? 'primary' : 'ghost');
+  const lvText = lv > FINAL ? `第 ${lv} 关 · 无尽模式` : `第 ${lv} 关`;
+  list.appendChild(homeItem(tone('normal'), '闯关', going ? `${lvText} · 打到一半` : lvText,
+    () => (G.mode === 'normal' && !G.won ? hideHome() : backToLevels())));
+  // 每日挑战和排行榜
+  if (BOARD.url){
+    const today = beijingDay(), spec = dailySpec(today);
+    const best = prefs.dailyBest && prefs.dailyBest.day === today ? prefs.dailyBest.ms : 0;
+    const here = G.mode === 'daily' && !G.won && G.day === today;
+    const ds = here ? null : loadGame('daily');
+    const dGoing = here || !!(ds && ds.day === today && !ds.won);
+    const status = dGoing ? '打到一半' : best ? `今天最快 ${fmtMs(best)}` : '';
+    list.appendChild(homeItem(tone('daily'), '每日挑战', [`今天：${spec.rule.name} · ${spec.shape.name}`, status].filter(Boolean).join(' · '),
+      () => (here ? hideHome() : enterDaily())));
+    list.appendChild(homeItem('ghost', '排行榜', '看看今天谁最快', () => showBoard()));
+  }
+  const practicing = G.mode === 'trial' && !G.won;
+  list.appendChild(homeItem(tone('trial'), '练习', practicing ? `正在练：${G.label.replace('·', ' · ')}` : '任选规则和形状，不计成绩', showTrialPicker));
+  // 底下一排小按钮
+  const foot = $('homeFoot');
+  foot.replaceChildren();
+  const small = (label, run) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.addEventListener('click', run);
+    foot.appendChild(b);
+    return b;
+  };
+  small('换外观', showSkins);
+  small('玩法说明', showHelp);
+  const snd = small(Sound.on ? '声音：开' : '声音：关', () => {
+    $('btnSound').click();
+    snd.textContent = Sound.on ? '声音：开' : '声音：关';
+  });
+  homeEl.hidden = false;
+  const first = list.querySelector('.primary') || list.querySelector('button');
+  if (first) first.focus({preventScroll: true});
+}
+// 回到牌桌接着玩：计时接着走；如果这一局已经输了，再把输了的选项弹出来
+function hideHome(){
+  homeEl.hidden = true;
+  if (G.won) return;
+  if (G.over) showLose();
+  else startClock();
+}
+
 function syncSound(){
   const b = $('btnSound');
   b.setAttribute('aria-pressed', String(Sound.on));
@@ -2488,8 +2890,7 @@ $('toolOut').addEventListener('click', useOut);
 $('toolUndo').addEventListener('click', useUndo);
 $('toolShuffle').addEventListener('click', useShuffle);
 $('btnHelp').addEventListener('click', showHelp);
-$('btnBoard').addEventListener('click', () => showBoard());
-$('btnBoard').hidden = !BOARD.url;
+$('btnHome').addEventListener('click', showHome);
 $('btnRestart').addEventListener('click', showRestart);
 $('btnSkin').addEventListener('click', showSkins);
 $('btnSound').addEventListener('click', () => {
@@ -2683,6 +3084,7 @@ function layoutSig(tiles){
 function saveGame(){
   clearTimeout(saveTimer);
   saveTimer = 0;
+  if (G.mode === 'trial') return;
   try {
     const key = saveKey(G.mode);
     if (G.won || !G.tiles.length) localStorage.removeItem(key);
@@ -2718,28 +3120,29 @@ function serialize(){
     st: G.tiles.map(t => (t.pending ? 3 : ST[t.status])), ty: G.tiles.map(t => t.type),
     slot: G.slot.filter(t => !t.pending).map(t => t.id), hold: G.hold.map(c => c.map(t => t.id)),
     tools: Object.assign({}, G.tools), moves: G.moves, ms: elapsed(), over: G.over, won: G.won,
-    sig: layoutSig(G.tiles), hist: G.history.slice(-1)
+    sig: layoutSig(G.tiles), hist: G.history.slice(-1), bm: G.tiles.map(t => t.bomb || 0), cap: G.cap
   };
 }
 function resume(s){
-  if (!s || s.v !== 1 || s.won) return false;
+  if (!s || s.v !== 1 || s.won || s.mode === 'trial') return false;
   const mode = s.mode === 'daily' ? 'daily' : 'normal';
   // 过了零点，昨天没打完的每日挑战就不接着打了
   if (mode === 'daily' && s.day !== beijingDay()) return false;
-  const built = buildLevel(s.level, s.seed);
-  if (!built || built.tiles.length !== s.n) return false;
+  const built = mode === 'daily' ? buildDaily(s.day) : buildLevel(s.level, s.seed);
+  if (!built || built.tiles.length !== s.n || (mode === 'daily' && built.seed !== s.seed)) return false;
   // 游戏更新后摆牌方式可能变了，同一个种子摆出来的牌对不上就不恢复
   if (s.sig != null && s.sig !== layoutSig(built.tiles)) return false;
   G.epoch++;
   Object.assign(G, {
-    mode, day: mode === 'daily' ? s.day : '', level: s.level, seed: s.seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
+    mode, day: mode === 'daily' ? s.day : '', rule: mode === 'daily' ? built.rule : null, cap: built.cfg.cap || CAP,
+    level: s.level, seed: s.seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
     tools: s.tools, history: [], moves: s.moves, over: false, won: false, pending: 0, acc: s.ms || 0, running: false
   });
   restoreSnap(s);
   G.history = (Array.isArray(s.hist) ? s.hist : []).filter(h => h && Array.isArray(h.st) && h.st.length === s.n);
   if (G.tiles.every(t => t.status === 'gone')) return false;
   mountTiles(false);
-  if (s.over && G.slot.length >= CAP){ G.over = true; showLose(); } else startClock();
+  if (s.over && G.slot.length >= G.cap){ G.over = true; showLose(); } else startClock();
   return true;
 }
 
@@ -2864,13 +3267,15 @@ function boot(data){
   syncSound();
   const lv = Math.min(Math.max(Number(prefs.level) || 1, 1), 99);
   if (resume(data && data.game)) return;
+  let resumed = false;
   for (const mode of prefs.mode === 'daily' ? ['daily', 'normal'] : ['normal']){
     if (resume(loadGame(mode))){
-      if (!G.over) toast(G.mode === 'daily' ? '接着今天的每日挑战' : `接着上次的进度 · 第 ${G.level} 关`);
-      return;
+      resumed = true;
+      break;
     }
   }
-  startLevel(lv, freshSeed(lv));
+  if (!resumed) startLevel(lv, freshSeed(lv));
+  showHome();
 }
 applySkin(prefs.skin);
 try {
