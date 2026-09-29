@@ -1503,6 +1503,7 @@ function render(){
     el.setAttribute('aria-label', ICONS[t.type].n + (t.status === 'slot' ? '，在口袋里' : blocked ? '，被压住了' : ''));
   }
   hud();
+  saveSoon();
 }
 
 function hud(){
@@ -1787,6 +1788,7 @@ function useShuffle(){
 function lose(){
   G.over = true;
   stopClock();
+  saveGame();
   Sound.lose();
   const ep = G.epoch;
   setTimeout(shakePocket, REDUCED ? 0 : 330);
@@ -1805,6 +1807,7 @@ function showLose(){
 function win(){
   G.won = true;
   stopClock();
+  saveGame();
   const secs = Math.round(elapsed() / 1000), lv = G.level;
   const best = (prefs.best || {})[lv];
   const record = !best || secs < best;
@@ -2121,25 +2124,73 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
 if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => relayout());
 setInterval(() => { $('clock').textContent = fmt(Math.floor(elapsed() / 1000)); }, 500);
 
+/* ---------- 存档：刷新页面、从后台清掉再打开，都接着上次的进度 ---------- */
+const SAVE_KEY = 'mielegemie:game';
+let saveTimer = 0;
+// 摆牌的指纹：每张牌的位置和层数算一个哈希
+function layoutSig(tiles){
+  let h = 2166136261;
+  for (const t of tiles){
+    for (const v of [t.x, t.y, t.z]){
+      h ^= Math.round(v * 100);
+      h = Math.imul(h, 16777619);
+    }
+  }
+  return h >>> 0;
+}
+function saveGame(){
+  clearTimeout(saveTimer);
+  saveTimer = 0;
+  try {
+    if (G.won || !G.tiles.length) localStorage.removeItem(SAVE_KEY);
+    else localStorage.setItem(SAVE_KEY, JSON.stringify(serialize()));
+  } catch (e) {}
+}
+function saveSoon(){
+  if (!saveTimer) saveTimer = setTimeout(saveGame, 250);
+}
+function loadGame(){
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { return null; }
+}
+// 切到后台时先存一下；计时也停下来，回来再接着走
+let hiddenPause = false;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden'){
+    if (G.running){
+      stopClock();
+      hiddenPause = true;
+    }
+    saveGame();
+  } else if (hiddenPause){
+    hiddenPause = false;
+    if (!G.over && !G.won) startClock();
+  }
+});
+window.addEventListener('pagehide', saveGame);
+
 /* ---------- 页面更新时保留对局 ---------- */
 function serialize(){
   return {
     v: 1, level: G.level, seed: G.seed, n: G.tiles.length,
     st: G.tiles.map(t => (t.pending ? 3 : ST[t.status])), ty: G.tiles.map(t => t.type),
     slot: G.slot.filter(t => !t.pending).map(t => t.id), hold: G.hold.map(c => c.map(t => t.id)),
-    tools: Object.assign({}, G.tools), moves: G.moves, ms: elapsed(), over: G.over, won: G.won
+    tools: Object.assign({}, G.tools), moves: G.moves, ms: elapsed(), over: G.over, won: G.won,
+    sig: layoutSig(G.tiles), hist: G.history.slice(-1)
   };
 }
 function resume(s){
   if (!s || s.v !== 1 || s.won) return false;
   const built = buildLevel(s.level, s.seed);
   if (!built || built.tiles.length !== s.n) return false;
+  // 游戏更新后摆牌方式可能变了，同一个种子摆出来的牌对不上就不恢复
+  if (s.sig != null && s.sig !== layoutSig(built.tiles)) return false;
   G.epoch++;
   Object.assign(G, {
     level: s.level, seed: s.seed, cfg: built.cfg, tiles: built.tiles, label: built.label, slot: [], hold: [[], [], []],
     tools: s.tools, history: [], moves: s.moves, over: false, won: false, pending: 0, acc: s.ms || 0, running: false
   });
   restoreSnap(s);
+  G.history = (Array.isArray(s.hist) ? s.hist : []).filter(h => h && Array.isArray(h.st) && h.st.length === s.n);
   if (G.tiles.every(t => t.status === 'gone')) return false;
   mountTiles(false);
   if (s.over && G.slot.length >= CAP){ G.over = true; showLose(); } else startClock();
@@ -2266,7 +2317,12 @@ function boot(data){
   layout();
   syncSound();
   const lv = Math.min(Math.max(Number(prefs.level) || 1, 1), 99);
-  if (!resume(data && data.game)) startLevel(lv, freshSeed(lv));
+  if (resume(data && data.game)) return;
+  if (resume(loadGame())){
+    if (!G.over) toast(`接着上次的进度 · 第 ${G.level} 关`);
+    return;
+  }
+  startLevel(lv, freshSeed(lv));
 }
 applySkin(prefs.skin);
 try {
