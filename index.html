@@ -1363,9 +1363,13 @@ function buildColumns(rng, cfg){
   for (const s of shuffled(slots, rng)){
     if (out.length >= cfg.target) break;
     const depth = 10 + Math.floor(rng() * 12);
+    // 压在下面的牌轮到最上面时往外挪这么多，好照样露出再下一张的一条
+    const slide = sign * (open - tight), fan = vertical ? {x: 0, y: slide} : {x: slide, y: 0};
     for (let d = 0; d < depth; d++){
       const off = sign * (Math.min(d, depth - 2) * tight + Math.max(0, d - (depth - 2)) * open);
-      out.push(vertical ? {x: s.x, y: s.y + off, z: d} : {x: s.x + off, y: s.y, z: d});
+      const p = vertical ? {x: s.x, y: s.y + off, z: d} : {x: s.x + off, y: s.y, z: d};
+      if (d < depth - 1) p.fan = fan;
+      out.push(p);
     }
   }
   return out;
@@ -1465,7 +1469,7 @@ function centerMain(pos, hasPiles){
   }
   const availH = hasPiles ? 7.5 : 8.6;
   const dx = (BW - (x1 - x0)) / 2 - x0, dy = Math.max(0, (availH - (y1 - y0)) / 2) - y0;
-  return pos.map(p => ({x: p.x + dx, y: p.y + dy, z: p.z}));
+  return pos.map(p => Object.assign({}, p, {x: p.x + dx, y: p.y + dy}));
 }
 
 function makeLayout(rng, cfg, arch){
@@ -1490,7 +1494,7 @@ function makeLayout(rng, cfg, arch){
 
 function makeTiles(pos){
   const tiles = pos.map((p, id) => ({
-    id, x: p.x, y: p.y, z: p.z, pile: !!p.pile, type: -1, status: 'board', pending: false,
+    id, x: p.x, y: p.y, z: p.z, pile: !!p.pile, fan: p.fan || null, type: -1, status: 'board', pending: false,
     covers: [], coveredBy: [], el: null, art: null, shown: -1, si: 0, hc: 0, hd: 0
   }));
   for (let i = 0; i < tiles.length; i++){
@@ -2938,7 +2942,10 @@ const lift = t => Math.min(t.h || 1, 12) * L.unit * .075;
 const TILT_MAX = 2.4;
 function boardPose(t){
   const k = lift(t);
-  return {x: L.boardX + (t.x + .04) * L.unit + tilt.x * k, y: L.boardY + (t.y + .01) * L.unit + tilt.y * k, s: 1};
+  // 千层：上面那张点掉后，新的最上面一张往外滑一点，照样露出下一张的一条
+  const f = t.fan && isFree(t) && t.covers.some(u => u.status === 'board') ? t.fan : null;
+  const x = t.x + (f ? f.x : 0), y = t.y + (f ? f.y : 0);
+  return {x: L.boardX + (x + .04) * L.unit + tilt.x * k, y: L.boardY + (y + .01) * L.unit + tilt.y * k, s: 1};
 }
 
 function applyTilt(){
