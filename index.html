@@ -1353,15 +1353,20 @@ function buildSwirl(rng, cfg){
   return out;
 }
 
-// 千层：九个位置各叠一摞很深的牌，全部朝同一个方向错开
+// 千层：3×3 九摞，每摞叠得很深，下一张只露出窄窄一条（看得出颜色，认不全图案），再往下紧紧压在一起
 function buildColumns(rng, cfg){
-  const out = [], [ddx, ddy] = pickOne([[.055, 0], [0, .055], [.045, .035], [-.045, .035]], rng);
+  // 竖着摊多露一点；往下露时上面那张的厚边会盖住一截，再补上这截
+  const out = [], tight = .05, vertical = rng() < .5, back = rng() < .5;
+  const open = !vertical ? .16 : back ? .28 : .20, sign = back ? -1 : 1;
   const slots = [];
-  for (const y of [0, 2.3, 4.6]) for (const x of [0, 2.4, 4.8]) slots.push([x + (ddx < 0 ? 1.16 : 0), y]);
-  for (const [bx, by] of shuffled(slots, rng)){
+  for (const y of [0, 2.3, 4.6]) for (const x of [0, 2.4, 4.8]) slots.push({x, y});
+  for (const s of shuffled(slots, rng)){
     if (out.length >= cfg.target) break;
     const depth = 10 + Math.floor(rng() * 12);
-    for (let d = 0; d < depth; d++) out.push({x: bx + d * ddx, y: by + d * ddy, z: d});
+    for (let d = 0; d < depth; d++){
+      const off = sign * (Math.min(d, depth - 2) * tight + Math.max(0, d - (depth - 2)) * open);
+      out.push(vertical ? {x: s.x, y: s.y + off, z: d} : {x: s.x + off, y: s.y, z: d});
+    }
   }
   return out;
 }
@@ -1421,7 +1426,7 @@ const ARCHES = [
   {id: 'ring', name: '回环', build: buildRing},
   {id: 'islands', name: '群岛', build: buildIslands, flip: true},
   {id: 'swirl', name: '漩涡', build: buildSwirl, flip: true},
-  {id: 'columns', name: '千层', build: buildColumns, flip: true},
+  {id: 'columns', name: '千层', build: buildColumns, trimBottom: true},
   {id: 'mask', name: '剪影', build: buildMask},
   {id: 'bricks', name: '砖墙', build: buildBricks}
 ];
@@ -1475,7 +1480,11 @@ function makeLayout(rng, cfg, arch){
   main = centerMain(main, piles.length > 0);
   const extra = (3 - (main.length + pileSum) % 3) % 3;
   if (piles.length) piles[piles.length - 1].n += extra;
-  else if (extra) main = main.sort((a, b) => a.z - b.z).slice(0, main.length - (3 - extra));
+  else if (extra){
+    main = main.sort((a, b) => a.z - b.z);
+    // 千层每摞最上面那张是露出一条的，凑张数时从最底下拿，别把它拿走
+    main = arch.trimBottom ? main.slice(3 - extra) : main.slice(0, main.length - (3 - extra));
+  }
   return {pos: main.concat(pilePositions(piles)), label: meta.label};
 }
 
