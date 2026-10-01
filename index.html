@@ -2332,7 +2332,7 @@ function showHelp(){
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
     `一共 ${FINAL} 关，打通第 ${FINAL} 关就算通关；之后还可以接着玩无尽模式。`,
     '右上角的小房子是主菜单：在闯关、每日挑战和练习之间切换，看排行榜。练习可以任选每日挑战的规则和形状，不计成绩。',
-    ...(BOARD.url ? ['每日挑战：每天所有人同一条规则、同一个牌堆形状，每局都是新的一副牌；没用道具的排前面，同样再比谁清得快。牌堆形状每天换，规则按星期轮换（少一格、蒙眼、空手、定时炸弹、牌山、大场面，星期天是双重），难度比第 6 关还高。排行榜每天零点（北京时间）换新。'] : []),
+    ...(BOARD.url ? ['每日挑战：每天所有人同一条规则、同一个牌堆形状，每局都是新的一副牌；没用道具的排前面，同样再比谁清得快。牌堆形状每天换，规则按星期轮换（少一格、蒙眼、空手、定时炸弹、千层、大场面，星期天是双重；千层那天不用形状），难度比第 6 关还高。排行榜每天零点（北京时间）换新。'] : []),
     '右上角的调色盘可以换外观，一共五种，换了不影响这一局。',
     '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
     '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。捻开时被压住的牌只显示背面，不会偷看到底下是什么。'
@@ -2382,7 +2382,7 @@ const DAILY_RULES = [
   {name: '蒙眼', desc: '口袋里的牌都扣着，只在消掉一组的时候亮几秒，要靠记性', blind: true},
   {name: '空手', desc: '三个道具都不能用', bare: true},
   {name: '定时炸弹', desc: '带数字的牌进了口袋就开始倒数，每点一张减 1，数完还没消掉就会炸坏一格口袋', bomb: true},
-  {name: '牌山', desc: '底下两摞牌各 24 张，只能从最上面拿', piles: true},
+  {name: '千层', desc: '九摞很深的牌，每摞只看得到下一张露出的一条', columns: true},
   {name: '大场面', desc: '牌比平时多得多，叠得也更高', big: true}
 ];
 // 每日专属的牌堆形状：14×14 的半格网格，一张牌占 2×2，X 是能放牌的地方
@@ -2457,16 +2457,17 @@ function dailySpec(day, ri, si){
   }
   if (rule.bomb) cfg.bombs = 12;
   if (rule.big) Object.assign(cfg, {target: 285, maxZ: 32});
-  if (rule.piles) Object.assign(cfg, {piles: 24, fixedPiles: [{slot: 'left', n: 24}, {slot: 'right', n: 24}]});
+  // 千层这天不用当天的形状，牌桌就是闯关里的千层九摞
+  if (rule.columns) return {rule, shape, cfg, arch: ARCHES.find(a => a.id === 'columns'), label: rule.name};
   const grid = shape.grid || dateGrid(day);
   const arch = {id: 'daily', name: shape.name, build: (rng, c) => buildShape(rng, c, grid)};
-  return {rule, shape, cfg, arch};
+  return {rule, shape, cfg, arch, label: `${rule.name}·${shape.name}`};
 }
 function buildDaily(day, seed0 = newSeed()){
   const spec = dailySpec(day);
   for (let k = 0; k < 20; k++){
     const built = buildWith(spec.cfg, seed0 + k, spec.arch);
-    if (built) return Object.assign(built, {seed: seed0 + k, rule: spec.rule, label: `${spec.rule.name}·${spec.shape.name}`});
+    if (built) return Object.assign(built, {seed: seed0 + k, rule: spec.rule, label: spec.label});
   }
   return null;
 }
@@ -2650,7 +2651,7 @@ function showBoard(o = {}){
   wrap.appendChild(link);
 
   const spec = dailySpec(today);
-  let title = '每日挑战', body = `${dayLabel(today)} · 今天是「${spec.rule.name}」：${spec.rule.desc}；牌堆摆成「${spec.shape.name}」。每局都是新的一副牌，没用道具的排前面，同样再比谁清得快。`, actions;
+  let title = '每日挑战', body = `${dayLabel(today)} · 今天是「${spec.rule.name}」：${spec.rule.desc}${spec.rule.columns ? '' : `；牌堆摆成「${spec.shape.name}」`}。每局都是新的一副牌，没用道具的排前面，同样再比谁清得快。`, actions;
   if (o.result){
     const r = o.result;
     title = '每日挑战完成！';
@@ -2739,7 +2740,7 @@ function startTrial(ri, si){
   G.epoch++;
   Object.assign(G, {
     mode: 'trial', day, rule: r, cap: spec.cfg.cap || CAP, level: DAILY_LEVEL, seed, cfg: built.cfg,
-    tiles: built.tiles, label: `${r.name}·${spec.shape.name}`, slot: [], hold: [[], [], []],
+    tiles: built.tiles, label: spec.label, slot: [], hold: [[], [], []],
     tools: r.bare ? {out: 0, undo: 0, shuffle: 0} : {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
     over: false, won: false, pending: 0, acc: 0, running: false
   });
@@ -2772,14 +2773,19 @@ function showTrialPicker(){
     const sync = () => btns.forEach((b, i) => b.setAttribute('aria-pressed', String(i === get())));
     sync();
     wrap.append(h, box);
+    return [h, box];
   };
   const desc = document.createElement('p');
   desc.className = 'board-note';
-  const upd = () => { desc.textContent = `「${DAILY_RULES[ri].name}」：${DAILY_RULES[ri].desc}`; };
+  let shapeEls = [];
+  const upd = () => {
+    desc.textContent = `「${DAILY_RULES[ri].name}」：${DAILY_RULES[ri].desc}`;
+    shapeEls.forEach(el => { el.hidden = !!DAILY_RULES[ri].columns; });  // 千层不用形状
+  };
   group('规则', DAILY_RULES.map((r, i) => `${WEEK[i]} ${r.name}`), () => ri, i => { ri = i; upd(); });
   wrap.appendChild(desc);
+  shapeEls = group('形状', DAILY_SHAPES.map(x => x.name), () => si, i => { si = i; });
   upd();
-  group('形状', DAILY_SHAPES.map(x => x.name), () => si, i => { si = i; });
   const practicing = G.mode === 'trial' && !G.won;
   openDialog({kind: 'menu', title: '练习', body: '挑一条规则、一个形状开一局，不计成绩，每次都是新的一副牌。', extra: wrap, actions: [
     ...(practicing ? [{label: `继续刚才那局（${G.label}）`, primary: true, run: () => { closeDialog(); hideHome(); }}] : []),
@@ -2854,7 +2860,7 @@ function showHome(){
     const ds = here ? null : loadGame('daily');
     const dGoing = here || !!(ds && ds.day === today && !ds.won);
     const status = dGoing ? '打到一半' : best ? `今天最好 ${scoreText(best)}` : '';
-    list.appendChild(homeItem(tone('daily'), '每日挑战', [`今天：${spec.rule.name} · ${spec.shape.name}`, status].filter(Boolean).join(' · '),
+    list.appendChild(homeItem(tone('daily'), '每日挑战', [`今天：${spec.label.replace('·', ' · ')}`, status].filter(Boolean).join(' · '),
       () => (here ? hideHome() : enterDaily())));
     list.appendChild(homeItem('ghost', '排行榜', '看看今天谁最快', () => showBoard()));
   }
