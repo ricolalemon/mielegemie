@@ -932,11 +932,10 @@ const Sound = {
   }
 };
 
-/* ---------- 背景音乐：《老麦克唐纳有块地》（英美童谣，早已是公版），全部现场合成 ---------- */
+/* ---------- 背景音乐：四首可换，《老麦克唐纳有块地》《欢乐颂》《友谊地久天长》都早已是公版，《蹦蹦咩》是自己写的；全部现场合成 ---------- */
 const Music = (() => {
   const VOL = .09;          // 比点牌的音效轻
-  const BPM = 132;
-  let out = null, master = null, noiseBuf = null, timer = 0, step = 0, next = 0, playing = false;
+  let out = null, master = null, send = null, noiseBuf = null, timer = 0, step = 0, next = 0, playing = false, swapTok = 0;
   const C = () => Sound.ctx;
   const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
   function vca(t, peak, a, hold, rel){
@@ -979,8 +978,84 @@ const Music = (() => {
     for (let i = 0; i < nodes.length - 1; i++) nodes[i].connect(nodes[i + 1]);
   }
 
-  // 乐器：大号、拨弦、梆子、底鼓、沙锤、口哨，还有小羊
+  // 乐器：大号、拨弦、梆子、鼓、沙锤、口哨、滑哨、长笛、弦乐、八音盒、电钢琴，还有小羊
   const I = {
+    bass(t, m, dur, v, type, bright){
+      const o = osc(type, mtof(m), t, t + dur + .1), f = filt('lowpass', bright, 3);
+      f.frequency.setValueAtTime(bright, t);
+      f.frequency.exponentialRampToValueAtTime(Math.max(200, bright * .2), t + .12);
+      chain(o, f, vca(t, .32 * v, .004, Math.max(0, dur - .06), .06), out);
+    },
+    // 八音盒：基音加几个很轻的泛音，长长地衰减
+    box(t, m, v){
+      const f = mtof(m), end = t + 1.7;
+      for (const [k, a, rel] of [[1, .22, 1.5], [2, .06, .6], [3.01, .03, .4], [4.2, .015, .25]]){
+        chain(osc('sine', f * k, t, end), vca(t, a * v, .002, 0, rel), out);
+      }
+    },
+    // 柔和的电钢琴和弦
+    keys(t, ms, dur, v){
+      for (const m of ms){
+        const f = mtof(m), end = t + dur + .5, lp = filt('lowpass', 1600, .5), g2 = gain(.25);
+        osc('triangle', f, t, end).connect(lp);
+        osc('sine', f * 2.001, t, end).connect(g2);
+        g2.connect(lp);
+        chain(lp, vca(t, .045 * v, .02, dur * .6, dur * .4 + .35), out);
+      }
+    },
+    snare(t, v){
+      chain(noise(t, t + .2), filt('bandpass', 1900, .8), vca(t, .35 * v, .002, 0, .14), out);
+      chain(osc('triangle', 185, t, t + .12), vca(t, .25 * v, .002, 0, .08), out);
+    },
+    hat(t, v){
+      chain(noise(t, t + .3), filt('highpass', 7200, .7), vca(t, .16 * v, .001, 0, .035), out);
+    },
+    // 镲：噪声加几支不成和声的方波
+    cymbal(t, v){
+      chain(noise(t, t + .7), filt('highpass', 4200, .5), vca(t, .22 * v, .002, .02, .45), out);
+      for (const f of [431, 587, 845, 1103]) chain(osc('square', f, t, t + .5), filt('highpass', 6000, .7), vca(t, .018 * v, .002, 0, .35), out);
+    },
+    cello(t, m, dur, v){
+      chain(osc('sawtooth', mtof(m), t, t + dur + .4), filt('lowpass', 900, .7), vca(t, .14 * v, .08, Math.max(0, dur - .1), .3), out);
+    },
+    // 弦乐铺底：每个音两支微微跑调的锯齿波，慢慢进、慢慢收
+    strings(t, ms, dur, v){
+      for (const m of ms){
+        const f = mtof(m), end = t + dur + .8, lp = filt('lowpass', 1500, .6);
+        for (const det of [-.004, .004]) osc('sawtooth', f * (1 + det), t, end).connect(lp);
+        const g = C().createGain();
+        g.gain.setValueAtTime(.0001, t);
+        g.gain.exponentialRampToValueAtTime(.03 * v, t + .3);
+        g.gain.setValueAtTime(.03 * v, t + Math.max(.3, dur));
+        g.gain.exponentialRampToValueAtTime(.0001, t + dur + .75);
+        chain(lp, g, out);
+      }
+    },
+    // 长笛：正弦波为主，带气声和慢慢起来的颤音
+    flute(t, m, dur, v){
+      const f = mtof(m), end = t + dur + .2, o = osc('sine', f, t, end), o2 = osc('triangle', f, t, end);
+      const l = osc('sine', 5, t, end), dp = C().createGain();
+      dp.gain.setValueAtTime(0, t);
+      dp.gain.linearRampToValueAtTime(f * .006, t + Math.min(.4, dur));
+      l.connect(dp);
+      dp.connect(o.frequency);
+      dp.connect(o2.frequency);
+      const mix = gain(1), g2 = gain(.25);
+      o.connect(mix);
+      o2.connect(g2);
+      g2.connect(mix);
+      chain(mix, vca(t, .12 * v, .07, Math.max(0, dur - .08), .15), out);
+      chain(noise(t, end), filt('bandpass', f, 12), vca(t, .04 * v, .05, Math.max(0, dur - .08), .12), out);
+    },
+    // 滑哨：一路滑上去
+    slide(t, dur){
+      const o = osc('sine', 520, t, t + dur + .05);
+      o.frequency.exponentialRampToValueAtTime(1560, t + dur);
+      const l = osc('sine', 7, t, t + dur + .05), d = gain(14);
+      l.connect(d);
+      d.connect(o.frequency);
+      chain(o, vca(t, .13, .03, Math.max(0, dur - .06), .06), out);
+    },
     kick(t, v){
       const o = osc('sine', 150, t, t + .32);
       o.frequency.exponentialRampToValueAtTime(44, t + .11);
@@ -1001,13 +1076,13 @@ const Music = (() => {
       lp.frequency.linearRampToValueAtTime(560, t + .05);
       chain(o, lp, vca(t, .5 * v, .03, dur * .5, dur * .4 + .05), out);
     },
-    pizz(t, ms){
+    pizz(t, ms, v = 1){
       for (const m of ms){
         const f = mtof(m), lp = filt('lowpass', 2600, .8), g2 = gain(.3);
         osc('triangle', f, t, t + .3).connect(lp);
         osc('sawtooth', f, t, t + .3).connect(g2);
         g2.connect(lp);
-        chain(lp, vca(t, .07, .003, 0, .18), out);
+        chain(lp, vca(t, .07 * v, .003, 0, .18), out);
       }
     },
     whistle(t, m, dur){
@@ -1020,7 +1095,7 @@ const Music = (() => {
       chain(noise(t, end), filt('bandpass', f * 2, 8), vca(t, .05, .02, Math.max(0, dur - .05), .05), out);
     },
     // 羊叫：锯齿波过三个元音共振峰，每秒抖十七下，开头嘴闭着像「m」
-    baa(t, m, dur){
+    baa(t, m, dur, v = 1){
       const f0 = mtof(m), end = t + dur + .06;
       const o = osc('sawtooth', f0 * 1.06, t, end);
       o.frequency.linearRampToValueAtTime(f0, t + .08);
@@ -1044,8 +1119,8 @@ const Music = (() => {
       }
       const env = C().createGain();
       env.gain.setValueAtTime(.0001, t);
-      env.gain.exponentialRampToValueAtTime(.9, t + .03);
-      env.gain.setValueAtTime(.9, t + Math.max(.035, dur * .7));
+      env.gain.exponentialRampToValueAtTime(.9 * v, t + .03);
+      env.gain.setValueAtTime(.9 * v, t + Math.max(.035, dur * .7));
       env.gain.exponentialRampToValueAtTime(.0001, end);
       chain(sum, env, out);
     }
@@ -1075,12 +1150,13 @@ const Music = (() => {
     for (const e of ev) at[e.step] = e;
     return at;
   }
+  // 《老麦克唐纳有块地》：大号「嘭—嚓」、口哨唱主旋律，「这里咩咩、那里咩咩」换成小羊自己唱
   const VERSE = [
     'G5 - . . G5 - . . G5 - . . D5 - . .',
     'E5 - . . E5 - . . D5 - - - - - . .',
     'B5 - . . B5 - . . A5 - . . A5 - . .'
   ];
-  const SONG = [
+  const FARM = [
     ...VERSE, 'G5 - - - - - - - - - - - . . . .',
     ...VERSE, 'G5 - - - - - - - - - - . D5 . D5 .',
     '*G4 - - . *G4 - - . G5 - - . D5 . D5 .',
@@ -1091,8 +1167,7 @@ const Music = (() => {
   ].map(bar);
   const HALVES = [[43, 43], [48, 43], [43, 38], [43, 43]];
   const CHORD = {43: [62, 67, 71], 48: [60, 64, 67], 38: [62, 66, 69]};
-
-  function play(b, s, t, d){
+  function playFarm(b, s, t, d){
     const root = (b >= 8 && b < 12 ? (b === 11 ? [43, 38] : [43, 43]) : HALVES[b % 4])[s < 8 ? 0 : 1];
     if (s === 0 || s === 8){
       I.tuba(t, root, d * 3, s ? .9 : 1);
@@ -1103,19 +1178,137 @@ const Music = (() => {
       I.block(t, 76, .45);
     }
     if (s % 2 === 0) I.shaker(t, s % 4 ? .7 : 1);
-    const e = SONG[b][s];
+    const e = FARM[b][s];
     if (e){
       if (e.baa) I.baa(t, e.m, e.len * d * .95);
       else I.whistle(t, e.m, e.len * d);
     }
   }
+
+  // 《欢乐颂》：长笛吹主旋律，拨弦和大提琴打拍子；后半段弦乐和小鼓加进来
+  const JOY_A = [
+    'E5 - - - E5 - - - F5 - - - G5 - - -',
+    'G5 - - - F5 - - - E5 - - - D5 - - -',
+    'C5 - - - C5 - - - D5 - - - E5 - - -'
+  ];
+  const JOY = [
+    ...JOY_A, 'E5 - - - - - D5 - D5 - - - - - - -',
+    ...JOY_A, 'D5 - - - - - C5 - C5 - - - - - - -',
+    'D5 - - - D5 - - - E5 - - - C5 - - -',
+    'D5 - - - E5 - F5 - E5 - - - C5 - - -',
+    'D5 - - - E5 - F5 - E5 - - - D5 - - -',
+    'C5 - - - D5 - - - G4 - - - - - - -',
+    ...JOY_A, 'D5 - - - - - C5 - C5 - - - - - - -'
+  ].map(bar);
+  const HARM = {C: {root: 48, ch: [64, 67, 72]}, G: {root: 43, ch: [62, 67, 71]}};
+  function playJoy(b, s, t, d){
+    const plan = ['CC', 'GG', 'CC', 'CG', 'CC', 'GG', 'CC', 'GC', 'GC', 'GC', 'GG', 'CG', 'CC', 'GG', 'CC', 'GC'][b];
+    const h = HARM[plan[s < 8 ? 0 : 1]], late = b >= 8;
+    if (s === 0 || s === 8){
+      I.cello(t, h.root - 12, d * 7, .7);
+      I.kick(t, .4);
+      if (late) I.strings(t, h.ch, d * 7.6, .7);
+    }
+    if (s === 4 || s === 12){
+      I.pizz(t, h.ch, .6);
+      if (late) I.snare(t, .4);
+    }
+    if (s % 2 === 0) I.hat(t, late ? .3 : .15);
+    if (b === 8 && s === 0) I.cymbal(t, .7);
+    const e = JOY[b][s];
+    if (e) I.flute(t, e.m, e.len * d * .95, 1);
+    if (b === 15 && s === 10) I.baa(t, 60, d * 3, .3);
+  }
+
+  // 《蹦蹦咩》：大号「嘭—嚓」，拨弦和口哨在上面跳，段落结尾一声滑哨
+  const BOUNCE = [
+    'G5 . . E5 G5 . . E5 C6 . . . G5 . . .',
+    'F5 . . D5 F5 . . D5 B5 . . . G5 . . .',
+    'E5 . G5 . C6 . E6 . D6 . C6 . A5 . G5 .',
+    'A5 . . . F5 . . . . . . . . . . .',
+    'G5 . . D5 G5 . . D5 B5 . . . D6 . . .',
+    'C6 . . G5 E5 . . G5 C6 . . . E6 . . .',
+    'F6 . E6 . D6 . C6 . B5 . C6 . D6 . . .',
+    'C6 . . . G5 . . . C5 . . . . . . .'
+  ].map(bar);
+  function playBounce(b, s, t, d){
+    let root = [36, 31, 36, 29, 31, 36, 29, 36][b];
+    if (b === 6 && s >= 8) root = 31;
+    const chord = {36: [60, 64, 67], 31: [59, 62, 67], 29: [60, 65, 69]}[root];
+    if (s === 0) I.tuba(t, root, d * 3, 1);
+    if (s === 8) I.tuba(t, root >= 34 ? root - 5 : root + 7, d * 3, .9);
+    if (s === 4 || s === 12){
+      I.pizz(t, chord);
+      I.block(t, 76, .45);
+    }
+    if (s === 0 || s === 8) I.kick(t, .45);
+    if (s % 2 === 0) I.shaker(t, s % 4 ? .7 : 1);
+    const e = BOUNCE[b][s];
+    if (e) I.whistle(t, e.m, e.len * d);
+    if (b === 3 && s === 8) I.slide(t, d * 6);
+    if (b === 7 && s === 12) I.baa(t, 60, d * 3.5);
+  }
+
+  // 《友谊地久天长》八音盒版：八音盒按原调的高度弹旋律，底下软软的电钢琴和弦，到副歌弦乐铺进来
+  const AULD = [
+    'C5 - - - - - C5 - C5 - - - E5 - - -',
+    'D5 - - - - - C5 - D5 - - - E5 - - -',
+    'C5 - - - - - C5 - E5 - - - G5 - - -',
+    'A5 - - - - - - - - - - - A5 - - -',
+    'G5 - - - - - E5 - E5 - - - C5 - - -',
+    'D5 - - - - - C5 - D5 - - - E5 - - -',
+    'C5 - - - - - A4 - A4 - - - G4 - - -',
+    'C5 - - - - - - - - - - - A5 - - -',
+    'G5 - - - - - E5 - E5 - - - C5 - - -',
+    'D5 - - - - - C5 - D5 - - - A5 - - -',
+    'G5 - - - - - E5 - E5 - - - G5 - - -',
+    'A5 - - - - - - - - - - - C6 - - -',
+    'G5 - - - - - E5 - E5 - - - C5 - - -',
+    'D5 - - - - - C5 - D5 - - - E5 - - -',
+    'C5 - - - - - A4 - A4 - - - G4 - - -',
+    'C5 - - - - - - - - - - - G4 - - -'
+  ].map(bar);
+  const AULD_PLAN = ['C', 'G', 'C', 'F', 'C', 'G', 'FG', 'C'];
+  const AULD_H = {C: [48, [55, 60, 64]], G: [43, [55, 59, 62]], F: [41, [53, 57, 60]]};
+  function playAuld(b, s, t, d){
+    const p = AULD_PLAN[b % 8], half = p.length > 1, [root, ch] = AULD_H[half ? p[s < 8 ? 0 : 1] : p];
+    if (s === 0 || (half && s === 8)){
+      const dur = d * (half ? 7.5 : 15.5);
+      I.keys(t, ch, dur, .8);
+      I.bass(t, root - 12, dur * .6, .5, 'triangle', 600);
+      if (b >= 8) I.strings(t, ch, dur, .6);
+    }
+    if (s === 8 && !half) I.box(t, ch[1], .25);
+    const e = AULD[b][s];
+    if (e) I.box(t, e.m, 1);
+    if (b === 15 && s === 8) I.baa(t, 60, .5, .2);
+  }
+
+  // gain 让几首听起来一样响；reverb 是送去混响的量，只有八音盒那首用
+  const SONGS = {
+    farm: {name: '老麦克唐纳有块地', desc: '大号、口哨，小羊唱「咩咩」', bpm: 132, len: FARM.length, gain: 1, play: playFarm},
+    joy: {name: '欢乐颂', desc: '长笛和弦乐，越来越亮', bpm: 116, len: JOY.length, gain: .9, play: playJoy},
+    bounce: {name: '蹦蹦咩', desc: '口哨和滑哨，卡通片里跑来跑去', bpm: 126, len: BOUNCE.length, gain: .92, play: playBounce},
+    auld: {name: '友谊地久天长', desc: '八音盒，慢、干净，带一点回声', bpm: 70, len: AULD.length, gain: 1.05, reverb: .45, play: playAuld}
+  };
+  let cur = SONGS[prefs.bgm] ? prefs.bgm : 'farm';
+
   function pump(){
-    const c = C(), d = 60 / BPM / 4;
+    const c = C(), song = SONGS[cur], d = 60 / song.bpm / 4;
     while (next < c.currentTime + .15){
-      play(Math.floor(step / 16) % SONG.length, step % 16, next, d);
+      song.play(Math.floor(step / 16) % song.len, step % 16, next, d);
       next += d;
       step++;
     }
+  }
+  function begin(){
+    clearInterval(timer);
+    out.gain.value = SONGS[cur].gain;
+    send.gain.value = SONGS[cur].reverb || 0;
+    step = 0;
+    next = C().currentTime + .1;
+    timer = setInterval(pump, 25);
+    pump();
   }
   function setup(c){
     const comp = c.createDynamicsCompressor();
@@ -1132,6 +1325,19 @@ const Music = (() => {
     master.connect(c.destination);
     const len = c.sampleRate, d = (noiseBuf = c.createBuffer(1, len, len)).getChannelData(0), rnd = rngFrom(3);
     for (let i = 0; i < len; i++) d[i] = rnd() * 2 - 1;
+    // 混响：一段慢慢衰减的噪声当作房间的回声
+    const rlen = Math.floor(c.sampleRate * 2.4), ir = c.createBuffer(2, rlen, c.sampleRate), rr = rngFrom(11);
+    for (let ch = 0; ch < 2; ch++){
+      const x = ir.getChannelData(ch);
+      for (let i = 0; i < rlen; i++) x[i] = (rr() * 2 - 1) * Math.pow(1 - i / rlen, 3);
+    }
+    const verb = c.createConvolver();
+    verb.buffer = ir;
+    send = c.createGain();
+    send.gain.value = 0;
+    out.connect(send);
+    send.connect(verb);
+    verb.connect(comp);
   }
   function fade(to, secs){
     const now = C().currentTime;
@@ -1149,17 +1355,33 @@ const Music = (() => {
         if (playing) return;
         if (!master) setup(c);
         playing = true;
+        swapTok++;
         fade(VOL, 1.2);
-        next = c.currentTime + .1;
-        timer = setInterval(pump, 25);
-        pump();
+        begin();
       } catch (e) {}
     },
     stop(){
       if (!playing) return;
       playing = false;
+      swapTok++;
       clearInterval(timer);
       fade(0, .3);
+    },
+    songs: SONGS,
+    get current(){ return cur; },
+    // 换歌：正在放就先淡出，再从头放新的一首
+    set(id){
+      if (!SONGS[id] || id === cur) return;
+      cur = id;
+      if (!playing) return;
+      const tok = ++swapTok;
+      clearInterval(timer);
+      fade(0, .25);
+      setTimeout(() => {
+        if (tok !== swapTok || !playing) return;
+        fade(VOL, .6);
+        begin();
+      }, 300);
     }
   };
 })();
@@ -1435,6 +1657,48 @@ const ARCHES = [
   {id: 'bricks', name: '砖墙', build: buildBricks}
 ];
 const archOf = seed => ARCHES[Math.floor(rngFrom((seed ^ 0x2c1b3c6d) >>> 0)() * ARCHES.length)];
+const LAB = false;  // 发布到 GitHub 时 build_site.py 会改成 false，正式版看不到试玩栏
+const LAB_MODES = [
+  {name: '排队', desc: '口袋里的牌按点的先后排队，只有排在最后的三张一样才消', cfg: {queue: true}, rule: {queue: true}},
+  {name: '倒影', desc: '每一行右边那摞是左边那摞的倒影，同样的牌、顺序反过来', build: buildMirror, rule: {mirror: true}}
+];
+
+// 倒影：五行，每行左边一摞千层、右边是它的倒影（同样的牌，上下顺序反过来），两摞最上面那张隔着中线对着
+function buildMirror(cfg, seed){
+  const rng = rngFrom(seed), tight = .05, open = .16, rows = 5;
+  const depths = Array.from({length: rows}, () => 10 + Math.floor(rng() * 8));
+  while (depths.reduce((a, b) => a + b, 0) % 3) depths[Math.floor(rng() * rows)]++;
+  const pos = [], stacks = [], twins = [];
+  depths.forEach((n, r) => {
+    const left = [], right = [];
+    for (let d = 0; d < n; d++){
+      const along = Math.min(d, n - 2) * tight + Math.max(0, d - (n - 2)) * open;
+      const x = 2.3 - ((n - 2) * tight + open) + along, y = r * 1.45, slide = open - tight;
+      left.push(pos.length);
+      pos.push({x, y, z: d, fan: d < n - 1 ? {x: slide, y: 0} : null});
+      right.push(pos.length);
+      pos.push({x: 6 - x, y, z: d, fan: d < n - 1 ? {x: -slide, y: 0} : null});
+    }
+    stacks.push(left.slice().reverse(), right.slice().reverse());  // 从上往下
+    for (let d = 0; d < n; d++) twins.push([left[d], right[n - 1 - d]]);
+  });
+  const tiles = makeTiles(centerMain(pos, false));
+  const twin = new Map(twins.flatMap(([a, b]) => [[a, b], [b, a]]));
+  const leftPool = stacks.filter((_, i) => i % 2 === 0).flat().map(id => tiles[id]);
+  const cap = cfg.cap || CAP;
+  for (let attempt = 0; attempt < 30; attempt++){
+    // 只给左边配牌（按闯关的办法保证左边能清空），右边的图案跟着倒影定下来
+    const kinds = shuffled(ICONS.map((_, i) => i), rng).slice(0, 12), supply = {};
+    for (let i = 0; i < leftPool.length / 3; i++) supply[kinds[i % kinds.length]] = (supply[kinds[i % kinds.length]] || 0) + 3;
+    const res = plan(leftPool, {supply, slot: [], hold: [], interleave: .35, maxSlot: 3, cap, rng});
+    if (!res) continue;
+    for (const t of leftPool) tiles[twin.get(t.id)].type = t.type = res.assign.get(t.id);
+    // 一条保证走得通的路线：先照着拿完左边，再按相反的顺序拿右边（正好是右边从上往下）
+    const order = res.order.concat(res.order.slice().reverse().map(id => twin.get(id)));
+    if (verify(tiles, order, cap)) return {tiles, cfg, label: '倒影'};
+  }
+  return null;
+}
 
 // 底部的牌摞：0～3 摞，只有最上面一张能拿
 function pilePlan(rng, amount){
@@ -1531,6 +1795,12 @@ function plan(pool, o){
   const assign = new Map(), order = [];
   let left = pool.length;
   const avail = ty => (supply.get(ty) || 0) + hold.filter(h => h === ty).length;
+  // 排队：口袋按先后排成一摞，只能接着凑最后开的那种，或者再开一种口袋里还没有的
+  const stack = [];
+  if (o.queue) for (const ty of o.slot){
+    const top = stack[stack.length - 1];
+    if (top && top.ty === ty) top.c++; else stack.push({ty, c: 1});
+  }
 
   while (left > 0 || hold.length){
     const twos = [], ones = [], opens = [];
@@ -1542,14 +1812,21 @@ function plan(pool, o){
       if (avail(ty) > 0) opens.push(ty);
     }
     const canOpen = opens.length > 0 && slotLen + 1 <= cap;
-    let ty;
-    if (canOpen && (slotLen === 0 || rng() < o.interleave)){
+    const pickOpen = () => {
       let w = 0;
       for (const t of opens) w += avail(t);
       let r = rng() * w;
-      ty = opens[opens.length - 1];
-      for (const t of opens){ r -= avail(t); if (r < 0){ ty = t; break; } }
-    } else if (twos.length) ty = pickOne(twos, rng);
+      for (const t of opens){ r -= avail(t); if (r < 0) return t; }
+      return opens[opens.length - 1];
+    };
+    let ty;
+    if (o.queue){
+      const top = stack[stack.length - 1];
+      if (top && avail(top.ty) > 0 && !(canOpen && rng() < o.interleave)) ty = top.ty;
+      else if (canOpen) ty = pickOpen();
+      else return null;
+    } else if (canOpen && (slotLen === 0 || rng() < o.interleave)) ty = pickOpen();
+    else if (twos.length) ty = pickOne(twos, rng);
     else if (ones.length && slotLen + 1 < full) ty = pickOne(ones, rng);
     else if (canOpen) ty = pickOne(opens, rng);
     else return null;
@@ -1576,6 +1853,10 @@ function plan(pool, o){
     }
     const c = (slot.get(ty) || 0) + 1;
     if (c === 3){ slot.delete(ty); slotLen -= 2; } else { slot.set(ty, c); slotLen++; }
+    if (o.queue){
+      const top = stack[stack.length - 1];
+      if (top && top.ty === ty){ if (++top.c === 3) stack.pop(); } else stack.push({ty, c: 1});
+    }
     if (slotLen >= full) return null;
   }
   return {assign, order};
@@ -1595,6 +1876,18 @@ function verify(tiles, order, full = CAP){
     } else if (slot.length >= full) return false;
   }
   return onBoard.size === 0 && slot.length === 0;
+}
+
+// 排队的规则：只有口袋最后三张一样才消
+function verifyQueue(tiles, order, full = CAP){
+  const slot = [];
+  for (const id of order){
+    slot.push(id < 0 ? null : tiles[id].type);
+    const n = slot.length;
+    if (n >= 3 && slot[n - 1] !== null && slot[n - 1] === slot[n - 2] && slot[n - 2] === slot[n - 3]) slot.length -= 3;
+    else if (n >= full) return false;
+  }
+  return slot.length === 0;
 }
 
 // 定时炸弹：沿着算好的通关路线走一遍，看每张牌从进口袋到被消掉隔了几步；
@@ -1649,10 +1942,11 @@ function buildWith(cfg, seed, arch){
       const ty = types[i % types.length];
       supply[ty] = (supply[ty] || 0) + 3;
     }
-    const res = plan(tiles, {supply, slot: [], hold: [], interleave: cfg.interleave, maxSlot: cfg.maxSlot, cap: cfg.cap, rng});
+    const res = plan(tiles, {supply, slot: [], hold: [], interleave: cfg.interleave, maxSlot: cfg.maxSlot, cap: cfg.cap, queue: cfg.queue, rng});
     if (!res) continue;
     for (const t of tiles) t.type = res.assign.get(t.id);
     if (!verify(tiles, res.order, cfg.cap || CAP)) continue;
+    if (cfg.queue && !verifyQueue(tiles, res.order, cfg.cap || CAP)) continue;
     if (cfg.bombs) pickBombs(tiles, res.order, rng, cfg.bombs);
     return {tiles, cfg, label};
   }
@@ -1987,8 +2281,9 @@ function onTile(t){
     col.splice(col.indexOf(t), 1);
   }
   t.status = 'slot';
+  const queue = !!(G.rule && G.rule.queue);
   let at = G.slot.length;
-  for (let i = G.slot.length - 1; i >= 0; i--){
+  if (!queue) for (let i = G.slot.length - 1; i >= 0; i--){
     if (G.slot[i].type === t.type && !G.slot[i].pending){ at = i + 1; break; }
   }
   G.slot.splice(at, 0, t);
@@ -2005,7 +2300,9 @@ function onTile(t){
       if (b.bomb === 0) lit.push(b);
     }
   }
-  const same = G.slot.filter(s => s.type === t.type && !s.pending);
+  const live = G.slot.filter(s => !s.pending), tail = live.slice(-3);
+  const same = !queue ? live.filter(s => s.type === t.type)
+    : tail.length === 3 && tail.every(s => s.type === t.type) ? tail : [];
   if (same.length >= 3){
     for (const s of same.slice(0, 3)) s.pending = true;
     G.pending += 3;
@@ -2137,7 +2434,7 @@ function reshuffle(pool){
   for (const t of pool) supply[t.type] = (supply[t.type] || 0) + 1;
   const res = plan(pool, {
     supply, slot: G.slot.map(t => t.type), hold: G.hold.flat().map(t => t.type),
-    interleave: .2, maxSlot: Math.min(4, G.cap - 2), cap: G.cap, rng: Math.random
+    interleave: .2, maxSlot: Math.min(4, G.cap - 2), cap: G.cap, queue: !!(G.rule && G.rule.queue), rng: Math.random
   });
   if (res){
     for (const t of pool) t.type = res.assign.get(t.id);
@@ -2150,6 +2447,7 @@ function reshuffle(pool){
 function useShuffle(){
   if (G.won) return;
   if (G.pending) return busyToast();
+  if (G.rule && G.rule.mirror) return toast('「倒影」不能洗牌，洗了左右就对不上了');
   if (G.tools.shuffle <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : '「洗牌」这一局已经用过了');
   if (G.over) return toast('口袋已经满了，洗牌帮不上忙');
   const pool = G.tiles.filter(t => t.status === 'board');
@@ -2193,7 +2491,7 @@ function showLose(){
   if (G.tools.out > 0) actions.push({label: '用「移出」腾出 3 格，接着玩', primary: true, run: () => { closeDialog(); useOut(); }});
   if (G.tools.undo > 0 && G.history.length) actions.push({label: '撤回最后一步', primary: !actions.length, run: () => { closeDialog(); useUndo(); }});
   if (G.mode === 'trial'){
-    actions.push({label: '同样的模式再来一副', primary: !actions.length, run: () => startTrial(...trialPick)});
+    actions.push({label: '同样的模式再来一副', primary: !actions.length, run: againTrial});
     actions.push({label: '换个模式', run: showTrialPicker});
     actions.push({label: backLabel(), run: backToLevels});
   } else if (G.mode === 'daily'){
@@ -2346,7 +2644,7 @@ function showHelp(){
 
 function showRestart(){
   if (G.mode === 'trial') return openDialog({kind: 'menu', title: '重开这局练习？', body: '练习不计成绩，随时可以重来。', actions: [
-    {label: '同样的模式再来一副', primary: true, run: () => startTrial(...trialPick)},
+    {label: '同样的模式再来一副', primary: true, run: againTrial},
     {label: '换个模式', run: showTrialPicker},
     {label: '取消', run: closeDialog}
   ]});
@@ -2749,10 +3047,33 @@ function startTrial(ri, si){
   startClock();
   toast(`练习「${r.name}」：${r.desc}`, 3200);
 }
+function startLab(i){
+  const m = LAB_MODES[i], cfg = Object.assign(levelCfg(5), m.cfg);
+  let seed = newSeed(), built = null;
+  for (let k = 0; k < 20 && !built; k++){
+    built = m.build ? m.build(cfg, seed + k) : buildWith(cfg, seed + k, archOf(seed + k));
+    if (built) seed += k;
+  }
+  if (!built) return toast('这一局没排出来，再点一次');
+  if (G.mode !== 'trial' && G.tiles.length && !G.won) saveGame();
+  trialPick = ['lab', i];
+  G.epoch++;
+  Object.assign(G, {
+    mode: 'trial', day: beijingDay(), rule: Object.assign({name: m.name, desc: m.desc}, m.rule), cap: CAP, level: DAILY_LEVEL, seed, cfg: built.cfg,
+    tiles: built.tiles, label: m.build ? m.name : `${m.name}·${built.label}`, slot: [], hold: [[], [], []],
+    tools: {out: 1, undo: 1, shuffle: m.rule.mirror ? 0 : 1}, history: [], moves: 0,
+    over: false, won: false, pending: 0, acc: 0, running: false
+  });
+  closeDialog();
+  mountTiles(true);
+  startClock();
+  toast(`试玩「${m.name}」：${m.desc}`, 3600);
+}
+const againTrial = () => (trialPick[0] === 'lab' ? startLab(trialPick[1]) : startTrial(...trialPick));
 function showTrialPicker(){
-  const today = dailySpec(beijingDay());
-  let ri = trialPick ? trialPick[0] : DAILY_RULES.indexOf(today.rule);
-  let si = trialPick ? trialPick[1] : DAILY_SHAPES.indexOf(today.shape);
+  const today = dailySpec(beijingDay()), tp = trialPick && trialPick[0] !== 'lab' ? trialPick : null;
+  let ri = tp ? tp[0] : DAILY_RULES.indexOf(today.rule);
+  let si = tp ? tp[1] : DAILY_SHAPES.indexOf(today.shape);
   const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   const wrap = document.createElement('div');
   const group = (title, labels, get, set) => {
@@ -2786,6 +3107,22 @@ function showTrialPicker(){
   wrap.appendChild(desc);
   shapeEls = group('形状', DAILY_SHAPES.map(x => x.name), () => si, i => { si = i; });
   upd();
+  if (LAB){
+    const h = document.createElement('p');
+    h.className = 'board-note';
+    h.textContent = '新玩法（还在试，点一下直接开一局）';
+    const box = document.createElement('div');
+    box.className = 'board-tabs';
+    box.style.flexWrap = 'wrap';
+    LAB_MODES.forEach((a, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = a.name;
+      b.addEventListener('click', () => startLab(i));
+      box.appendChild(b);
+    });
+    wrap.append(h, box);
+  }
   const practicing = G.mode === 'trial' && !G.won;
   openDialog({kind: 'menu', title: '练习', body: '挑一条规则、一个形状开一局，不计成绩，每次都是新的一副牌。', extra: wrap, actions: [
     ...(practicing ? [{label: `继续刚才那局（${G.label}）`, primary: true, run: () => { closeDialog(); hideHome(); }}] : []),
@@ -2798,7 +3135,7 @@ function winTrial(){
   Sound.win();
   confetti();
   setTimeout(() => openDialog({kind: 'win', art: 'hop', title: '练习通关！', body: `「${G.rule.name}」用时 ${fmtMs(ms)}，点了 ${G.moves} 次。练习不计入排行榜。`, actions: [
-    {label: '同样的模式再来一副', primary: true, run: () => startTrial(...trialPick)},
+    {label: '同样的模式再来一副', primary: true, run: againTrial},
     {label: '换个模式', run: showTrialPicker},
     {label: backLabel(), run: backToLevels}
   ]}), REDUCED ? 520 : 800);
@@ -2883,6 +3220,8 @@ function showHome(){
     $('btnSound').click();
     snd.textContent = Sound.on ? '声音：开' : '声音：关';
   });
+  const mus = small('换音乐', () => showMusic(() => { snd.textContent = Sound.on ? '声音：开' : '声音：关'; }));
+  mus.setAttribute('aria-label', `换背景音乐，现在是「${Music.songs[Music.current].name}」`);
   homeEl.hidden = false;
   const first = list.querySelector('.primary') || list.querySelector('button');
   if (first) first.focus({preventScroll: true});
@@ -3227,6 +3566,37 @@ function applySkin(id){
   bodyStyle.backgroundRepeat = '';
   SKINS[id].paint();
   savePrefs({skin: id});
+}
+
+// 换背景音乐：点一首马上换，声音关着的话顺手打开
+function showMusic(after){
+  const wrap = document.createElement('div');
+  wrap.className = 'skins';
+  wrap.style.gridTemplateColumns = '1fr';
+  const btns = [];
+  for (const [id, song] of Object.entries(Music.songs)){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'skin-opt';
+    const nm = document.createElement('span');
+    nm.className = 'sk-name';
+    nm.textContent = song.name;
+    const ds = document.createElement('span');
+    ds.className = 'sk-desc';
+    ds.textContent = song.desc;
+    b.append(nm, ds);
+    b.addEventListener('click', () => {
+      Music.set(id);
+      savePrefs({bgm: id});
+      if (!Sound.on) $('btnSound').click();
+      btns.forEach(([x, k]) => x.setAttribute('aria-pressed', String(k === id)));
+      if (after) after();
+    });
+    b.setAttribute('aria-pressed', String(id === Music.current));
+    btns.push([b, id]);
+    wrap.appendChild(b);
+  }
+  openDialog({kind: 'menu', title: '换音乐', body: '点一首马上就换，下次打开游戏还是这首。', extra: wrap, actions: [{label: '关闭', run: closeDialog}]});
 }
 
 function showSkins(){
