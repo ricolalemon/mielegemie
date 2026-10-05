@@ -253,7 +253,8 @@ button{font:inherit;color:inherit}
 .stage .tile.back .face{animation:back .28s cubic-bezier(.3,1.4,.5,1)}
 .stage .tile.pending .face{filter:brightness(1.12)}
 .stage .tile.gone{pointer-events:none}
-.stage .tile.gone .face{animation:poof .3s ease forwards}
+/* 消掉的牌一定要“噗”掉：牌上留着的一次性动画（锁链晃、落石、点不动）规则排在后面，权重一样就会顶掉它，消掉的牌就一直留在口袋里 */
+.stage .tile.gone:not(.melt):not(.ash) .face{animation:poof .3s ease forwards}
 .stage .tile.leaving{pointer-events:none}
 .stage .tile.leaving .face{animation:leave .26s ease-in forwards}
 /* ---------- 深渊 ---------- */
