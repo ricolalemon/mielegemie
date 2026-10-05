@@ -256,6 +256,357 @@ button{font:inherit;color:inherit}
 .stage .tile.gone .face{animation:poof .3s ease forwards}
 .stage .tile.leaving{pointer-events:none}
 .stage .tile.leaving .face{animation:leave .26s ease-in forwards}
+/* ---------- 深渊 ---------- */
+/* 出口：一块黑铜色的牌，中间一个往外冒红光的洞，洞里画着下一层是什么；底下一行小字 */
+.stage .tile.hatch .face{background:radial-gradient(circle at 50% 50%,#050101 0 30%,rgba(255,80,30,.85) 33%,#5a1a10 37%,rgba(0,0,0,0) 40%),radial-gradient(circle at 30% 18%,rgba(255,220,180,.35),rgba(255,220,180,0) 55%),linear-gradient(155deg,#9a6a35,#3d2414);
+  box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.55),0 0 14px 2px rgba(255,70,20,.35),0 calc(var(--ts) * .07) 0 #241309,0 calc(var(--ts) * .07 + 1.5px) 0 rgba(0,0,0,.7)}
+.tile.hatch .art{inset:24%;background-image:var(--k)}
+.stage .tile.hatch.sealed .face{background:radial-gradient(circle at 30% 18%,rgba(255,255,255,.35),rgba(255,255,255,0) 55%),linear-gradient(155deg,#b9c0cf,#7d8597);box-shadow:inset 0 0 0 1.5px rgba(40,44,60,.5),0 calc(var(--ts) * .07) 0 #5b6273,0 calc(var(--ts) * .07 + 1.5px) 0 rgba(6,10,30,.55)}
+.tile.hatch.sealed .art{inset:14%}
+.stage .tile.hatch.armed .face{animation:pulse .6s ease-in-out infinite;box-shadow:0 0 0 3px #ffb08a,0 0 18px 8px rgba(255,60,20,.9)}
+.hlab{position:absolute;left:50%;top:calc(100% + 1px);z-index:3;transform:translateX(-50%);padding:1px 5px;border-radius:6px;white-space:nowrap;pointer-events:none;
+  background:rgba(20,4,2,.82);color:#ffb59a;font:700 calc(var(--ts) * .2)/1.25 var(--font-body)}
+.tile.blocked .hlab{opacity:.75}
+/* 藏宝图：压着洞口的牌描金边 */
+.tile.cone.onboard .face{outline:2px solid rgba(255,216,98,.95);outline-offset:-2px}
+/* 透视眼镜：牌堆半透明，被压住的牌不变暗 */
+.stage.xray .tile.onboard:not(.hatch) .face{opacity:.8}
+.stage.xray .tile.blocked .face{filter:brightness(.9)}
+/* 小铲子、炸药瞄准中 */
+.stage.aiming .tile.onboard:not(.blocked):not(.hatch) .face{outline:2.5px dashed #ff6b55;outline-offset:2px}
+/* 特殊牌：钥匙、落石、替罪羊 */
+.ic-16{background-image:var(--ic-16)}.ic-17{background-image:var(--ic-17)}.ic-18{background-image:var(--ic-18)}
+.ic-16{--ch:"钥"}.ic-17{--ch:"石"}.ic-18{--ch:"金"}
+.stage .tile.drop .face{animation:rockDrop .5s cubic-bezier(.4,0,.6,1.3) both}
+@keyframes rockDrop{from{transform:translateY(-150px) rotate(-20deg);opacity:0}60%{opacity:1}}
+/* 牌的厚度：平放时看不见，牌堆立起来时从牌的边上垂下去 */
+.side{position:absolute;display:none;pointer-events:none;background:linear-gradient(#d6be93,#a3855a)}
+.side.f{left:3%;right:3%;top:calc(100% - 2px);height:calc(var(--ts) * .2);transform-origin:50% 0;transform:rotateX(-90deg);border-radius:0 0 calc(var(--ts) * .08) calc(var(--ts) * .08)}
+.side.l{top:4%;bottom:4%;left:1px;width:calc(var(--ts) * .2);transform-origin:0 50%;transform:rotateY(90deg);background:linear-gradient(90deg,#d6be93,#a3855a)}
+.side.r{top:4%;bottom:4%;right:1px;width:calc(var(--ts) * .2);transform-origin:100% 50%;transform:rotateY(-90deg);background:linear-gradient(-90deg,#d6be93,#a3855a)}
+.stage.three .tile.onboard{transform-style:preserve-3d}
+.stage.three .tile.onboard .side{display:block}
+.stage.three .tile.hatch.onboard .side{background:#2a160b}
+.stage.three .tile.onboard:not(.hatch) .face{box-shadow:inset 0 0 0 1px rgba(0,0,0,.35),0 calc(var(--ts) * .07 * var(--fe, 1)) 0 var(--tile-edge, #c9b288)}
+.stage.three .side{background:linear-gradient(var(--tile-side, #d6be93),var(--tile-edge, #a3855a))}
+.stage.zooming{overflow:visible}
+body.diving{overflow:clip}
+body.hideui .bar,body.hideui .rail,body.hideui .digbar,body.hideui .tools,body.hideui .stage>.trough,body.hideui .stage>.meter,body.hideui .stage>.shelf,body.hideui .stage .tile:not(.onboard){opacity:0}
+body.uidrop .bar,body.uidrop .rail,body.uidrop .digbar,body.uidrop .tools,body.uidrop .stage>.trough,body.uidrop .stage>.meter{animation:uiDrop .45s cubic-bezier(.2,.9,.3,1.3) both}
+@keyframes uiDrop{from{opacity:0;transform:translateY(-16px)}}
+.stage.three .hlab{display:none}
+.zone .pit{position:absolute;inset:0;pointer-events:none;opacity:0}
+.stage.zooming .tile{transition:none!important}
+/* 每一段的底色：地窖、墓穴、地狱、深渊 */
+.zone{position:absolute;z-index:0;border-radius:22px;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.07),inset 0 -18px 34px rgba(0,0,0,.28);transition:background .6s}
+.zone{overflow:hidden}
+/* 地窖：湿冷的石墙，头顶两盏蜡烛的暖光 */
+.zone.z0{background:radial-gradient(60% 40% at 12% -4%,rgba(255,170,70,.24),rgba(0,0,0,0) 70%),radial-gradient(60% 40% at 88% -4%,rgba(255,170,70,.2),rgba(0,0,0,0) 70%),repeating-linear-gradient(0deg,rgba(0,0,0,.42) 0 2px,transparent 2px 36px),repeating-linear-gradient(90deg,rgba(0,0,0,.3) 0 2px,transparent 2px 72px),linear-gradient(180deg,#2b2420,#110d0c)}
+/* 墓穴：墙上一排排放骨头的壁龛，冷冷的蓝光 */
+.zone.z1{background:radial-gradient(80% 50% at 50% -6%,rgba(150,200,215,.18),rgba(0,0,0,0) 70%),radial-gradient(ellipse 13px 16px at 50% 58%,rgba(0,0,0,.55) 0 60%,rgba(0,0,0,0) 64%) 0 0/44px 52px,radial-gradient(ellipse 15px 18px at 50% 58%,rgba(200,215,220,.07) 0 70%,rgba(0,0,0,0) 74%) 0 0/44px 52px,linear-gradient(180deg,#1b2026,#0a0c0f)}
+/* 地狱：黑里透红，底下是岩浆的光，地面裂着缝 */
+.zone.z2{background:radial-gradient(110% 55% at 50% 112%,rgba(255,80,20,.5),rgba(0,0,0,0) 65%),repeating-linear-gradient(118deg,transparent 0 38px,rgba(255,90,30,.08) 38px 40px,transparent 40px 77px),linear-gradient(180deg,#230707,#0d0202)}
+/* 深渊：几乎全黑，只有底下一圈暗红在一明一暗 */
+.zone.z3{background:radial-gradient(120% 60% at 50% 115%,rgba(220,30,10,.55),rgba(0,0,0,0) 65%),linear-gradient(180deg,#110303,#000);animation:throb 2.4s ease-in-out infinite}
+@keyframes throb{50%{filter:brightness(1.35)}}
+/* 灰尘、冷光、火星：叠在牌桌底色上 */
+.zone::before,.zone::after{content:"";position:absolute;inset:-40% -10%;pointer-events:none}
+.zone.z0::before{background:radial-gradient(circle,rgba(255,200,120,.5) 0 1px,transparent 1.8px) 0 0/60px 80px,radial-gradient(circle,rgba(255,200,120,.32) 0 1px,transparent 1.6px) 30px 40px/60px 80px;animation:dustFall 16s linear infinite}
+.zone.z1::before{background:radial-gradient(circle,rgba(170,215,225,.5) 0 1.4px,transparent 2.4px) 0 0/90px 110px,radial-gradient(circle,rgba(170,215,225,.3) 0 1px,transparent 2px) 45px 60px/90px 110px;animation:wispUp 16s linear infinite}
+.zone.z2::before,.zone.z3::before{background:radial-gradient(circle,rgba(255,150,60,.85) 0 1.4px,transparent 2.4px) 0 0/70px 90px,radial-gradient(circle,rgba(255,90,30,.7) 0 1px,transparent 2px) 33px 47px/70px 90px;animation:emberUp 6s linear infinite}
+.zone.z3::after{background:radial-gradient(circle,rgba(255,60,20,.7) 0 1.2px,transparent 2.2px) 20px 10px/55px 70px;animation:emberUp 4s linear infinite}
+@keyframes fogDrift{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+@keyframes dustFall{to{transform:translate(24px,80px)}}
+@keyframes wispUp{to{transform:translateY(-110px)}}
+@keyframes emberUp{to{transform:translateY(-90px)}}
+/* 掉进下一层的过场：全屏画布画竖井、光和冲击波；层数迎面飞过来；落地时砸下一块标题 */
+.fxc{position:fixed;left:0;top:0;z-index:40;pointer-events:none}
+.fxc[hidden]{display:none}
+.fall{position:fixed;inset:0;z-index:41;display:grid;place-content:center;justify-items:center;gap:16px;pointer-events:none;text-align:center;perspective:500px;--glow:255,90,30}
+.fall.z1,.landcard.z1{--glow:110,205,235}
+.fall.z3,.landcard.z3{--glow:255,40,20}
+.fall[hidden]{display:none}
+.fall b,.fall em{display:block;font:900 min(58px,15vw)/1 "Noto Serif SC",serif;font-style:normal;letter-spacing:.14em;padding-left:.14em;color:#f8ecd8;opacity:0;
+  text-shadow:0 0 3px rgba(0,0,0,.9),0 0 26px rgba(var(--glow),.75),0 0 4px rgba(255,235,210,.7),0 5px 0 rgba(0,0,0,.55)}
+.fall.big em{font-size:min(70px,16vw);letter-spacing:.32em;padding-left:.32em;color:#fff3e8;text-shadow:0 0 3px rgba(0,0,0,.9),0 0 34px rgba(var(--glow),.95),0 0 80px rgba(var(--glow),.55),0 5px 0 rgba(0,0,0,.6)}
+.fall.big b{font-size:24px;letter-spacing:.5em;padding-left:.5em}
+.fall.rush b,.fall.rush em{animation:rushIn 1.3s both}
+.fall.rush.big b{animation-delay:.12s}
+@keyframes rushIn{
+  0%{transform:translateZ(-1700px);opacity:0;animation-timing-function:cubic-bezier(.15,.55,.35,1)}
+  22%{opacity:1}
+  72%{transform:translateZ(-60px);opacity:1;animation-timing-function:cubic-bezier(.7,0,1,.5)}
+  100%{transform:translateZ(470px);opacity:0}}
+.landcard{position:absolute;left:0;right:0;z-index:640;display:grid;justify-items:center;gap:10px;pointer-events:none;text-align:center;--glow:255,80,30}
+.landcard[hidden]{display:none}
+.landcard b{font:900 min(48px,12.5vw)/1 "Noto Serif SC",serif;letter-spacing:.16em;padding-left:.16em;color:#f8ecd8;text-shadow:0 0 22px rgba(var(--glow),.7),0 4px 0 rgba(0,0,0,.65)}
+.landcard span{font:900 16px/1 "Noto Serif SC",serif;letter-spacing:.5em;padding:9px 30px 9px calc(30px + .5em);color:#ffe6d6;text-shadow:0 0 10px rgba(var(--glow),.75);
+  background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.75) 20%,rgba(0,0,0,.75) 80%,rgba(0,0,0,0))}
+.landcard.slam{animation:slam 1.3s both}
+.landcard.slam span{animation:slamSub 1.3s both}
+@keyframes slam{
+  0%{transform:scale(2.6);opacity:0;animation-timing-function:cubic-bezier(.55,0,1,.45)}
+  9%{transform:scale(.9);opacity:1;animation-timing-function:cubic-bezier(.2,.6,.4,1)}
+  18%{transform:scale(1.04)}
+  27%{transform:none}
+  76%{transform:none;opacity:1;animation-timing-function:ease-in}
+  100%{transform:translateY(-16px);opacity:0}}
+@keyframes slamSub{0%,12%{clip-path:inset(0 50%)}34%,100%{clip-path:inset(0 0)}}
+/* 蜡烛、宝物、灵魂一排；Boss 一行 */
+.digbar{display:flex;flex-direction:column;gap:6px}
+.dg-row{display:flex;align-items:center;gap:10px;min-height:30px}
+.dg-hearts{display:flex;align-items:center;gap:1px;flex:none}
+.dg-hearts b{margin-left:3px;font:400 14px/1 var(--font-num);color:var(--ink)}
+.dg-hearts i{width:21px;height:21px;background:var(--da-heart) center/contain no-repeat}
+.dg-hearts i.empty{background-image:var(--da-heartE);opacity:.75}
+.dg-hearts.hit{animation:shake .45s ease}
+.dg-relics{flex:1;display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+.dg-relic{position:relative;width:29px;height:29px;padding:0;border:0;border-radius:8px;cursor:pointer;touch-action:manipulation;
+  background:var(--btn) center/74% no-repeat;box-shadow:0 2px 0 var(--btn-edge),0 2px 0 1px rgba(0,0,0,.22)}
+.dg-relic b{position:absolute;right:-5px;bottom:-5px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;display:grid;place-items:center;
+  background:var(--badge);color:var(--badge-ink);font:400 9px/1 var(--font-num)}
+.dg-relic.ready{box-shadow:0 0 0 2px #ffd862,0 0 10px 3px rgba(255,216,98,.75)}
+.dg-relic.spent{opacity:.45}
+.dg-relic.on{background-color:#ffd862;transform:translateY(2px)}
+.dg-relic:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.dg-wool{display:flex;align-items:center;gap:4px;flex:none;font:400 17px/1 var(--font-num);color:var(--ink)}
+.dg-wool i{width:23px;height:23px;background:var(--da-wool) center/contain no-repeat}
+.dg-wool.bump b{display:inline-block;animation:bump .35s cubic-bezier(.3,1.6,.5,1)}
+/* 险境的小牌子：烛火、漆黑、岩浆 */
+.dg-haz{display:flex;gap:4px;flex:none}
+.dg-haz:empty{display:none}
+.haz{display:flex;align-items:center;gap:2px;height:26px;padding:0 8px 0 3px;border:0;border-radius:999px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+  color:var(--ink);font:400 14px/1 var(--font-num);cursor:pointer;touch-action:manipulation}
+.haz i{width:20px;height:20px;background:center/contain no-repeat}
+.haz.low{color:#ffb08a;box-shadow:inset 0 0 0 1.5px rgba(255,90,40,.75);animation:pulse .8s ease-in-out infinite}
+.haz.dark{color:#d5c8ff;background:#000;box-shadow:inset 0 0 0 1.5px rgba(160,140,255,.5)}
+/* 怪：一只一行。头像、名字和血条，右边是下一招和还剩几步 */
+.dg-foes{display:flex;flex-direction:column;gap:5px}
+.dg-foes[hidden]{display:none}
+.dg-foes.two{flex-direction:row}
+.dg-foes.two .foe{flex:1;gap:5px}
+.dg-foes.two .foe-pic{width:30px;height:30px}
+.dg-foes.two .intent span,.dg-foes.two .foe-mid small{display:none}
+.dg-foes.two .foe-mid b{font-size:13px}
+.foe{position:relative;display:flex;align-items:center;gap:7px;width:100%;min-width:0;padding:3px 5px 3px 3px;border:0;border-radius:14px;cursor:pointer;touch-action:manipulation;text-align:left;
+  background:linear-gradient(90deg,rgba(64,10,6,.78),rgba(26,6,5,.62));box-shadow:inset 0 0 0 1px rgba(255,110,60,.3);color:var(--ink);font:inherit}
+.foe.elite{box-shadow:inset 0 0 0 1.5px rgba(255,80,40,.65),0 0 12px rgba(255,50,20,.2)}
+.foe.boss{background:linear-gradient(90deg,rgba(110,10,6,.85),rgba(40,4,3,.7));box-shadow:inset 0 0 0 1.5px rgba(255,70,30,.85),0 0 16px rgba(255,40,10,.35)}
+.foe:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.foe-pic{width:36px;height:36px;flex:none;border-radius:10px;background:#251f21 center/80% no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),0 2px 0 #000}
+.foe-mid{flex:1;min-width:0;display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px 6px}
+.foe-mid b{min-width:0;font:900 15px/1.1 "Noto Serif SC",serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foe-mid small{font:400 12px/1 var(--font-num);color:#f0c9b4}
+.foe-mid .hp{grid-column:1/-1;height:8px;border-radius:4px;background:rgba(0,0,0,.6);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.foe-mid .hp u{display:block;height:100%;width:100%;background:linear-gradient(#ff7a45,#c3261a);box-shadow:inset 0 1px 0 rgba(255,220,180,.5);transition:width .35s .2s cubic-bezier(.3,.7,.3,1)}
+.intent{display:flex;align-items:center;gap:3px;flex:none;padding:3px 4px 3px 4px;border-radius:11px;background:rgba(0,0,0,.5);font-size:12.5px;font-weight:700;color:#f6dccb;white-space:nowrap}
+.intent i{width:22px;height:22px;flex:none;background:center/contain no-repeat}
+.intent em{display:grid;place-items:center;min-width:21px;height:21px;padding:0 3px;border-radius:11px;background:#7d1a14;color:#fff;font:400 13px/1 var(--font-num);font-style:normal}
+.intent.soon{box-shadow:inset 0 0 0 1.5px #ff5a3a}
+.intent.soon em{background:#ff3b1f;animation:pulse .5s ease-in-out infinite}
+.foe.hit .foe-pic{animation:foeHit .42s ease}
+.foe.act .foe-pic{animation:foeAct .5s cubic-bezier(.3,1.6,.5,1)}
+.foe.act .intent{animation:pulse .45s ease}
+.foe.dead .intent,.foe.dead .hp-n{visibility:hidden}
+.foe.target{box-shadow:inset 0 0 0 2px #ffd06a,0 0 12px rgba(255,200,90,.35)}
+.foe.target .foe-pic::after{content:"";position:absolute;left:-5px;top:-5px;width:17px;height:17px;border-radius:50%;background:#2a1a08 var(--da-sword) center/80% no-repeat;box-shadow:0 0 0 1.5px #ffd06a}
+.foe-pic{position:relative}
+.foe.dead{opacity:.5}
+.foe.dying .foe-pic{animation:foeDie .9s ease forwards}
+@keyframes foeHit{0%{filter:brightness(3.2) saturate(0)}25%{transform:translateX(-5px) rotate(-8deg)}55%{transform:translateX(4px) rotate(5deg)}100%{transform:none;filter:none}}
+@keyframes foeAct{0%{transform:none}40%{transform:scale(1.3) translateY(4px);filter:brightness(1.6)}100%{transform:none}}
+@keyframes foeDie{0%{filter:brightness(3)}35%{transform:scale(1.2) rotate(-10deg)}100%{transform:scale(.3) rotate(25deg);opacity:0;filter:grayscale(1)}}
+.foe .dmg{position:absolute;left:28px;top:-6px;z-index:2;font:400 19px/1 var(--font-num);color:#ffd06a;text-shadow:0 2px 0 #4a1a04,0 0 8px rgba(255,90,30,.85);pointer-events:none;animation:woolUp .8s ease-out forwards}
+.slash{position:fixed;left:0;top:0;z-index:70;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#fff 0 22%,#ffd06a 38%,rgba(255,110,40,.65) 58%,rgba(255,60,20,0) 72%);box-shadow:0 0 18px 7px rgba(255,120,40,.6)}
+/* 烛火越少越暗；漆黑的时候牌上的图案全看不见，提灯照得见露着的牌 */
+.shade{position:absolute;z-index:286;pointer-events:none;border-radius:22px;--a:0;opacity:1;transition:background .5s;
+  background:radial-gradient(ellipse 75% 60% at 50% 45%,rgba(0,0,0,calc(var(--a) * .78)),rgba(0,0,0,var(--a)) 80%)}
+.shade[hidden]{display:none}
+.shade.flicker{animation:flicker 1.7s steps(1) infinite}
+@keyframes flicker{0%,100%{opacity:1}12%{opacity:.55}16%{opacity:1}54%{opacity:.75}58%{opacity:1}}
+.stage.dark .tile.onboard .art,.stage.dark .tile.onboard .badge{opacity:0;transition:opacity .35s}
+.stage.dark.lamp .tile.onboard:not(.blocked) .art{opacity:1}
+.stage.dark.lamp .shade{--a:.6!important}
+/* 浓雾：一团团慢慢翻滚；雾里的牌看不清 */
+.foglayer{position:absolute;inset:0;z-index:290;pointer-events:none}
+.fog{position:absolute;border-radius:50%;pointer-events:none;filter:blur(8px);animation:fogIn .8s cubic-bezier(.2,.8,.3,1) both,fogRoll 7s ease-in-out infinite alternate;
+  background:radial-gradient(circle at 40% 42%,rgba(196,208,216,.94) 0 26%,rgba(160,176,188,.82) 44%,rgba(130,146,158,.45) 60%,rgba(130,146,158,0) 72%),
+    radial-gradient(circle at 68% 62%,rgba(222,230,236,.72) 0 18%,rgba(222,230,236,0) 44%),radial-gradient(circle at 28% 70%,rgba(184,196,206,.6) 0 16%,rgba(184,196,206,0) 40%)}
+.fog.thin{opacity:.55;transition:opacity .5s}
+.fog.bye{animation:fogOut .8s ease forwards}
+.stage.lamp .fog{opacity:.6}
+@keyframes fogIn{from{transform:scale(.25) rotate(var(--r,0deg));opacity:0}to{transform:scale(1) rotate(var(--r,0deg));opacity:1}}
+@keyframes fogRoll{to{transform:scale(1.06) rotate(calc(var(--r,0deg) + 25deg)) translateX(3%)}}
+@keyframes fogOut{to{transform:scale(1.35);opacity:0}}
+.stage .tile.fogged .art,.stage .tile.fogged .badge{opacity:0}
+.stage.lamp .tile.fogged:not(.blocked) .art{opacity:1}
+/* 岩浆：从一条边往里漫，前沿发光 */
+.zone .lava{position:absolute;pointer-events:none;transition:height .55s cubic-bezier(.3,.7,.3,1),width .55s cubic-bezier(.3,.7,.3,1);
+  background:radial-gradient(circle at 20% 30%,rgba(255,230,140,.95) 0 5%,rgba(255,230,140,0) 11%) 0 0/54px 54px,
+    radial-gradient(circle at 70% 60%,rgba(255,170,60,.9) 0 8%,rgba(255,170,60,0) 15%) 0 0/76px 66px,
+    linear-gradient(var(--lv,180deg),#5a0a04,#c3260f 45%,#ff7a1f);animation:lavaFlow 2.6s linear infinite}
+.zone .lava[hidden]{display:none}
+.lava.e-top{left:0;right:0;top:0;height:var(--d);--lv:0deg;box-shadow:0 4px 16px 4px rgba(255,100,20,.8)}
+.lava.e-bottom{left:0;right:0;bottom:0;height:var(--d);--lv:180deg;box-shadow:0 -4px 16px 4px rgba(255,100,20,.8)}
+.lava.e-left{top:0;bottom:0;left:0;width:var(--d);--lv:-90deg;box-shadow:4px 0 16px 4px rgba(255,100,20,.8)}
+.lava.e-right{top:0;bottom:0;right:0;width:var(--d);--lv:90deg;box-shadow:-4px 0 16px 4px rgba(255,100,20,.8)}
+@keyframes lavaFlow{to{background-position:54px 27px,-76px 33px,0 0}}
+.stage .tile.gone.melt .face{animation:melt .65s ease-in forwards}
+@keyframes melt{0%{filter:sepia(1) saturate(5) brightness(1.4) hue-rotate(-25deg)}100%{transform:translateY(12px) scale(.3) rotate(28deg);opacity:0;filter:sepia(1) saturate(6) brightness(1.8) hue-rotate(-25deg)}}
+.stage .tile.scorch .face{animation:scorch .8s ease-in-out infinite}
+@keyframes scorch{50%{transform:translateY(-1px) rotate(-1.5deg);box-shadow:0 0 0 2px rgba(255,100,30,.9),0 0 14px 4px rgba(255,80,20,.65)}}
+/* 锁住的牌：一把锁加两道铁链 */
+.stage .tile.chained .face::before{content:"";position:absolute;inset:-4%;z-index:3;pointer-events:none;
+  background:var(--da-lock) 50% 52%/46% no-repeat,linear-gradient(35deg,transparent 0 44%,rgba(190,198,215,.95) 44% 50%,rgba(90,96,110,.95) 50% 54%,transparent 54%),
+    linear-gradient(-35deg,transparent 0 44%,rgba(190,198,215,.95) 44% 50%,rgba(90,96,110,.95) 50% 54%,transparent 54%)}
+.stage .tile.clank .face{animation:nope .3s ease}
+/* 上一层塌下来的碎牌：有裂纹，颜色发灰 */
+:root[data-hell] .stage .tile.rubble .face{background:linear-gradient(118deg,transparent 0 47%,rgba(50,34,26,.55) 47% 49%,transparent 49%),linear-gradient(64deg,transparent 0 63%,rgba(50,34,26,.45) 63% 64.6%,transparent 64.6%),
+  radial-gradient(circle at 28% 18%,var(--tile-hi),rgba(255,255,255,0) 58%),radial-gradient(circle at 72% 88%,rgba(0,0,0,.18),rgba(0,0,0,0) 60%),#c9bba7}
+/* 蝙蝠窝、棺材的记号：牌的左上角 */
+.badge{position:absolute;left:-9%;top:-9%;z-index:2;width:44%;height:44%;border-radius:50%;pointer-events:none;
+  background:#1a0f0f center/78% no-repeat;box-shadow:0 0 0 1.5px rgba(255,110,60,.75),0 0 8px 2px rgba(255,60,20,.5)}
+.badge[hidden]{display:none}
+.tile.blocked .badge{filter:brightness(2.2)}
+/* 扑出来的蝙蝠 */
+.batfx{position:absolute;z-index:296;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;background:var(--da-bats) center/contain no-repeat;animation:batFly .95s cubic-bezier(.3,.6,.4,1) both}
+@keyframes batFly{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.15);opacity:0}}
+/* 地狱犬喷火：烧着的牌冒火苗、右下角写着还剩几步；烧完变灰没了 */
+.stage .tile.burning .face{box-shadow:0 0 0 2px rgba(255,120,40,.95),0 0 14px 5px rgba(255,80,20,.75)!important;animation:scorch .5s ease-in-out infinite}
+.stage .tile.burning .face::after{content:"";position:absolute;left:8%;right:8%;top:-34%;height:62%;z-index:3;pointer-events:none;background:var(--da-flame) 50% 100%/62% no-repeat;transform-origin:50% 100%;animation:lick .45s steps(2) infinite}
+@keyframes lick{50%{transform:scaleY(1.18) scaleX(.9)}}
+.burnc{position:absolute;right:-8%;bottom:-8%;z-index:4;display:grid;place-items:center;width:40%;height:40%;border-radius:50%;pointer-events:none;
+  background:#ff5a1f;color:#fff;font:400 calc(var(--ts) * .24)/1 var(--font-num);box-shadow:0 0 0 1.5px #5a1206,0 0 8px 2px rgba(255,90,30,.8)}
+.burnc[hidden]{display:none}
+.stage .tile.gone.ash .face{animation:ash .75s ease-in forwards}
+@keyframes ash{0%{filter:brightness(1.8) sepia(1) saturate(5) hue-rotate(-20deg)}35%{filter:brightness(.35) grayscale(1)}100%{transform:translateY(-10px) scale(.55);opacity:0;filter:brightness(.25) grayscale(1)}}
+.breath{position:absolute;z-index:297;pointer-events:none;border-radius:40%;filter:blur(3px);
+  background:linear-gradient(90deg,rgba(255,60,10,0),rgba(255,90,20,.85) 20%,rgba(255,200,90,.95) 50%,rgba(255,90,20,.85) 80%,rgba(255,60,10,0));animation:breath .85s cubic-bezier(.3,.6,.4,1) both}
+@keyframes breath{0%{clip-path:inset(0 100% 0 0);opacity:1}45%{clip-path:inset(0 0 0 0);opacity:1}100%{clip-path:inset(0 0 0 0);opacity:0}}
+/* 深渊规则：四页 */
+.rules-tabs{position:sticky;top:-22px;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:0 0 10px;padding:3px;border-radius:12px;background:var(--paper);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 6px 10px -6px rgba(0,0,0,.6)}
+.rules-tabs button{border:0;border-radius:9px;padding:8px 0;background:none;color:var(--paper-soft);font:700 14px/1 var(--font-body);cursor:pointer;touch-action:manipulation}
+.rules-tabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.rules-tabs button:focus-visible{outline:2px solid var(--paper-ink);outline-offset:1px}
+.rules-pane{text-align:left}
+.rules-pane .rules-note{margin:0 0 6px;font-size:12.5px;line-height:1.55}
+.rules-pane h4{margin:12px 0 2px;font:900 14px/1.2 "Noto Serif SC",serif;letter-spacing:.14em;color:var(--paper-ink)}
+.rule-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--ghost-line,rgba(127,127,127,.2))}
+.rule-row > i{width:36px;height:36px;flex:none;border-radius:9px;background:#251f21 center/78% no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.5)}
+.rule-row > div{min-width:0}
+.rule-row b{display:block;font-size:14px;line-height:1.35;color:var(--paper-ink)}
+.rule-row small{display:block;margin-top:2px;font-size:12.5px;line-height:1.5;color:var(--paper-soft)}
+.rule-row.owned b{color:#ffd06a}
+.rule-move{display:flex;gap:5px;align-items:flex-start;margin-top:3px;font-size:12.5px;line-height:1.45;color:var(--paper-soft)}
+.rule-move i{width:17px;height:17px;flex:none;margin-top:1px;background:center/contain no-repeat}
+.rule-row > i.mini-rubble{background:linear-gradient(118deg,transparent 0 47%,rgba(50,34,26,.7) 47% 50%,transparent 50%),linear-gradient(64deg,transparent 0 62%,rgba(50,34,26,.6) 62% 64.5%,transparent 64.5%),#c9bba7;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.35),0 3px 0 #6e5a44}
+/* 钻洞的老鼠 */
+.ratfx{position:absolute;z-index:296;width:24px;height:24px;margin:-12px 0 0 -12px;pointer-events:none;background:var(--da-mouse) center/contain no-repeat;animation:ratRun .75s cubic-bezier(.4,0,.6,1) both}
+@keyframes ratRun{0%{transform:translate(0,0);opacity:0}12%{opacity:1}35%{transform:translate(calc(var(--dx) * .35),-4px)}65%{transform:translate(calc(var(--dx) * .65),3px)}88%{opacity:1}100%{transform:translate(var(--dx),0);opacity:0}}
+/* 掉下去的时候不画这些 */
+body.diving .foglayer,body.diving .shade,body.diving .batfx,body.diving .ratfx,body.diving .breath{display:none}
+.ic-19{background-image:var(--ic-19)}.ic-20{background-image:var(--ic-20)}
+.ic-19{--ch:"骨"}.ic-20{--ch:"土"}
+/* 房间：宝箱、黑市、篝火 */
+.room{position:absolute;z-index:320;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 10px 10px;border-radius:20px;overflow:auto;
+  background:var(--paper);color:var(--paper-ink);text-align:center;box-shadow:0 8px 0 var(--paper-edge),0 8px 0 1px rgba(0,0,0,.3),0 22px 44px rgba(0,0,0,.4);
+  transform-origin:50% 100%;transition:transform .65s cubic-bezier(.5,0,.7,.4),opacity .55s}
+.room.driven{transition:none}
+.room-head h3{margin:0;font:400 26px/1.1 var(--font-display);letter-spacing:.08em}
+.room-head p{margin:2px 0 0;font-size:12.5px;color:var(--paper-soft);line-height:1.45}
+.chest,.fire{width:46px;height:46px;flex:none;border:0;background:center/contain no-repeat;cursor:pointer}
+.r-camp{gap:6px}
+.r-camp .room-head{display:flex;align-items:center;gap:10px;text-align:left}
+.r-camp .room-head h3{font-size:22px}
+.shop-note{margin:2px 0 -2px;font-size:12px;color:var(--paper-soft)}
+.r-camp .card small{-webkit-line-clamp:2}
+.r-camp .card i{width:28px;height:28px}
+.r-camp .exit i{width:42px;height:42px}
+.chest{animation:hop 1s ease-in-out infinite}
+.fire{animation:pulse 1.4s ease-in-out infinite}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 3px 7px;border:0;border-radius:12px;cursor:pointer;touch-action:manipulation;
+  background:var(--tile);color:var(--paper-ink);font:inherit;box-shadow:0 3px 0 var(--paper-edge),0 3px 0 1px rgba(0,0,0,.12);animation:rise .3s cubic-bezier(.2,.8,.3,1) both}
+.card i{width:34px;height:34px;flex:none;background:center/contain no-repeat}
+.card b{font-size:13px}
+.card small{font-size:10.5px;line-height:1.3;color:var(--paper-soft);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.dialog .card small{-webkit-line-clamp:4}
+.card .price{margin-top:2px;padding:2px 8px;border-radius:999px;background:var(--paper-ink);color:var(--paper);font:400 11px/1.3 var(--font-num)}
+.card:disabled{cursor:default;opacity:.45}
+.card.sold{visibility:hidden}
+.card:focus-visible{outline:3px solid var(--paper-ink);outline-offset:2px}
+.dialog .cards{margin-top:2px}
+.boss-pic{display:block;width:104px;height:104px;margin:0 auto;border-radius:50%;background:#f5ead2 center/72% no-repeat;box-shadow:inset 0 0 0 4px var(--paper-edge);animation:hop 1.1s ease-in-out infinite}
+.room-skip{border:0;background:none;color:var(--paper-soft);font:700 13px/1.2 var(--font-body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.camp-opts{display:flex;gap:8px;width:100%}
+.camp-opts .btn{flex:1;min-height:40px;padding:6px 8px;font-size:13.5px}
+.room .btn:disabled{opacity:.42;cursor:default;box-shadow:none;transform:none}
+.exits{display:flex;gap:22px;justify-content:center;flex:none;margin-top:auto}
+.exit{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;border:0;background:none;cursor:pointer;touch-action:manipulation;color:var(--paper-ink);font:700 13px/1.2 var(--font-body)}
+.exit i{width:50px;height:50px;border-radius:16%;background:var(--k) center/46% no-repeat,radial-gradient(circle at 50% 50%,#2a1a0c 0 32%,#6b4316 33% 37%,rgba(0,0,0,0) 38%),linear-gradient(155deg,#ffd862,#eba51f);
+  box-shadow:inset 0 0 0 1.5px rgba(160,95,0,.45),0 5px 0 #b8781b}
+.exit:active i{transform:translateY(3px);box-shadow:inset 0 0 0 1.5px rgba(160,95,0,.45),0 2px 0 #b8781b}
+.exit:focus-visible i{outline:3px solid var(--paper-ink);outline-offset:3px}
+/* 消一组飘出来的灵魂数、鼠群跑过的风 */
+.woolfx{position:absolute;z-index:960;pointer-events:none;font:400 16px/1 var(--font-num);color:#ffd862;text-shadow:0 2px 0 #7a4b0a;animation:woolUp .9s ease-out forwards}
+@keyframes woolUp{from{transform:translateY(0);opacity:1}to{transform:translateY(-34px);opacity:0}}
+.gust{position:absolute;z-index:700;pointer-events:none;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 48%,transparent 66%) no-repeat;background-size:60% 100%;animation:gust .8s ease-out forwards}
+@keyframes gust{from{background-position:-80% 0;opacity:1}to{background-position:180% 0;opacity:.2}}
+
+/* ---------- 深渊的暗色：进了这个模式整页都换掉，越往下越红 ---------- */
+:root[data-hell]{
+  color-scheme:dark;
+  --bg:#0a0909;--ink:#e8dccb;--ink-soft:#9d9284;
+  --tile:#e3dccd;--tile-hi:rgba(255,255,255,.16);--tile-edge:#6c6356;--tile-side:#8e8474;--dim:brightness(.42) saturate(.4);
+  --btn:#262123;--btn-ink:#e8dccb;--btn-soft:#b3a593;--btn-edge:#0c0a0b;
+  --tray:#1b1617;--tray-2:#0e0b0c;--tray-line:rgba(160,150,135,.45);--tray-cell:rgba(0,0,0,.4);
+  --thread:#9d9284;--track:rgba(232,220,203,.12);
+  --accent:#8f1d18;--accent-deep:#430b09;--accent-ink:#f6e7d2;
+  --badge:#a3382a;--badge-ink:#f6e7d2;
+  --paper:#1b1718;--paper-ink:#eadfcd;--paper-soft:#a99c8c;--paper-edge:#050404;
+  --ghost-line:rgba(234,223,205,.22);--scrim:rgba(0,0,0,.74);--focus:#e0563a;
+  --pip-off:rgba(232,220,203,.28);--pip-on:#d4532f;--warn:#ff4a2a;--warn-ink:#ff9c84;
+  --bed:rgba(0,0,0,.35);--shelf:rgba(163,56,42,.6);--toast:#1e0807;--toast-ink:#f3e2cc;
+  --brand-shadow:0 0 14px rgba(200,40,20,.6),0 3px 0 #000;
+}
+/* 地窖：烛光的暖黄 */
+:root[data-hell="0"]{--thread:#e0a24a;--pip-on:#f0b860;--tray-line:rgba(224,162,74,.5);--tile:#e6dccb;--tile-edge:#6e5a44;--tile-side:#8a7358;--brand-shadow:0 0 14px rgba(255,160,60,.45),0 3px 0 #000}
+/* 墓穴：冷的骨白和青灰 */
+:root[data-hell="1"]{--thread:#9fd8d0;--pip-on:#a8e3da;--tray-line:rgba(150,210,200,.45);--tile:#dcdcd6;--tile-edge:#556066;--tile-side:#76838a;--brand-shadow:0 0 14px rgba(150,210,220,.45),0 3px 0 #000}
+/* 地狱：火光 */
+:root[data-hell="2"]{--thread:#e0502a;--pip-on:#ff6a3a;--tray-line:rgba(230,80,40,.65);--tile:#e5cdb5;--tile-edge:#6b2a1a;--tile-side:#8c3c24;--bg:#0b0303}
+/* 深渊 */
+:root[data-hell="3"]{--thread:#ff3b1f;--pip-on:#ff3b1f;--tray-line:rgba(255,50,20,.75);--tile:#dcc3ab;--tile-edge:#4a120a;--tile-side:#6b1c10;--bg:#050101}
+:root[data-hell] .face{background:radial-gradient(circle at 28% 18%,var(--tile-hi),rgba(255,255,255,0) 58%),radial-gradient(circle at 72% 88%,rgba(0,0,0,.14),rgba(0,0,0,0) 60%),var(--tile);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.35),0 calc(var(--ts) * .07) 0 var(--tile-edge),0 calc(var(--ts) * .07 + 1.5px) 0 rgba(0,0,0,.75)}
+:root[data-hell] .tile .art{filter:saturate(.78) contrast(1.04)}
+:root[data-hell] .brand,:root[data-hell] .dialog h2,:root[data-hell] .room-head h3{font-family:"Noto Serif SC",serif;font-weight:900;letter-spacing:.1em}
+:root[data-hell] .brand{color:#eadbc3;min-width:0;overflow:hidden;font-size:clamp(15px,4.3vw,26px);letter-spacing:.02em}
+:root[data-hell] .lvl b{color:#ff7a55}
+:root[data-hell] .trough{background:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px),linear-gradient(180deg,var(--tray),var(--tray-2));box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 6px 0 #000,0 14px 26px rgba(0,0,0,.6)}
+:root[data-hell] .dg-relic{background-color:#2e2729}
+:root[data-hell] .card{background:#2a2426;color:var(--paper-ink);box-shadow:0 3px 0 #000,0 3px 0 1px rgba(255,255,255,.04)}
+:root[data-hell] .card .price{background:#8f1d18;color:#f6e7d2}
+:root[data-hell] .room{box-shadow:0 8px 0 #000,0 0 0 1px rgba(255,255,255,.05),0 22px 44px rgba(0,0,0,.7)}
+:root[data-hell] .exit i{box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.55),0 0 14px 2px rgba(255,70,20,.35),0 5px 0 #241309;
+  background:var(--k) center/46% no-repeat,radial-gradient(circle at 50% 50%,#050101 0 30%,rgba(255,80,30,.85) 33%,#5a1a10 37%,rgba(0,0,0,0) 40%),linear-gradient(155deg,#9a6a35,#3d2414)}
+:root[data-hell] .boss-pic{background-color:#2a2426;box-shadow:inset 0 0 0 4px #000,0 0 24px 4px rgba(255,40,10,.45)}
+:root[data-hell] .toast{top:calc(6px + env(safe-area-inset-top,0px));border-radius:14px;padding:7px 14px;font-size:13px;line-height:1.45;box-shadow:0 0 0 1px rgba(255,90,40,.35),0 8px 24px rgba(0,0,0,.6)}
+:root[data-hell] .woolfx{color:#ffd06a;text-shadow:0 2px 0 #4a1a04,0 0 8px rgba(255,120,40,.6)}
+/* 主菜单里深渊那一项：不管在哪个模式，都是一块黑底红边的牌子 */
+.home-list .home-item.hell-item{background:radial-gradient(120% 140% at 50% 120%,rgba(160,30,15,.45),rgba(0,0,0,0) 60%),#140c0c;color:#eadbc3;box-shadow:inset 0 0 0 2px #5a1712,0 4px 0 #000}
+.home-list .home-item.hell-item span:first-child{font:900 24px/1.1 "Noto Serif SC",serif;letter-spacing:.4em;text-indent:.4em;color:#f0dcc0;text-shadow:0 0 10px rgba(255,60,20,.5)}
+.home-list .home-item.hell-item .hi-sub{color:#c9a99a}
+.home-list .home-item.hell-item.primary{box-shadow:inset 0 0 0 2px #b8442e,0 4px 0 #000}
+/* 整页的底：地窖的灰尘、墓穴的冷光、地狱的火光 */
+.hellfx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.hellfx[hidden]{display:none}
+.hellfx::before{content:"";position:absolute;inset:-30% -10%}
+.hellfx.z0::before{background:radial-gradient(circle,rgba(255,200,120,.32) 0 1px,transparent 1.8px) 0 0/80px 110px,radial-gradient(circle,rgba(255,200,120,.2) 0 1px,transparent 1.6px) 40px 55px/80px 110px;animation:dustFall 22s linear infinite}
+.hellfx.z1::before{background:radial-gradient(circle,rgba(170,215,225,.32) 0 1.4px,transparent 2.4px) 0 0/120px 150px;animation:wispUp 24s linear infinite}
+.hellfx.z2::before,.hellfx.z3::before{background:radial-gradient(circle,rgba(255,140,50,.75) 0 1.3px,transparent 2.3px) 0 0/90px 120px,radial-gradient(circle,rgba(255,80,20,.55) 0 1px,transparent 2px) 45px 60px/90px 120px;animation:emberUp 7s linear infinite}
 /* ---- 动效 ---- */
 .tile.flying{z-index:900!important;transition:none!important}
 .spark{position:absolute;z-index:950;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;pointer-events:none}
@@ -903,6 +1254,7 @@ function savePrefs(p){
 const Sound = {
   on: prefs.sound !== false,
   ctx: null,
+  pitch: 1,   // 深渊里整体压低
   tone(f, d = .09, type = 'triangle', v = .05, at = 0){
     if (!this.on) return;
     try {
@@ -911,7 +1263,7 @@ const Sound = {
       if (c.state === 'suspended') c.resume();
       const t0 = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
       o.type = type;
-      o.frequency.setValueAtTime(f, t0);
+      o.frequency.setValueAtTime(f * this.pitch, t0);
       g.gain.setValueAtTime(.0001, t0);
       g.gain.exponentialRampToValueAtTime(v, t0 + .012);
       g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
@@ -926,6 +1278,73 @@ const Sound = {
   lose(){ this.tone(260, .22, 'sawtooth', .025); this.tone(180, .34, 'sawtooth', .025, .16); },
   boom(){ this.tone(120, .32, 'sawtooth', .07); this.tone(62, .5, 'square', .05, .03); this.tone(40, .6, 'sine', .08, .05); },
   win(){ [523, 659, 784, 1047].forEach((f, i) => this.tone(f, .2, 'triangle', .06, i * .11)); },
+  // 白噪声过一个滤波器（从 f0 扫到 f1）：塌方、风声、落地的闷响
+  noise(d, v, at = 0, f0 = 800, f1 = f0, type = 'lowpass', q = 1, atk = .02){
+    if (!this.on) return;
+    try {
+      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const c = this.ctx;
+      if (c.state === 'suspended') c.resume();
+      if (!this.nbuf){
+        const b = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), ch = b.getChannelData(0);
+        for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+        this.nbuf = b;
+      }
+      const t0 = c.currentTime + at, n = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
+      n.buffer = this.nbuf;
+      n.loop = true;
+      fl.type = type;
+      fl.Q.value = q;
+      fl.frequency.setValueAtTime(f0, t0);
+      fl.frequency.exponentialRampToValueAtTime(f1, t0 + d);
+      g.gain.setValueAtTime(.0001, t0);
+      g.gain.exponentialRampToValueAtTime(v, t0 + atk);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+      n.connect(fl); fl.connect(g); g.connect(c.destination);
+      n.start(t0, Math.random() * 1.5);
+      n.stop(t0 + d + .05);
+    } catch (e) {}
+  },
+  // 音高一路滑下去
+  slide(f0, f1, d, type = 'sine', v = .05, at = 0){
+    if (!this.on) return;
+    try {
+      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const c = this.ctx;
+      if (c.state === 'suspended') c.resume();
+      const t0 = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f0, t0);
+      o.frequency.exponentialRampToValueAtTime(f1, t0 + d);
+      g.gain.setValueAtTime(.0001, t0);
+      g.gain.exponentialRampToValueAtTime(v, t0 + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+      o.connect(g); g.connect(c.destination);
+      o.start(t0); o.stop(t0 + d + .03);
+    } catch (e) {}
+  },
+  // 掉进下一层：地底轰隆隆、碎石往下掉 → 裂开 → 风声呼啸 → 砸到底；换了一段（墓穴、地狱）再敲一下低音
+  rumble(){
+    this.noise(1.2, .13, 0, 150, 70, 'lowpass', 1, .3);
+    this.slide(56, 38, 1.1, 'sine', .06);
+    for (let i = 0; i < 6; i++) this.noise(.07, .035, .25 + i * .12 + Math.random() * .05, 2600, 900, 'bandpass', 3, .004);
+  },
+  crack(){ this.noise(.2, .14, 0, 4200, 600, 'bandpass', .8, .003); this.slide(130, 42, .4, 'triangle', .08); this.noise(.7, .1, .04, 900, 110, 'lowpass', 1, .01); },
+  whoosh(){ this.noise(1.45, .22, 0, 320, 2300, 'bandpass', 1.3, .4); this.noise(1.4, .13, 0, 220, 120, 'lowpass', 1, .25); this.slide(640, 150, 1.3, 'sine', .02); },
+  impact(){ this.slide(120, 30, .75, 'sine', .11); this.noise(.8, .12, 0, 1500, 60, 'lowpass', 1, .003); this.noise(.12, .06, 0, 3200, 1500, 'bandpass', 1, .002); this.tone(70, .45, 'square', .02); },
+  stinger(){ [220, 311, 440].forEach((f, i) => this.tone(f, 1.7 - i * .25, i ? 'sine' : 'triangle', .05 - i * .012, i * .03)); },
+  // 深渊里打怪：砍中、怪出招、怪倒下；烛火灭、起雾、岩浆、锁链
+  hit(){ this.noise(.12, .1, 0, 2600, 700, 'bandpass', 1.2, .003); this.tone(190, .12, 'square', .025); },
+  growl(){ this.slide(120, 70, .38, 'sawtooth', .03); this.noise(.3, .045, 0, 420, 200, 'lowpass', 1, .03); },
+  foeDie(){ this.slide(340, 55, .65, 'sawtooth', .035); this.noise(.55, .07, .08, 1300, 180, 'lowpass', 1, .01); },
+  snuff(){ this.noise(.4, .08, 0, 1900, 260, 'bandpass', 1, .01); for (let i = 0; i < 5; i++) this.noise(.05, .035, .12 + i * .06, 3200, 2200, 'bandpass', 4, .003); },
+  fog(){ this.noise(1.1, .055, 0, 300, 900, 'bandpass', .7, .4); },
+  lava(){ this.noise(.7, .09, 0, 220, 90, 'lowpass', 1, .05); this.noise(.45, .03, .05, 3000, 5200, 'highpass', .7, .02); },
+  chain(){ this.tone(980, .07, 'square', .02); this.tone(1470, .12, 'triangle', .018, .05); },
+  flame(){ this.noise(.55, .1, 0, 500, 2600, 'bandpass', .8, .04); for (let i = 0; i < 5; i++) this.noise(.03, .03, .08 + i * .07 + Math.random() * .03, 4200, 3000, 'bandpass', 3, .002); },
+  coin(){ this.tone(1320, .06, 'square', .02); this.tone(1760, .1, 'square', .018, .05); },
+  hurt(){ this.tone(150, .26, 'sawtooth', .05); this.tone(92, .4, 'square', .04, .09); },
+  wind(){ for (let i = 0; i < 6; i++) this.tone(300 + i * 70, .16, 'sine', .018, i * .04); },
   fanfare(){
     [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, .22, 'triangle', .06, i * .12));
     [523, 659, 784, 1047].forEach(f => this.tone(f, .9, 'sine', .035, .9));
@@ -1283,6 +1702,48 @@ const Music = (() => {
     if (e) I.box(t, e.m, 1);
   }
 
+  // 深渊：不放曲子，只有低沉的嗡嗡声、远处的钟和风声；越往下越不和谐，地窖里有水滴，地狱里有火的噼啪和心跳
+  let depth = 0;
+  function playHell(b, s, t, d){
+    const z = depth, D = 38;
+    if (s === 0){
+      const dur = d * 16, notes = [[D, -5, .5], [D, 6, .5], [D + 7, 3, .3]];
+      if (z >= 1) notes.push([D - 12, 0, .45]);
+      if (z >= 2) notes.push([D + 6, -4, .22]);
+      if (z >= 3) notes.push([D + 1, 7, .18]);
+      for (const [m, det, v] of notes){
+        chain(osc('sawtooth', mtof(m) * Math.pow(2, det / 1200), t, t + dur + 1.6), filt('lowpass', 140 + z * 45, .8), vca(t, .16 * v, 1.2, Math.max(.2, dur - 1), 1.4), out);
+      }
+    }
+    if (s === 8 && b % 2 === 1){
+      const f = mtof(50 - z * 2), end = t + 4.2;
+      for (const [k, a, rel] of [[1, .15, 3.6], [2.76, .045, 1.6], [5.4, .02, .8]]) chain(osc('sine', f * k, t, end), vca(t, a, .005, 0, rel), out);
+    }
+    if (s === 4 && b % 4 === 2){
+      const f = filt('bandpass', 300, 2.2);
+      f.frequency.setValueAtTime(220, t);
+      f.frequency.exponentialRampToValueAtTime(760, t + 1.6);
+      f.frequency.exponentialRampToValueAtTime(240, t + 3.2);
+      chain(noise(t, t + 3.4), f, vca(t, .05 + z * .02, 1.1, .7, 1.5), out);
+    }
+    // 地窖：头顶滴水
+    if (z === 0 && (s === 5 || s === 13) && (b * 7 + s) % 3 === 0){
+      const o = osc('sine', 1900, t, t + .25);
+      o.frequency.exponentialRampToValueAtTime(700, t + .12);
+      chain(o, vca(t, .05, .002, 0, .12), out);
+    }
+    // 地狱：火噼啪响
+    if (z >= 2 && (s === 6 || s === 10 || s === 14) && (b + s) % 2 === 0){
+      chain(noise(t, t + .07), filt('highpass', 2400, .7), vca(t, .05, .001, 0, .04), out);
+    }
+    if (z >= 2 && (s === 0 || s === 3 || (z >= 3 && (s === 8 || s === 11)))){
+      const o = osc('sine', 55, t, t + .4);
+      o.frequency.exponentialRampToValueAtTime(34, t + .32);
+      chain(o, vca(t, s % 8 === 0 ? .34 : .22, .004, .02, .28), out);
+    }
+  }
+  const MOODS = {hell: {name: '地府', bpm: 60, len: 4, gain: 1.25, reverb: .55, play: playHell}};
+  let mood = '';
   // gain 让几首听起来一样响；reverb 是送去混响的量，只有八音盒那首用
   const SONGS = {
     farm: {name: '老麦克唐纳有块地', desc: '大号、口哨，小羊唱「咩咩」', bpm: 132, len: FARM.length, gain: 1, play: playFarm},
@@ -1292,8 +1753,9 @@ const Music = (() => {
   };
   let cur = SONGS[prefs.bgm] ? prefs.bgm : 'farm';
 
+  const nowSong = () => (mood ? MOODS[mood] : SONGS[cur]);
   function pump(){
-    const c = C(), song = SONGS[cur], d = 60 / song.bpm / 4;
+    const c = C(), song = nowSong(), d = 60 / song.bpm / 4;
     while (next < c.currentTime + .15){
       song.play(Math.floor(step / 16) % song.len, step % 16, next, d);
       next += d;
@@ -1302,8 +1764,8 @@ const Music = (() => {
   }
   function begin(){
     clearInterval(timer);
-    out.gain.value = SONGS[cur].gain;
-    send.gain.value = SONGS[cur].reverb || 0;
+    out.gain.value = nowSong().gain;
+    send.gain.value = nowSong().reverb || 0;
     step = 0;
     next = C().currentTime + .1;
     timer = setInterval(pump, 25);
@@ -1368,6 +1830,21 @@ const Music = (() => {
     },
     songs: SONGS,
     get current(){ return cur; },
+    set depth(z){ depth = z; },
+    // 换气氛（深渊里不放曲子）：正在放就淡出再换
+    mood(m){
+      if (m === mood) return;
+      mood = m;
+      if (!playing) return;
+      const tok = ++swapTok;
+      clearInterval(timer);
+      fade(0, .4);
+      setTimeout(() => {
+        if (tok !== swapTok || !playing) return;
+        fade(VOL, 1.4);
+        begin();
+      }, 450);
+    },
     // 换歌：正在放就先淡出，再从头放新的一首
     set(id){
       if (!SONGS[id] || id === cur) return;
@@ -1644,7 +2121,218 @@ function buildBricks(rng, cfg){
   return out;
 }
 
+// 图案、花纹：在 14×14 的半格上画轮廓（一张牌占 2×2 格），一层层往上叠。u、v 是格子中心在 -1～1 里的坐标
+const TAU = Math.PI * 2;
+const inCircle = (u, v, x, y, r) => (u - x) ** 2 + (v - y) ** 2 < r * r;
+function inPoly(pts, u, v){
+  let ins = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++){
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > v) !== (yj > v) && u < (xj - xi) * (v - yi) / (yj - yi) + xi) ins = !ins;
+  }
+  return ins;
+}
+const STAR = Array.from({length: 10}, (_, k) => { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? .45 : 1.02; return [Math.cos(a) * r, Math.sin(a) * r + .1]; });
+// 图案：每层都是同一个轮廓，镂空的地方（铜钱的方孔、鱼和猫的眼睛）一直空着
+const PICS = [
+  ['铜钱', (u, v) => Math.hypot(u, v) < .98 && (Math.abs(u) > .3 || Math.abs(v) > .3)],
+  ['星星', (u, v) => inPoly(STAR, u, v)],
+  ['月牙', (u, v) => inCircle(u, v, 0, 0, .96) && !inCircle(u, v, .44, -.2, .74)],
+  ['爱心', (u, v) => { const x = u * 1.2, y = -v * 1.2 + .28; return (x * x + y * y - 1) ** 3 - x * x * y ** 3 < 0; }],
+  ['花朵', (u, v) => { const r = Math.hypot(u, v); return r < .48 + .5 * Math.abs(Math.cos(2.5 * Math.atan2(v, u))) && r > .2; }],
+  ['小鱼', (u, v) => (((u + .16) / .68) ** 2 + (v / .48) ** 2 < 1 || (u > .3 && u < .99 && Math.abs(v) < (u - .3) * 1.1)) && !inCircle(u, v, -.5, -.1, .17)],
+  ['猫咪', (u, v) => (inCircle(u, v, 0, .2, .74) || inPoly([[-.74, 0], [-.66, -.96], [-.16, -.46]], u, v) || inPoly([[.74, 0], [.66, -.96], [.16, -.46]], u, v)) && !inCircle(u, v, -.3, .14, .16) && !inCircle(u, v, .3, .14, .16)],
+  ['葫芦', (u, v) => inCircle(u, v, 0, -.4, .42) || inCircle(u, v, 0, .4, .6) || (Math.abs(u) < .16 && v > -.99 && v < -.7)],
+  ['苹果', (u, v) => (inCircle(u, v, -.27, .16, .64) || inCircle(u, v, .27, .16, .64) || ((u - .32) / .3) ** 2 + ((v + .8) / .16) ** 2 < 1) && !inCircle(u, v, 0, -.58, .2)],
+  ['灯笼', (u, v) => (u / .86) ** 2 + (v / .64) ** 2 < 1 || (Math.abs(u) < .4 && Math.abs(v) < .86) || (Math.abs(u) < .16 && v >= .86)],
+  ['云朵', (u, v) => inCircle(u, v, -.52, .22, .38) || inCircle(u, v, -.05, -.14, .5) || inCircle(u, v, .5, .14, .42) || (Math.abs(u) < .84 && v > .12 && v < .56)],
+  ['蝴蝶结', (u, v) => inPoly([[-.98, -.7], [-.98, .7], [-.05, .12], [-.05, -.12]], u, v) || inPoly([[.98, -.7], [.98, .7], [.05, .12], [.05, -.12]], u, v) || (Math.abs(u) < .26 && Math.abs(v) < .3)]
+];
+// 花纹：每一层换一种（隔层错开），叠起来像编出来的
+const WEAVES = [
+  ['棋盘', (c, r, z) => (Math.floor(c / 4) + Math.floor(r / 4) + z) % 2 === 0],
+  ['同心', (c, r, z) => Math.floor(Math.max(Math.abs(c - 6.5), Math.abs(r - 6.5)) / 2) % 2 === z % 2],
+  ['斜纹', (c, r, z) => Math.floor((c + r + z * 2) / 4) % 2 === 0],
+  ['菱格', (c, r, z) => Math.floor((Math.abs(c - 6.5) + Math.abs(r - 6.5)) / 3) % 2 === z % 2],
+  ['波纹', (c, r, z) => Math.floor((r + 2.4 * Math.sin((c + z * 1.5) / 14 * TAU) + 20) / 4) % 2 === 0]
+];
+function gridOf(fn, z){
+  const g = [];
+  for (let r = 0; r < 14; r++){ let s = ''; for (let c = 0; c < 14; c++) s += fn((c + .5) / 7 - 1, (r + .5) / 7 - 1, c, r, z) ? 'X' : '.'; g.push(s); }
+  return g;
+}
+function placeLayer(rng, g, ox, oy, dens){
+  const on = (r, c) => r >= 0 && c >= 0 && r < 14 && c < 14 && g[r][c] === 'X', out = [];
+  for (let y = oy; (y + 1) * 2 <= 14; y++)
+    for (let x = ox; (x + 1) * 2 <= 14; x++)
+      if (on(y * 2, x * 2) && on(y * 2, x * 2 + 1) && on(y * 2 + 1, x * 2) && on(y * 2 + 1, x * 2 + 1) && rng() < dens) out.push({x, y});
+  return out;
+}
+// 最上面两层照完整的轮廓铺满（不缺牌），图案一眼看得出；下面的层随机少几张、一层层错开半张，凑够张数，多出来的从最底下拿掉
+function stackGrids(rng, cfg, topGrid, lowGrid){
+  const tops = [placeLayer(rng, topGrid(1), .5, .5, 1), placeLayer(rng, topGrid(0), 0, 0, 1)];
+  const need = cfg.target - tops[0].length - tops[1].length, lows = [];
+  let n = 0;
+  for (let k = 0; n < need && k < 30; k++){
+    const z = lows.length, [ox, oy] = OFFSETS[(z + k) % 4], l = placeLayer(rng, lowGrid(z), ox, oy, .9);
+    if (!l.length) continue;
+    lows.push(l); n += l.length;
+  }
+  for (let z = 0, extra = n - need; extra > 0 && z < lows.length; z++){
+    const cut = Math.min(extra, lows[z].length - 1);
+    lows[z] = shuffled(lows[z], rng).slice(cut);
+    extra -= cut;
+  }
+  const out = [];
+  lows.forEach((l, z) => { for (const p of l) out.push({x: p.x, y: p.y, z}); });
+  tops.forEach((l, k) => { for (const p of l) out.push({x: p.x, y: p.y, z: lows.length + k}); });
+  return out;
+}
+function buildPic(rng, cfg, meta){
+  const [name, f] = pickOne(PICS, rng), g = gridOf(f, 0);
+  meta.label = '图案·' + name;
+  return stackGrids(rng, cfg, () => g, () => g);
+}
+function buildWeave(rng, cfg, meta){
+  const [name, f] = pickOne(WEAVES, rng), gs = [0, 1, 2, 3].map(z => gridOf((u, v, c, r) => f(c, r, z), z));
+  meta.label = '花纹·' + name;
+  return stackGrids(rng, cfg, z => gs[z % 4], z => gs[z % 4]);
+}
+
+/* ---------- 分散的摆法：一摞摞分开放，中间留出空地 ---------- */
+// 一摞：最上面那张在 (x, y)，往下每张朝 dir 挪一点：上面三张各露出一条，再往下压紧
+function pushStack(out, x, y, depth, dir, open = .22, tight = .025){
+  const maxOff = Math.min(depth - 1, 3) * open + Math.max(0, depth - 4) * tight;
+  // 整摞（连同露出来的部分）都要在牌桌里
+  x = Math.max(Math.max(0, -dir[0] * maxOff), Math.min(6 - Math.max(0, dir[0] * maxOff), x));
+  y = Math.max(Math.max(0, -dir[1] * maxOff), Math.min(6.4 - Math.max(0, dir[1] * maxOff), y));
+  for (let d = 0; d < depth; d++){
+    const k = depth - 1 - d, off = Math.min(k, 3) * open + Math.max(0, k - 3) * tight;
+    out.push({x: x + dir[0] * off, y: y + dir[1] * off, z: d});
+  }
+}
+const unitVec = (dx, dy) => { const l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
+// 把要摆的张数分给几摞，深浅不一
+function depthsFor(rng, n, total){
+  const w = Array.from({length: n}, () => .7 + rng() * .6), sw = w.reduce((a, b) => a + b, 0);
+  return w.map(v => Math.max(3, Math.round(total * v / sw)));
+}
+// 散落：七到十摞随便散开，彼此离得远远的
+function buildScatter(rng, cfg){
+  const n = 7 + Math.floor(rng() * 4), pts = [];
+  for (let g = 0; pts.length < n && g < 800; g++){
+    const x = .2 + rng() * 5.6, y = .2 + rng() * 6;
+    if (pts.every(p => Math.hypot(p.x - x, p.y - y) > 1.7)) pts.push({x, y});
+  }
+  const out = [], ds = depthsFor(rng, pts.length, cfg.target), dirs = [[0, 1], [1, 1], [-1, 1], [1, 0], [-1, 0], [0, -1]];
+  pts.forEach((p, i) => pushStack(out, p.x, p.y, ds[i], unitVec(...pickOne(dirs, rng))));
+  return out;
+}
+// 一圈：一圈小塔围着空的中心，底下的牌朝外（或朝里）露出来，像向日葵
+function buildCircle(rng, cfg){
+  const n = pickOne([8, 9, 10], rng), r = 2.05 + rng() * .25, out_ = rng() < .6 ? 1 : -1, a0 = rng() * TAU, core = rng() < .4;
+  const out = [], ds = depthsFor(rng, n + (core ? 1 : 0), cfg.target);
+  for (let i = 0; i < n; i++){
+    const a = a0 + i / n * TAU, dx = Math.cos(a), dy = Math.sin(a);
+    pushStack(out, 3 + dx * r, 3.2 + dy * r, ds[i], [dx * out_, dy * out_]);
+  }
+  if (core) pushStack(out, 3, 3.2, ds[n], [0, 1], .12);
+  return out;
+}
+// 阶梯：沿对角线一级级往上；有时两道并排
+function buildStairs(rng, cfg){
+  const twin = rng() < .5, steps = twin ? 6 : 7, out = [], ds = depthsFor(rng, steps * (twin ? 2 : 1), cfg.target);
+  for (let i = 0; i < steps; i++){
+    const x = .2 + i * (twin ? .95 : .93), y = 6.1 - i * (twin ? .7 : .95);
+    pushStack(out, x, y, ds[i], [0, 1]);
+    if (twin) pushStack(out, x + .9, y - 2.3, ds[steps + i], [0, 1]);
+  }
+  return out;
+}
+// 三行：三四排小摞，排和排之间空开，上下两排朝不同方向露
+function buildRows(rng, cfg){
+  const rows = rng() < .5 ? 3 : 4, cols = pickOne([4, 5], rng), out = [], ds = depthsFor(rng, rows * cols, cfg.target);
+  const gapX = 6 / (cols - 1), gapY = 6 / (rows - 1);
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) pushStack(out, c * gapX, r * gapY + .1, ds[r * cols + c], [0, r % 2 ? -1 : 1]);
+  return out;
+}
+// 扇面：一道弧线像孔雀开屏，底下的牌朝弧心露出来；弧心再放一摞
+function buildFan(rng, cfg){
+  const n = pickOne([7, 8, 9], rng), r = 2.9, cx = 3, cy = 4.5, out = [], ds = depthsFor(rng, n + 1, cfg.target);
+  for (let i = 0; i < n; i++){
+    const a = Math.PI * (1.08 + .84 * i / (n - 1)), dx = Math.cos(a), dy = Math.sin(a);
+    pushStack(out, cx + dx * r, cy + dy * r * .95, ds[i], [-dx, -dy]);
+  }
+  pushStack(out, cx, cy + .6, ds[n], [0, 1], .14);
+  return out;
+}
+// 格子窗：牌和牌之间留着缝，隔一层斜着错开半格，像窗格
+function buildLattice(rng, cfg){
+  const out = [], gap = pickOne([1.4, 1.5], rng);
+  for (let z = 0; out.length < cfg.target && z < 20; z++){
+    const o = z % 2 ? gap / 2 : 0;
+    for (let y = o; y <= 6.4; y += gap)
+      for (let x = o; x <= 6.01; x += gap)
+        if (rng() < .94) out.push({x, y, z});
+  }
+  return out;
+}
+// 乱叠：照羊了个羊的办法——位置以 1/3 张为单位随手撒，同一层的牌不互相压，层和层之间随便压。
+// 堆的样子有四种：一大堆（每层从一边往里收，越往上越挤）、两堆（左右各一堆）、漂（小范围每层随便挪一点，堆成歪歪扭扭的一坨）、长条（一条乱带子）
+function buildMessy(rng, cfg, meta){
+  const s3 = v => Math.round(v * 3) / 3, mode = pickOne(['heap', 'heap', 'twin', 'drift', 'band'], rng);
+  meta.label = {heap: '乱叠·一大堆', twin: '乱叠·两堆', drift: '乱叠·漂', band: '乱叠·长条'}[mode];
+  const box = (x0, y0, x1, y1) => ({x0, y0, x1, y1, side: Math.floor(rng() * 4)});
+  const shrink = (b, step) => {
+    if (b.side === 0) b.x0 += step; else if (b.side === 1) b.y1 -= step; else if (b.side === 2) b.x1 -= step; else b.y0 += step;
+    b.side = (b.side + 1) % 4;
+  };
+  // 暗堆：像羊了个羊那样叠得很紧的一摞，只露出最上面一张，底下的只看得见一道道边
+  const hidden = [], deep = () => 7 + Math.floor(rng() * 8), sides = (mode === 'heap' || mode === 'drift') && rng() < .75;
+  const tight = (x, y, dir) => hidden.push({x, y, dir, n: deep()});
+  if (sides){ tight(0, s3(rng() * 1.6), [0, 1]); tight(6, s3(rng() * 1.6), [0, 1]); }
+  if (mode === 'twin' && rng() < .8) tight(2.83, s3(.4 + rng() * 1.6), [0, 1]);
+  if (mode === 'band' && rng() < .8){ tight(s3(rng() * 2), 0, [1, 0]); tight(s3(3 + rng() * 1.6), 5.4, [-1, 0]); }
+  const lo = sides ? 1.33 : 0, hi = sides ? 4.67 : 6;
+  let boxes;
+  if (mode === 'heap') boxes = [box(lo, 0, hi, 6.4)];
+  // 两堆中间空出一张多，好放一摞暗牌；长条上下各留一行
+  else if (mode === 'twin') boxes = [box(0, s3(rng() * 1.4), 1.67, s3(4.6 + rng() * 1.6)), box(4.33, s3(rng() * 1.4), 6, s3(4.6 + rng() * 1.6))];
+  else if (mode === 'band'){ const y = s3(1.33 + rng() * .67); boxes = [box(0, y, 6, y + 2)]; }
+  else boxes = [box(s3(lo + rng() * (sides ? .6 : 2.4)), s3(rng() * 2.6), 0, 0)];
+  if (mode === 'drift'){ const b = boxes[0]; b.x1 = b.x0 + s3(Math.min(hi - b.x0, 3 + rng() * 1.2)); b.y1 = b.y0 + s3(3 + rng() * 1.2); }
+  const out = [], step = pickOne([1 / 3, 2 / 3], rng);
+  for (let z = 0; out.length < cfg.target && z < 44; z++){
+    const b = boxes[z % boxes.length], layer = [];
+    const room = (b.x1 - b.x0 + 1) * (b.y1 - b.y0 + 1), want = Math.max(3, Math.min(6 + Math.floor(rng() * 9), Math.floor(room * .45)));
+    for (let g = 0; layer.length < want && g < want * 40; g++){
+      const x = s3(b.x0 + rng() * (b.x1 - b.x0)), y = s3(b.y0 + rng() * (b.y1 - b.y0));
+      if (layer.some(p => Math.abs(p.x - x) < 1 && Math.abs(p.y - y) < 1)) continue;
+      layer.push({x, y, z});
+    }
+    out.push(...layer);
+    if (mode === 'drift'){
+      // 整块随便挪一点，别挪出牌桌
+      const dx = s3((rng() - .5) * 1.4), dy = s3((rng() - .5) * 1.4), w = b.x1 - b.x0, h = b.y1 - b.y0;
+      b.x0 = Math.max(lo, Math.min(hi - w, b.x0 + dx)); b.y0 = Math.max(0, Math.min(6.4 - h, b.y0 + dy)); b.x1 = b.x0 + w; b.y1 = b.y0 + h;
+    } else if (mode === 'band'){
+      if (b.side % 2 === 0) shrink(b, step); else b.side = (b.side + 1) % 4;
+      if (b.x1 - b.x0 < 2.5){ b.x0 = s3(rng()); b.x1 = s3(5 + rng()); }
+    } else {
+      shrink(b, step);
+      if (b.x1 - b.x0 < 1.5 || b.y1 - b.y0 < 1.5){ const w = mode === 'twin' ? 1.67 : Math.min(hi - lo, 4 + rng() * 2); b.x0 = mode === 'twin' ? (z % 2 ? 4.33 : 0) : s3(lo + rng() * (hi - lo - w)); b.x1 = s3(b.x0 + w); b.y0 = s3(rng() * 1.6); b.y1 = s3(4.4 + rng() * 2); }
+    }
+    if (z === 0) cfg = Object.assign({}, cfg, {target: cfg.target - hidden.reduce((a, h) => a + h.n, 0)});
+  }
+  const heap = out.slice(0, cfg.target);
+  // 暗堆放在乱堆旁边，层号从 0 开始（和乱堆不重叠，谁压谁不受影响）
+  for (const h of hidden) pushStack(heap, h.x, h.y, h.n, h.dir, .09, .09);
+  return heap;
+}
+
 const ARCHES = [
+  {id: 'messy', name: '乱叠', build: buildMessy, w: 12},
   {id: 'block', name: '方阵', build: buildBlock},
   {id: 'pyramid', name: '金字塔', build: buildPyramid},
   {id: 'towers', name: '双塔', build: buildTowers},
@@ -1653,14 +2341,31 @@ const ARCHES = [
   {id: 'swirl', name: '漩涡', build: buildSwirl, flip: true},
   {id: 'columns', name: '千层', build: buildColumns, trimBottom: true},
   {id: 'mask', name: '剪影', build: buildMask},
-  {id: 'bricks', name: '砖墙', build: buildBricks}
+  {id: 'bricks', name: '砖墙', build: buildBricks},
+  {id: 'pic', name: '图案', build: buildPic},
+  {id: 'weave', name: '花纹', build: buildWeave},
+  {id: 'scatter', name: '散落', build: buildScatter, flip: true},
+  {id: 'circle', name: '一圈', build: buildCircle},
+  {id: 'stairs', name: '阶梯', build: buildStairs, flip: true},
+  {id: 'rows', name: '三行', build: buildRows},
+  {id: 'fan', name: '扇面', build: buildFan},
+  {id: 'lattice', name: '格子窗', build: buildLattice}
 ];
-const archOf = seed => ARCHES[Math.floor(rngFrom((seed ^ 0x2c1b3c6d) >>> 0)() * ARCHES.length)];
+// 抽摆法：按权重抽。乱叠（照羊了个羊那样随手撒）最常见，约三分之一；分散的几种各两份；挤成一团的各一份
+const SPREAD = new Set(['scatter', 'circle', 'stairs', 'rows', 'fan', 'lattice', 'islands', 'towers']);
+const archW = a => a.w || (SPREAD.has(a.id) ? 2 : 1);
+const ARCH_W = ARCHES.reduce((s, a) => s + archW(a), 0);
+function archOf(seed){
+  let r = rngFrom((seed ^ 0x2c1b3c6d) >>> 0)() * ARCH_W;
+  for (const a of ARCHES){ r -= archW(a); if (r < 0) return a; }
+  return ARCHES[ARCHES.length - 1];
+}
 const LAB = false;  // 发布到 GitHub 时 build_site.py 会改成 false，正式版看不到试玩栏
 const LAB_MODES = [
   {name: '排队', desc: '口袋里的牌按点的先后排队，只有排在最后的三张一样才消', cfg: {queue: true}, rule: {queue: true}},
   {name: '倒影', desc: '每一行右边那摞是左边那摞的倒影，同样的牌、顺序反过来', build: buildMirror, rule: {mirror: true}}
 ];
+
 
 // 倒影：五行，每行左边一摞千层、右边是它的倒影（同样的牌，上下顺序反过来），两摞最上面那张隔着中线对着
 function buildMirror(cfg, seed){
@@ -1702,7 +2407,7 @@ function buildMirror(cfg, seed){
 // 底部的牌摞：0～3 摞，只有最上面一张能拿
 function pilePlan(rng, amount){
   const r = rng();
-  const n = r < .18 ? 0 : r < .42 ? 1 : r < .85 ? 2 : 3;
+  const n = r < .08 ? 0 : r < .25 ? 1 : r < .7 ? 2 : 3;
   const cap = [0, 24, 20, 11][n], out = [];
   for (let i = 0; i < n; i++){
     const each = Math.round(amount / n * (.75 + rng() * .45));
@@ -1967,17 +2672,35 @@ const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60
 
 const isFree = t => t.coveredBy.every(a => a.status !== 'board');
 
+// 3D 镜头用到的小工具（往下挖的落层动画）
+const P3 = 1000;  // 透视距离（像素）
+const sm = x => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+const seg = (x, a, b) => sm((x - a) / (b - a));
+const mix = (a, b, k) => a + (b - a) * k;
+
+// 口袋有几格：大口袋、贪心会改格数
+function syncCells(n){
+  while (trough.children.length < n) trough.appendChild(document.createElement('i'));
+  while (trough.children.length > n) trough.lastChild.remove();
+  trough.style.gridTemplateColumns = `repeat(${n},1fr)`;
+  const box = meter.querySelector('.pips');
+  while (box.children.length < n) box.appendChild(document.createElement('i'));
+  while (box.children.length > n) box.lastChild.remove();
+  pips.length = 0;
+  pips.push(...box.children);
+}
 function layout(){
-  const W = stage.clientWidth;
-  const chrome = $('bar').offsetHeight + $('rail').offsetHeight + $('tools').offsetHeight + 80;
+  const W = stage.clientWidth, slots = G.slots || CAP;
+  syncCells(slots);
+  const chrome = $('bar').offsetHeight + $('rail').offsetHeight + (digbar.hidden ? 0 : digbar.offsetHeight + 10) + $('tools').offsetHeight + 80;
   const byH = (window.innerHeight - chrome - 22) / 11.2;
-  const unit = Math.floor(Math.max(34, Math.min(60, W / BW, byH)));
-  const cell = Math.floor(Math.min(unit, (W - 12) / 7.34));
+  const unit = Math.floor(Math.max(G.mode === 'dig' ? 30 : 34, Math.min(60, W / BW, byH)));
+  const cell = Math.floor(Math.min(unit, (W - 12) / (slots + .34)));
   const pad = Math.max(6, Math.round(cell * .19));
   Object.assign(L, {unit, cell, pad});
   L.boardX = Math.round((W - unit * BW) / 2);
   L.boardY = 2;
-  L.trayW = cell * 7 + pad * 2;
+  L.trayW = cell * slots + pad * 2;
   L.trayX = Math.round((W - L.trayW) / 2);
   L.holdY = Math.round(L.boardY + unit * BH + 10);
   L.holdX = L.trayX + pad;
@@ -1990,6 +2713,8 @@ function layout(){
   trough.style.setProperty('--pad', pad + 'px');
   Object.assign(shelf.style, {left: (L.holdX - 5) + 'px', top: (L.holdY - 5) + 'px', width: Math.round(cell * 3.16 + 10) + 'px', height: (cell + 10) + 'px'});
   Object.assign(meter.style, {right: Math.max(0, W - L.trayX - L.trayW + 2) + 'px', top: Math.round(L.holdY + cell / 2 - (meter.offsetHeight || 30) / 2) + 'px'});
+  digLayout();
+  fitBrand();
   Object.assign(bed.style, {left: (L.boardX - 4) + 'px', top: Math.round(L.boardY + unit * 7.5) + 'px', width: (unit * BW + 8) + 'px', height: Math.round(unit * 1.2) + 'px'});
 }
 
@@ -2072,7 +2797,8 @@ function shakePocket(){
 }
 
 function render(){
-  const {unit, cell, pad} = L, k = (cell / unit).toFixed(4);
+  const {unit, cell, pad} = L, k = (cell / unit).toFixed(4), dig = G.mode === 'dig' && G.run;
+  if (dig) digCones();
   G.slot.forEach((t, i) => { t.si = i; });
   G.hold.forEach((col, c) => col.forEach((t, d) => { t.hc = c; t.hd = d; }));
   for (const t of G.tiles){
@@ -2102,8 +2828,11 @@ function render(){
     }
     if (t.status !== 'gone'){
       if (!REDUCED && t.prev && t.prev !== t.status && t.prev !== 'gone' && t.px !== undefined) flyArc(t, t.px, t.py, t.ps, x, y, +s);
-      el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${s})`;
-      el.style.zIndex = zi;
+      // 往下挖钻层的时候，牌堆的位置交给 3D 动画
+      if (!(G.anim && t.status === 'board')){
+        el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${s})`;
+        el.style.zIndex = zi;
+      }
       el.classList.remove('hide');
       if (t.prev === 'gone' && !REDUCED) replay(el, 'back');
       t.px = x;
@@ -2111,6 +2840,7 @@ function render(){
       t.ps = +s;
     }
     t.prev = t.status;
+    if (dig) digTileState(t, el);
     el.classList.toggle('blocked', blocked);
     el.classList.toggle('onboard', t.status === 'board');
     el.classList.toggle('inslot', t.status === 'slot');
@@ -2118,7 +2848,7 @@ function render(){
     el.classList.toggle('pending', t.pending);
     const live = (t.status === 'board' || t.status === 'hold') && !blocked;
     el.tabIndex = live ? 0 : -1;
-    el.setAttribute('aria-label', ICONS[t.type].n + (t.bomb > 0 ? `，炸弹 ${t.bomb}` : '') + (t.status === 'slot' ? '，在口袋里' : blocked ? '，被压住了' : ''));
+    el.setAttribute('aria-label', (t.hatch ? `出口，${t.hlab ? t.hlab.textContent : ''}` : tyName(t.type)) + (t.bomb > 0 ? `，炸弹 ${t.bomb}` : '') + (t.status === 'slot' ? '，在口袋里' : blocked ? '，被压住了' : ''));
     if (t.bomb > 0 || t.fuseEl){
       if (!t.fuseEl){
         t.fuseEl = document.createElement('b');
@@ -2132,6 +2862,8 @@ function render(){
       }
     }
   }
+  digSync();
+  if (G.anim && G.anim.redraw) G.anim.redraw();
   hud();
   syncBlind();
   saveSoon();
@@ -2159,13 +2891,18 @@ function syncBlind(){
 }
 
 function hud(){
-  const total = G.tiles.length;
-  let left = 0;
-  for (const t of G.tiles) if (t.status !== 'gone') left++;
+  const dig = G.mode === 'dig' && G.run;
+  let total = G.tiles.length, left = 0;
+  if (dig){
+    // 往下挖：只数这一层还在牌桌上的牌（不算洞口）
+    total = G.run.fl.total || 0;
+    for (const t of G.tiles) if (t.status === 'board' && !t.hatch) left++;
+  } else for (const t of G.tiles) if (t.status !== 'gone') left++;
   const p = total ? ((total - left) / total).toFixed(4) : 0;
   const daily = G.mode === 'daily' || G.mode === 'trial';
   $('lvlPre').hidden = daily;
   $('lvlPost').hidden = daily;
+  $('lvlPost').textContent = dig ? '层' : '关';
   $('lvlNum').textContent = G.mode === 'trial' ? '练习' : daily ? '每日' : G.level;
   $('left').textContent = left;
   $('layoutName').textContent = G.cfg.intro ? '' : `${G.label} · `;
@@ -2193,37 +2930,70 @@ function toolState(id, nid, n, name){
   b.setAttribute('aria-label', n > 0 ? `${name}，还能用 ${n} 次` : `${name}，这一局已经用完`);
 }
 
+// 造一张牌的按钮（往下挖的牌多三条边，好在 3D 里看出厚度；洞口多一行小字）
+function tileEl(t){
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'tile';
+  if (t.pile) el.classList.add('pile');
+  const face = document.createElement('span');
+  face.className = 'face';
+  face.setAttribute('aria-hidden', 'true');
+  const art = document.createElement('i');
+  art.className = 'art';
+  face.appendChild(art);
+  el.appendChild(face);
+  if (G.mode === 'dig'){
+    for (const k of ['f', 'l', 'r']){
+      const side = document.createElement('span');
+      side.className = 'side ' + k;
+      side.setAttribute('aria-hidden', 'true');
+      el.appendChild(side);
+    }
+    if (t.hatch){
+      el.classList.add('hatch');
+      art.style.setProperty('--k', `var(--da-${G.run.exits.length ? nextArt(G.run.floor + 1) : 'normal'})`);
+      t.hlab = document.createElement('span');
+      t.hlab.className = 'hlab';
+      el.appendChild(t.hlab);
+    }
+  }
+  el.addEventListener('click', () => onTile(t));
+  if (t.status === 'gone') el.classList.add('gone', 'hide');
+  t.el = el;
+  t.art = art;
+  t.shown = t.hatch ? t.type : -1;
+  return el;
+}
+
 function mountTiles(deal){
   homeEl.hidden = true;
+  // 换局时把深渊留下的状态清掉；正掉进下一层的话动画还要接着用（换了一局就停掉）
+  if (G.mode !== 'dig'){ G.slots = CAP; G.run = null; G.aim = null; G.armed = null; }
+  if (!(G.anim && G.anim.keep && D && D.ep === G.epoch)){
+    if (D) diveAbort();
+    G.anim = null;
+    G.zooming = false;
+    stage.classList.remove('zooming', 'three');
+  }
+  layout();
   computeHeights(G.tiles);
+  // 口袋里带下来的牌原样留着，别的旧牌拿走
+  const keep = new Set(G.tiles.map(t => t.el).filter(Boolean));
   for (const el of stage.querySelectorAll('.tile:not(.leaving)')){
+    if (keep.has(el)) continue;
     if (REDUCED || !deal) el.remove();
     else { el.classList.add('leaving'); setTimeout(() => el.remove(), 300); }
   }
   const frag = document.createDocumentFragment();
-  const order = G.tiles.slice().sort((a, b) => a.y - b.y || a.x - b.x || a.z - b.z);
+  const order = G.tiles.filter(t => !t.el || !t.el.isConnected).sort((a, b) => a.y - b.y || a.x - b.x || a.z - b.z);
   const maxZ = Math.max(1, ...G.tiles.map(t => t.z));
   for (const t of order){
-    const el = document.createElement('button');
-    el.type = 'button';
-    el.className = 'tile';
-    if (t.pile) el.classList.add('pile');
-    const face = document.createElement('span');
-    face.className = 'face';
-    face.setAttribute('aria-hidden', 'true');
-    const art = document.createElement('i');
-    art.className = 'art';
-    face.appendChild(art);
-    el.appendChild(face);
-    el.addEventListener('click', () => onTile(t));
+    const el = tileEl(t);
     if (deal){
-      el.style.setProperty('--d', Math.round(t.z / maxZ * 700 + Math.random() * 110) + 'ms');
+      el.style.setProperty('--d', Math.round(Math.max(0, t.z) / maxZ * 700 + Math.random() * 110) + 'ms');
       el.style.setProperty('--r', (Math.random() * 12 - 6).toFixed(1) + 'deg');
     }
-    if (t.status === 'gone') el.classList.add('gone', 'hide');
-    t.el = el;
-    t.art = art;
-    t.shown = -1;
     frag.appendChild(el);
   }
   stage.appendChild(frag);
@@ -2263,9 +3033,12 @@ function startLevel(level, seed){
 
 /* ---------- 点牌 ---------- */
 function onTile(t){
-  if (G.tiles[t.id] !== t || G.over || G.won) return;
+  if (G.tiles[t.id] !== t || G.over || G.won || G.zooming) return;
   if (performance.now() < (G.flipUntil || 0)) return;
   if ((peekSrc && peekSrc !== 'gyro') || performance.now() - peekEndedAt < 350) return;
+  // 往下挖：洞口、小铲子和炸药先处理
+  const dig = G.mode === 'dig' && G.run;
+  if (dig && digTap(t)) return;
   if (t.status === 'board'){
     if (!isFree(t)) return nudge(t);
   } else if (t.status === 'hold'){
@@ -2288,11 +3061,21 @@ function onTile(t){
   G.slot.splice(at, 0, t);
   t.revealUntil = performance.now() + 900;
   G.moves++;
+  t.inAt = G.moves;
   Sound.tap();
+  // 磁铁：场上露着的同款跟着飞进来一张
+  if (dig && has('magnet') && G.slot.length < G.cap){
+    const twin = G.tiles.find(u => u !== t && u.status === 'board' && !u.hatch && !(u.chain > 0) && u.type === t.type && isFree(u));
+    if (twin){
+      twin.status = 'slot';
+      G.slot.splice(G.slot.indexOf(t) + 1, 0, twin);
+      twin.revealUntil = t.revealUntil;
+    }
+  }
 
   // 口袋里别的炸弹各走一步（刚放进来的这颗从下一步开始数），记下这一步数到 0 的
   const lit = [];
-  if (G.rule && G.rule.bomb){
+  if ((G.rule && G.rule.bomb) || dig){
     for (const b of G.slot){
       if (b === t || !(b.bomb > 0) || b.pending) continue;
       b.bomb--;
@@ -2300,8 +3083,13 @@ function onTile(t){
     }
   }
   const live = G.slot.filter(s => !s.pending), tail = live.slice(-3);
-  const same = !queue ? live.filter(s => s.type === t.type)
+  let same = !queue ? live.filter(s => s.type === t.type)
     : tail.length === 3 && tail.every(s => s.type === t.type) ? tail : [];
+  // 金羊顶替第三张
+  if (dig && same.length === 2){
+    const w = live.find(s => s.wild);
+    if (w){ w.joinType = t.type; same = same.concat(w); }
+  }
   if (same.length >= 3){
     for (const s of same.slice(0, 3)) s.pending = true;
     G.pending += 3;
@@ -2310,6 +3098,14 @@ function onTile(t){
   }
   // 数到 0 还没凑齐的炸弹爆炸；正好这一步凑齐的就算拆掉了
   for (const b of lit) if (!b.pending) explode(b);
+  // 深渊：先看自己这一步有没有撑破口袋，再让怪和险境走一步（怪塞进来的骨头也可能撑破）
+  if (dig){
+    if (!G.pending && G.slot.length >= G.cap){ render(); digOverflow(); }
+    if (!G.over) digAfterPick();
+    if (!G.over && !G.pending && G.slot.length >= G.cap){ render(); digOverflow(); }
+    if (!G.over) render();
+    return;
+  }
   if (!G.pending && G.slot.length >= G.cap){
     render();
     lose();
@@ -2329,10 +3125,12 @@ function explode(b){
 
 function settle(ep){
   if (ep !== G.epoch) return;
-  const done = G.slot.filter(s => s.pending);
+  // 几组前后脚凑成时，每组各排了一次 settle：先到的那次认领，后面的不再重复结算
+  const done = G.slot.filter(s => s.pending && !s.claimed);
   if (!done.length) return;
+  for (const s of done) s.claimed = true;
   const groups = {};
-  for (const s of done) (groups[s.type] = groups[s.type] || []).push(s);
+  for (const s of done){ const k = s.wild ? s.joinType : s.type; (groups[k] = groups[k] || []).push(s); }
   if (!REDUCED && stage.animate){
     for (const g of Object.values(groups)){
       const mid = g[Math.floor(g.length / 2)];
@@ -2356,13 +3154,15 @@ function finishSettle(ep, done, groups){
       s.el.classList.remove('flying');
       s.el.style.transform = tf(mid.px, mid.py, mid.ps);
       s.pending = false;
+      s.claimed = false;
       s.status = 'gone';
     }
     burst(mid.px + L.cell * .46, mid.py + L.cell * .46);
   }
-  G.pending = 0;
+  G.pending = Math.max(0, G.pending - done.length);
   if (G.rule && G.rule.blind) for (const t of G.slot) t.revealUntil = performance.now() + 2000;
   Sound.match();
+  if (G.mode === 'dig' && G.run) digAfterSettle(groups);
   render();
   if (G.tiles.every(t => t.status === 'gone')) win();
   else if (G.slot.length >= G.cap && !G.pending) lose();
@@ -2384,18 +3184,40 @@ function snapshot(){
     ty: G.tiles.map(t => t.type),
     slot: G.slot.filter(t => !t.pending).map(t => t.id),
     hold: G.hold.map(c => c.map(t => t.id)),
-    bm: G.tiles.map(t => t.bomb || 0), cap: G.cap
+    bm: G.tiles.map(t => t.bomb || 0), cap: G.cap,
+    dig: G.mode === 'dig' && G.run ? JSON.stringify({foes: G.run.foes, fl: G.run.fl, wool: G.run.wool, hearts: G.run.hearts, bell: G.run.bell || 0, stats: G.run.stats, charge: G.run.charge, target: G.run.target || 0, ch: G.tiles.map(t => t.chain || 0), bn: G.tiles.map(t => t.burn || 0), bg: G.tiles.map(t => t.badge || 0), xy: G.tiles.map(t => [t.x, t.y, t.z])}) : null
   });
   if (G.history.length > 80) G.history.shift();
 }
 function restoreSnap(s){
   G.epoch++;
   G.pending = 0;
-  G.tiles.forEach((t, i) => { t.status = STN[s.st[i]]; t.type = s.ty[i]; t.pending = false; });
+  G.tiles.forEach((t, i) => {
+    t.pending = false;
+    t.claimed = false;
+    if (i >= s.st.length){ t.status = 'gone'; return; }
+    t.status = STN[s.st[i]];
+    t.type = s.ty[i];
+  });
   G.slot = s.slot.map(id => G.tiles[id]);
   G.hold = s.hold.map(c => c.map(id => G.tiles[id]));
   if (s.bm) G.tiles.forEach((t, i) => { t.bomb = s.bm[i]; });
   if (s.cap) G.cap = s.cap;
+  if (s.dig && G.run){
+    const o = JSON.parse(s.dig);
+    Object.assign(G.run, {foes: o.foes, fl: o.fl, wool: o.wool, hearts: o.hearts, bell: o.bell, stats: o.stats, charge: o.charge, target: o.target});
+    G.tiles.forEach((t, i) => {
+      t.chain = o.ch[i] || 0;
+      t.burn = (o.bn && o.bn[i]) || 0;
+      t.badge = o.bg[i] || null;
+      t.melted = false;
+      t.ash = false;
+      // 被巫妖传送走的出口、被偷回牌堆的牌放回原处
+      const p = o.xy[i];
+      if (p && t.status === 'board' && (p[0] !== t.x || p[1] !== t.y || p[2] !== t.z)) relink(t, p[0], p[1], p[2]);
+    });
+    computeHeights(G.tiles);
+  }
 }
 
 /* ---------- 道具 ---------- */
@@ -2403,9 +3225,9 @@ function revive(){ if (G.over){ G.over = false; startClock(); } }
 function busyToast(){ toast('等这一组消完再用道具'); }
 
 function useOut(){
-  if (G.won) return;
+  if (G.won || G.zooming || (G.mode === 'dig' && G.over)) return;
   if (G.pending) return busyToast();
-  if (G.tools.out <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : '「移出」这一局已经用过了');
+  if (G.tools.out <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : G.mode === 'dig' ? '「移出」用完了，黑市有卖' : '「移出」这一局已经用过了');
   if (!G.slot.length) return toast('口袋是空的，没有牌可以移出');
   snapshot();
   G.slot.splice(0, 3).forEach((t, i) => { t.status = 'hold'; G.hold[i].push(t); });
@@ -2416,9 +3238,9 @@ function useOut(){
 }
 
 function useUndo(){
-  if (G.won) return;
+  if (G.won || G.zooming || (G.mode === 'dig' && G.over)) return;
   if (G.pending) return busyToast();
-  if (G.tools.undo <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : '「撤回」这一局已经用过了');
+  if (G.tools.undo <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : G.mode === 'dig' ? '「撤回」用完了，黑市有卖' : '「撤回」这一局已经用过了');
   if (!G.history.length) return toast('还没有可以撤回的一步');
   restoreSnap(G.history.pop());
   G.tools.undo--;
@@ -2444,12 +3266,12 @@ function reshuffle(pool){
 }
 
 function useShuffle(){
-  if (G.won) return;
+  if (G.won || G.zooming || (G.mode === 'dig' && G.over)) return;
   if (G.pending) return busyToast();
   if (G.rule && G.rule.mirror) return toast('「倒影」不能洗牌，洗了左右就对不上了');
-  if (G.tools.shuffle <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : '「洗牌」这一局已经用过了');
+  if (G.tools.shuffle <= 0) return toast(G.rule && G.rule.bare ? '今天是「空手」：三个道具都不能用' : G.mode === 'dig' ? '「洗牌」用完了，黑市有卖' : '「洗牌」这一局已经用过了');
   if (G.over) return toast('口袋已经满了，洗牌帮不上忙');
-  const pool = G.tiles.filter(t => t.status === 'board');
+  const pool = G.tiles.filter(t => t.status === 'board' && !t.hatch && t.type < NTYPE);
   if (pool.length < 3) return toast('场上的牌不多了，不用洗');
   snapshot();
   reshuffle(pool);
@@ -2475,6 +3297,7 @@ function useShuffle(){
 
 /* ---------- 输赢 ---------- */
 function lose(){
+  if (G.mode === 'dig' && G.run) return digOverflow();
   G.over = true;
   stopClock();
   saveGame();
@@ -2504,6 +3327,7 @@ function showLose(){
 }
 
 function win(){
+  if (G.mode === 'dig') return;
   G.won = true;
   stopClock();
   saveGame();
@@ -2621,6 +3445,7 @@ function toast(msg, ms = 1900){
 }
 
 function showHelp(){
+  if (G.mode === 'dig' && G.run) return digHelp();
   openDialog({kind: 'help', title: '怎么玩', list: [
     '只有亮着的牌能点。暗下去的牌被上面的牌压住了，要先把上面的拿走。',
     '点中的牌会收进下面的牛仔布口袋，凑齐 3 张一样的就会消掉。',
@@ -2628,13 +3453,14 @@ function showHelp(){
     '三个道具每局各能用 1 次：移出把口袋最左边 3 张挪到上面的架子上，之后还能点回来；撤回退回上一步；洗牌把场上的牌重新打乱。',
     '每一副牌发下去之前，都先算好了一条能清空的路线，所以一定有解。',
     `一共 ${FINAL} 关，打通第 ${FINAL} 关就算通关；之后还可以接着玩无尽模式。`,
-    '右上角的小房子是主菜单：在闯关、每日挑战和练习之间切换，看排行榜。练习可以任选每日挑战的规则和形状，不计成绩。',
+    '右上角的小房子是主菜单：在闯关、深渊、每日挑战和练习之间切换，看排行榜。深渊是一层层往下挖的长局，有蜡烛、灵魂和宝物；练习可以任选每日挑战的规则和形状，不计成绩。',
     ...(BOARD.url ? ['每日挑战：每天所有人同一条规则、同一个牌堆形状，每局都是新的一副牌；没用道具的排前面，同样再比谁清得快。牌堆形状每天换，规则按星期轮换（少一格、蒙眼、空手、定时炸弹、千层、大场面，星期天是双重；千层那天不用形状），难度比第 6 关还高。排行榜每天零点（北京时间）换新。'] : []),
     '右上角的调色盘可以换外观，一共五种，换了不影响这一局。',
     '每一局会先抽一种摆法：方阵、金字塔、双塔、回环、群岛、漩涡、千层、剪影、砖墙，底下的牌摞也有多有少。',
     '看不清怎么叠的：按住口袋上方的层次按钮，或者两根手指在牌堆上拖，越上层的牌挪得越远。手机也可以直接倾斜（iPhone 第一次按层次按钮时会问要不要允许）。捻开时被压住的牌只显示背面，不会偷看到底下是什么。'
   ], actions: [
     {label: '接着玩', primary: true, run: closeDialog},
+    {label: '深渊的规则', run: digHelp},
     G.level === 1
       ? {label: '跳过热身，直接去第 2 关', run: () => startLevel(2, freshSeed(2))}
       : {label: '从第 1 关重新开始', run: () => startLevel(1, freshSeed(1))}
@@ -2642,6 +3468,10 @@ function showHelp(){
 }
 
 function showRestart(){
+  if (G.mode === 'dig' && G.run) return openDialog({kind: 'menu', title: '放弃这一局？', body: `现在在第 ${G.run.floor} 层 · ${floorName(G.run.floor)}。放弃后从第 1 层重新下，宝物和灵魂都清零。`, actions: [
+    {label: '从第 1 层重新下', primary: true, run: digStart},
+    {label: '取消', run: closeDialog}
+  ]});
   if (G.mode === 'trial') return openDialog({kind: 'menu', title: '重开这局练习？', body: '练习不计成绩，随时可以重来。', actions: [
     {label: '同样的模式再来一副', primary: true, run: againTrial},
     {label: '换个模式', run: showTrialPicker},
@@ -2810,7 +3640,7 @@ function startDaily(){
   startDailyFor(beijingDay());
 }
 function startDailyFor(day){
-  if (G.mode !== 'daily' && G.tiles.length && !G.won) saveGame();
+  if (G.mode === 'dig' ? !G.over : (G.mode !== 'daily' && G.tiles.length && !G.won)) saveGame();
   const built = buildDaily(day);
   if (!built) return toast('今天的挑战没排出来，过一会儿再试');
   const r = built.rule;
@@ -2832,7 +3662,7 @@ function enterDaily(){
     savePrefs({namePrompted: true});
     return askName(enterDaily, {skip: '先不起', body: '每日挑战的成绩会上排行榜，起个名字吧，最多 12 个字。以后可以在排行榜里改。'});
   }
-  if (G.mode !== 'daily' && G.tiles.length && !G.won) saveGame();
+  if (G.mode === 'dig' ? !G.over : (G.mode !== 'daily' && G.tiles.length && !G.won)) saveGame();
   if (resume(loadGame('daily'))){
     savePrefs({mode: 'daily'});
     closeDialog();
@@ -2844,7 +3674,7 @@ function backLabel(){
   return `回到第 ${(s && s.level) || prefs.level || 1} 关`;
 }
 function backToLevels(){
-  if (G.mode === 'daily' && !G.won) saveGame();
+  if ((G.mode === 'daily' && !G.won) || (G.mode === 'dig' && !G.over)) saveGame();
   closeDialog();
   if (resume(loadGame('normal'))){
     savePrefs({mode: 'normal'});
@@ -3032,7 +3862,7 @@ function startTrial(ri, si){
   }
   if (!built) return toast('这一局没排出来，再点一次');
   // 先把正在打的闯关或每日挑战存好
-  if (G.mode !== 'trial' && G.tiles.length && !G.won) saveGame();
+  if (G.mode === 'dig' ? !G.over : (G.mode !== 'trial' && G.tiles.length && !G.won)) saveGame();
   const r = spec.rule;
   G.epoch++;
   Object.assign(G, {
@@ -3054,7 +3884,7 @@ function startLab(i){
     if (built) seed += k;
   }
   if (!built) return toast('这一局没排出来，再点一次');
-  if (G.mode !== 'trial' && G.tiles.length && !G.won) saveGame();
+  if (G.mode === 'dig' ? !G.over : (G.mode !== 'trial' && G.tiles.length && !G.won)) saveGame();
   trialPick = ['lab', i];
   G.epoch++;
   Object.assign(G, {
@@ -3140,6 +3970,2381 @@ function winTrial(){
   ]}), REDUCED ? 520 : 800);
 }
 
+/* ---------- 深渊：一层层往下挖，从地窖一直坠进地狱 ----------
+   像以撒、暗黑破坏神那样，一局从第 1 层往下挖。每层最底下压着出口，挖开、连点两下就掉进下一层；这一层不用清完。
+   口袋带到下一层（下一层按你带下来的牌发，保证凑得齐）。口袋撑破灭一根蜡烛、口袋里的牌全掉；蜡烛全灭这一局结束。
+   消一组收一个灵魂，在黑市花。宝物会改规则，可以叠着用。
+   三段：地窖 1–5、墓穴 6–10、地狱 11–15，第 5、10、15 层是鼠王、巫妖、魔王；打穿第 15 层之后是没有底的深渊。 */
+const NTYPE = 16;                       // 普通图案的种类数
+const KEY = 16, ROCK = 17, WILD = 18, BONE = 19, DIRT = 20;   // 特殊牌：钥匙、落石、替罪羊、骨头、泥土
+const XICONS = [
+  {n: '钥匙', m: ['...........', '...YYYYY...', '..YYOOOYY..', '..YO...OY..', '..YYOOOYY..', '...YYYYY...', '.....Y.....', '.....YYY...', '.....Y.....', '.....YYY...', '.....Y.....']},
+  {n: '落石', m: ['...........', '...........', '....LLLL...', '..LLLWLLLL.', '.LLLWLLLLLK', '.LLLLLLLLKK', 'LLLLLLLLLKK', 'LLLLLLLLKKK', '.KLLLLLKKK.', '..KKKKKKK..', '...........']},
+  {n: '替罪羊', m: ICONS[5].m.map(r => r.replace(/W/g, 't').replace(/L/g, 'T'))},
+  {n: '骨头', m: ['...........', '...........', '...........', '.WW.....WW.', 'WWWL...LWWW', '.LWWWWWWWL.', '.LWWWWWWWL.', 'WWWL...LWWW', '.WW.....WW.', '...........', '...........']},
+  {n: '泥土', m: ['...........', '...........', '....NNN....', '..NNNNNNN..', '.NNnNNNNNN.', '.NNNNNKNNN.', 'NNNNNNNNNNN', 'NNKNNNNnNNN', '.NNNNNNNNN.', '...........', '...........']}
+];
+const tyName = ty => (ty >= NTYPE ? XICONS[ty - NTYPE].n : ICONS[ty] ? ICONS[ty].n : '');
+// 界面上的小图：蜡烛、灵魂、各种楼层、鼠王巫妖魔王、宝物。和牌上的图案一样是 11×11 的针脚格
+const DIG_ART = {
+  heart: ['.....Y.....', '....YO.....', '....OYO....', '.....O.....', '....WWW....', '....WWW....', '....WWW....', '....WWW....', '....WWW....', '...NNNNN...', '..NNNNNNN..'],
+  heartE: ['.....L.....', '....L......', '.....L.....', '.....K.....', '....LLL....', '....LLL....', '....LLL....', '....LLL....', '....LLL....', '...KKKKK...', '..KKKKKKK..'],
+  wool: ['...........', '....uuu....', '...uWWWu...', '..uWWWWWu..', '..uWKWKWu..', '..uWWWWWu..', '..uWWWWWu..', '..uWWWWWu..', '..uWuWuWu..', '..u.u.u.u..', '...........'],
+  normal: ['.....R.....', '....ROR....', '....OYO....', '.....Y.....', '....NNN....', '.....N.....', '.....N.....', '.....N.....', '.....N.....', '.....N.....', '...........'],
+  elite: ['.K.......K.', '.KK.....KK.', '..RRRRRRR..', '.RRRRRRRRR.', '.RYKRRRKYR.', '.RRRRRRRRR.', '.RRRKKKRRR.', '.RRKWKWKRR.', '..RRRRRRR..', '...RRRRR...', '...........'],
+  treasure: ['...........', '..LLLLLLL..', '.LnnnLnnnL.', 'LnnnnLnnnnL', 'LLLLLYLLLLL', 'LnnnYKYnnnL', 'LnnnnYnnnnL', 'LnnnnLnnnnL', 'LnnnnLnnnnL', 'LLLLLLLLLLL', '...........'],
+  shop: ['....KKK....', '...KKKKK...', '..KKKKKKK..', '..KKYKYKK..', '..KKKKKKK..', '.KKKKKKKKK.', '.KKKKKKKKK.', 'KKKKKKKKKKK', 'KKKYYYKKKKK', 'KKKYYYKKKKK', 'KKKKKKKKKKK'],
+  camp: ['.....R.....', '....RO.....', '....ROR....', '...RROOR...', '...ROYOR...', '..RROYYOR..', '..ROYYYOR..', '...OYYYO...', '.NN.....NN.', '..NNNNNNN..', '.NN.....NN.'],
+  boss: ['...........', '...RRRRR...', '..RRRRRRR..', '.RRRRRRRRR.', '.RKKRRRKKR.', '.RKKRRRKKR.', '.RRRRKRRRR.', '..RRRRRRR..', '..RKRKRKR..', '...RRRRR...', '...........'],
+  rat: ['...Y.Y.Y...', '...YYYYY...', '.LL.....LL.', 'LPLLLLLLLPL', '.LLLLLLLLL.', '.LRLLLLLRL.', '..LLLLLLL..', '...LLLLL...', '....LPL....', '...W.K.W...', '...........'],
+  lich: ['..Y.Y.Y.Y..', '..YYYYYYY..', '..WWWWWWW..', '.WWWWWWWWW.', '.WTTWWWTTW.', '.WTTWWWTTW.', '.WWWWKWWWW.', '..WWWWWWW..', '..WKWKWKW..', '...WWWWW...', '...........'],
+  demon: ['K.........K', 'KK.......KK', '.KK.....KK.', '..RRRRRRR..', '.RRRRRRRRR.', '.RYYRRRYYR.', '.RRRRRRRRR.', '.RRKKKKKRR.', '.RRKWRWKRR.', '..RRRRRRR..', '...RRRRR...'],
+  gate: ['..LLLLLLL..', '.LLLLLLLLL.', 'LLKKKKKKKLL', 'LLKLLLLLKLL', 'LLKLLRLLKLL', 'LLKLRKRLKLL', 'LLKLLRLLKLL', 'LLKLLLLLKLL', 'LLKLLLLLKLL', 'LLKLLLLLKLL', 'LLLLLLLLLLL'],
+  bag: ['....NNN....', '.....N.....', '....UUU....', '...UUUUU...', '..UUuUUUU..', '.UUuUUUUUU.', '.UUUUUYUUU.', '.UUUUYUYUU.', '.UUUUUYUUU.', '..UUUUUUU..', '...........'],
+  magnet: ['.....L.....', '....L.L....', '.....L.....', '....L.L....', '.....L.....', '.....L.....', '.L...L.....', '.L...L.....', '.LL..L.....', '..LLLL.....', '...........'],
+  glasses: ['...........', '...........', '...KKKKK...', '..KWWWWWK..', '.KWWRRRWWK.', 'KWWRRKRRWWK', '.KWWRRRWWK.', '..KWWWWWK..', '...KKKKK...', '...........', '...........'],
+  scissors: ['..LLLLLL...', '.L.....LL..', '.........L.', '.......N.L.', '......N....', '.....N.....', '....N......', '...N.......', '..N........', '.N.........', '...........'],
+  bell: ['...R...R...', '..ROR.ROR..', '...N...N...', '...N...N...', '...N...N...', '...N...N...', '...N...N...', '...N...N...', '...........', '...........', '...........'],
+  map: ['.N.........', '.NNNNN.....', '.N...N.....', '.N..WWW....', '.N.WWWWW...', '.N.WWYWW...', '.N.WWWWW...', '.N..WWW....', '.N...K.....', '.N.........', '.N.........'],
+  socks: ['...........', '.NnnnnnnN..', '..nnnnnnn..', '..nnRnnnn..', '..nRRRnnn..', '..nRRRnnn..', '..nnRnnnn..', '..nnnnnnn..', '.NnnnnnnN..', '...........', '...........'],
+  piggy: ['....NNN....', '....LLL....', '...L...L...', '..L.uuu.L..', '..LuWWWuL..', '..LuWKWuL..', '..LuWWWuL..', '..L.uuu.L..', '..L.....L..', '...LLLLL...', '...........'],
+  coupon: ['...........', '...KKKKK...', '..KYYYYYK..', '.KYKKKKKYK.', '.KYKYKYKYK.', '.KYKKKKKYK.', '.KYKKYKKYK.', '.KYKKKKKYK.', '..KYYYYYK..', '...KKKKK...', '...........'],
+  dog: ['...........', '...KKK.....', '..KKYKK....', '.YYKKKKK...', '...KKKKKK..', '...KKKKKKK.', '....KKKKKKK', '.....KKKK..', '.....Y.Y...', '....YY.YY..', '...........'],
+  wild: XICONS[2].m,
+  greedy: ['...........', '....YYY....', '...YOOOY...', '...YYYYY...', '.YYY.YYY...', 'YOOOYYOOOY.', 'YYYYYYYYYY.', 'YOOOYYOOOY.', 'YYYYYYYYYY.', '...........', '...........'],
+  sweater: ['.Y...Y...Y.', '.O...O...O.', '.W...W...W.', '.W...W...W.', '.W...W...W.', '.YYYYYYYYY.', '.....Y.....', '.....Y.....', '....YYY....', '...YYYYY...', '...........'],
+  clock: ['.NNNNNNNNN.', '..YYYYYYY..', '...YYYYY...', '....YYY....', '.....Y.....', '.....Y.....', '....Y.Y....', '...Y...Y...', '..YYYYYYY..', '.NNNNNNNNN.', '...........'],
+  shovel: ['........NN.', '.......N.N.', '........NN.', '.......N...', '......N....', '.....N.....', '..LLL......', '.LLLLL.....', '.LLLLL.....', '..LLL......', '...........'],
+  tout: ['.....B.....', '....BBB....', '...BBBBB...', '.....B.....', '.....B.....', '.....B.....', '.N.......N.', '.N.......N.', '.NNNNNNNNN.', '...........', '...........'],
+  tundo: ['...........', '...B.......', '..BB.......', '.BBBBBBB...', '..BB....B..', '...B.....B.', '.........B.', '.........B.', '........B..', '.....BBB...', '...........'],
+  tshuffle: ['...........', '.......B...', 'BBB....BB..', '...B.BBBBB.', '....B..BB..', '.....B.B...', '....B......', '...B.BBBBB.', 'BBB....BB..', '.......B...', '...........'],
+  dynamite: ['.......Y...', '......YO...', '.....K.....', '....KKK....', '..KKKKKKK..', '.KKWKKKKKK.', '.KWKKKKKKK.', '.KKKKKKKKK.', '.KKKKKKKKK.', '..KKKKKKK..', '....KKK....'],
+  // 怪、棺材、锁、雾、火、岩浆、偷东西的手
+  ghoul: ['...gGGGg...', '..gGGGGGg..', '.gGKKGKKGg.', '.gGKRGKRGg.', '.gGGGGGGGg.', '..gGGKGGg..', '..GKWKWKG..', '..GKKKKKG..', '...GWKWG...', '....GGG....', '...........'],
+  bats: ['...........', 'U...K.K...U', 'UU..KKK..UU', 'UUU.KKK.UUU', 'UUUUKKKUUUU', 'UUUKRKRKUUU', '.UUKKKKKUU.', '..U.KKK.U..', '.....K.....', '...........', '...........'],
+  jailer: ['...LLLLL...', '..LLLLLLL..', '.LLLLLLLLL.', '.LKKKKKKKL.', '.LKYKKKYKL.', '.LKKKKKKKL.', '.LLLLLLLLL.', '.LL.L.L.LL.', '..LLLLLLL..', '....Y.Y....', '....YYY....'],
+  digger: ['....NNN....', '...NNNNN...', '.NNNNNNNNN.', '...nnnnn...', '..nKnnnKn..', '..nnnnnnn..', '..nnKKKnn..', '...nnnnn...', '..KKKKKKK..', '.KKKKKKKKK.', '...........'],
+  wraith: ['....ttt....', '..ttWWWtt..', '.tWWWWWWWt.', '.tWKKWKKWt.', '.tWKKWKKWt.', '.tWWWWWWWt.', '.tWWWKWWWt.', '.tWWWWWWWt.', '.tWtWWWtWt.', '.t.t.t.t.t.', '...........'],
+  thief: ['...UUUUU...', '..UUUUUUU..', '.UUnnnnnUU.', '.UKKKKKKKU.', '.UKWKKKWKU.', '.UnnnnnnnU.', '.UnnnKnnnU.', '..UnnnnnU..', '...UUUUU...', '...........', '...........'],
+  imp: ['..K.....K..', '..KK...KK..', '...OOOOO...', '..OOOOOOO..', '..OYKOKYO..', '..OOOOOOO..', '..OKOOOKO..', '..OOKKKOO..', '...OOOOO...', '....O.O....', '...........'],
+  worm: ['...........', '....ooo....', '...oKKKo...', '..oKYYYKo..', '..oKYOYKo..', '..oKYYYKo..', '...oKKKo...', '...ooooo...', '..ooooooo..', '.ROROROROR.', 'RRRRRRRRRRR'],
+  hound: ['.K.......K.', '.KK.....KK.', '.KKKKKKKKK.', '.KKRKKKRKK.', '.KKKKKKKKK.', '..KKKKKKK..', '..KKLLLKK..', '...KLKLK...', '...KWKWK...', '....KRK....', '...........'],
+  butcher: ['...nnnnn...', '..nnnnnnn..', '.nnnnnnnnn.', '.nKKnnnKKn.', '.nnRnnnRnn.', '.nnnnnnnnn.', '.nnKKKKKnn.', '..nnnnnnn..', '..rrWWWrr..', '.rrrWWWrrr.', '.rrrrrrrrr.'],
+  golem: ['..LLLLLLL..', '.LLKLLLKLL.', '.LLLLLLLLL.', '.LtTLLLTtL.', '.LLLLLLLLL.', '.LKLLLLLKL.', '.LLKKKKKLL.', '.LLLLLLLLL.', '..LKLLLKL..', '..LL...LL..', '...........'],
+  fiend: ['.Y...Y...Y.', '.OY.YOY.YO.', '.OOOOOOOOO.', '.ORRRRRRRO.', '.RYYRRRYYR.', '.RRRRRRRRR.', '.RRKKKKKRR.', '..RKYKYKR..', '...RRRRR...', '....ROR....', '...........'],
+  coffin: ['...NNNNN...', '..NnnnnnN..', '.NnnnnnnnN.', '.NnnnKnnnN.', '.NnnKKKnnN.', '..NnnKnnN..', '..NnnKnnN..', '..NnnnnnN..', '...NnnnN...', '...NNNNN...', '...........'],
+  lock: ['...........', '...LLLLL...', '..L.....L..', '..L.....L..', '.YYYYYYYYY.', '.YYYYYYYYY.', '.YYYYKYYYY.', '.YYYYKYYYY.', '.YYYYYYYYY.', '.YYYYYYYYY.', '...........'],
+  fog: ['...........', '...........', '....LLL....', '..LLWWWLL..', '.LWWWWWWWL.', 'LWWWWWWWWWL', 'LWWWWWWWWWL', '.LLLLLLLLL.', '...........', '.LLLL.LLLL.', '...........'],
+  flame: ['.....R.....', '....RR.....', '....RRR....', '...RROR....', '...ROORR...', '..RROYORR..', '..ROYYYOR..', '..ROYYYOR..', '...ROYOR...', '....RRR....', '...........'],
+  lava: ['...........', '...........', '...........', '..O.....O..', '.OYO...OYO.', 'OYYYO.OYYYO', 'RRRRRRRRRRR', 'RORRRORRROR', 'RRRRRRRRRRR', 'rrrrrrrrrrr', '...........'],
+  hand: ['...........', '..n.n.n....', '..n.n.n.n..', '..n.n.n.n..', '..nnnnnnn..', '.nnnnnnnn..', '.nnnnnnnn..', '..nnnnnn...', '...nnnn....', '...UUUU....', '...........'],
+  sword: ['.........LW', '........LWL', '.......LWL.', '......LWL..', '.....LWL...', '.N..LWL....', '..NLWL.....', '...NL......', '..N.N......', '.N.........', 'N..........'],
+  mouse: ['...........', '...........', '......LL...', '....LLLLL..', '..LLLLLLLL.', '.LLLLLLLKLL', 'LLLLLLLLLLP', 'L.LLLLLLLL.', 'L..L...L...', '.L.........', '...........'],
+  xbone: XICONS[3].m, xdirt: XICONS[4].m, xrock: XICONS[1].m
+};
+// 把这些小图画好，放进 CSS 变量（--da-名字、--ic-16 起的特殊牌）。深渊里一律用针脚的画法
+function digArt(){
+  const draw = skin === 'pixel' ? pixelIcon : stitchIcon;
+  for (const [k, m] of Object.entries(DIG_ART)) bodyStyle.setProperty(`--da-${k}`, `url(${draw(m)})`);
+  XICONS.forEach((ic, i) => {
+    const url = skin === 'type' ? '' : skin === 'riso' ? risoIcon(ic.m, NTYPE + i) : draw(ic.m);
+    if (url) bodyStyle.setProperty(`--ic-${NTYPE + i}`, `url(${url})`);
+    else bodyStyle.removeProperty(`--ic-${NTYPE + i}`);
+  });
+}
+
+const DIG_KEY = 'mielegemie:dig';
+const MODE_NAME = '深渊';
+const FLOOR_END = 15;
+// 每一层的名字；第 15 层往下是无底深渊
+const FLOORS = ['地窖入口', '废弃酒窖', '老鼠洞', '锁链地牢', '鼠王巢穴', '墓道', '白骨长廊', '无名墓室', '蛛网墓穴', '巫妖王座', '硫磺河', '熔岩裂谷', '焦骨荒原', '黑铁要塞', '魔王殿'];
+const floorName = f => (f <= FLOORS.length ? FLOORS[f - 1] : '无底深渊');
+const ZONES = [{name: '地窖'}, {name: '墓穴'}, {name: '地狱'}, {name: '深渊'}];
+const zoneOf = f => Math.min(3, Math.floor((f - 1) / 5));
+// 每一段五层，节奏固定：普通、普通、恶魔、篝火、Boss；无底深渊里也照这个节奏往下
+const kindOf = f => ['boss', 'normal', 'normal', 'elite', 'camp'][f % 5];
+const bossOf = f => (f % 5 === 0 ? ['ratking', 'lich', 'demon'][(f / 5 - 1) % 3] : null);
+const KINDS = {
+  normal: {n: '普通层', art: 'normal'},
+  elite: {n: '恶魔层', art: 'elite'},
+  camp: {n: '篝火', art: 'camp'},
+  boss: {n: 'Boss 层', art: 'boss'}
+};
+const ROOMS = new Set(['camp']);
+// 下一层叫什么、出口上画什么（Boss 层写 Boss 的名字）
+const nextName = f => (bossOf(f) ? FOES[bossOf(f)].n : KINDS[kindOf(f)].n);
+const nextArt = f => (bossOf(f) ? FOES[bossOf(f)].art : KINDS[kindOf(f)].art);
+/* ---- 怪：每层一只，上一层没打死跑掉的会跟下来。每凑成一组三张砍它一刀；它隔几步出一招，下一招和还剩几步都写在它旁边
+   hp 是基础血量，越往下越厚；moves 按顺序轮着出 ---- */
+const FOES = {
+  ghoul: {n: '食尸鬼', art: 'ghoul', hp: 5, moves: ['bone']},
+  bats: {n: '蝙蝠群', art: 'bats', hp: 5, moves: ['snuff']},
+  jailer: {n: '狱卒', art: 'jailer', hp: 7, moves: ['chain']},
+  digger: {n: '掘墓人', art: 'digger', hp: 7, moves: ['bury']},
+  wraith: {n: '幽魂', art: 'wraith', hp: 6, moves: ['fog']},
+  thief: {n: '盗墓贼', art: 'thief', hp: 6, moves: ['steal']},
+  imp: {n: '小恶魔', art: 'imp', hp: 7, moves: ['ignite']},
+  worm: {n: '熔岩虫', art: 'worm', hp: 8, moves: ['gnaw']},
+  hound: {n: '地狱犬', art: 'hound', hp: 8, moves: ['breath']},
+  butcher: {n: '屠夫', art: 'butcher', elite: true, hp: 7, moves: ['chain', 'bone']},
+  golem: {n: '守墓巨人', art: 'golem', elite: true, hp: 10, moves: ['bury', 'fog']},
+  fiend: {n: '炎魔', art: 'fiend', elite: true, hp: 13, moves: ['ignite', 'gnaw']},
+  ratking: {n: '鼠王', art: 'rat', boss: true, hp: 14, moves: ['burrow', 'snuff'], d: '鼠王带着一窝老鼠钻进牌堆，把露着的牌和下面一层一起洗乱，露出来的图案会变；还会扑灭烛火。不打死它，出口打不开。'},
+  lich: {n: '巫妖', art: 'lich', boss: true, hp: 14, moves: ['bone2', 'fog', 'warp'], d: '巫妖往你口袋里吐骨头、放浓雾，还会把出口传送走。不打死它，出口打不开。'},
+  demon: {n: '魔王', art: 'demon', boss: true, hp: 20, moves: ['rocks', 'ignite', 'chain2'], d: '魔王砸石头、点火、上锁，三招轮着来。不打死它，出口打不开。'}
+};
+const MOVES = {
+  bone: {n: '吐骨头', every: 6, art: 'xbone', d: '往你口袋里吐一根骨头，三根骨头也算一组'},
+  bone2: {n: '吐两根骨头', every: 8, art: 'xbone', d: '往你口袋里吐两根骨头'},
+  snuff: {n: '扑灭烛火', every: 7, art: 'bats', d: '烛火灭掉三步，牌堆一片漆黑'},
+  chain: {n: '上锁', every: 5, art: 'lock', d: '锁住一张露着的牌，凑成一组就解开'},
+  chain2: {n: '上两把锁', every: 5, art: 'lock', d: '锁住两张露着的牌，凑成一组就解开'},
+  bury: {n: '埋土', every: 5, art: 'xdirt', d: '往牌堆上倒三块泥土，三块泥土也能凑一组'},
+  fog: {n: '吐雾', every: 6, art: 'fog', d: '一团浓雾盖住一片牌，几步之后才散'},
+  steal: {n: '偷牌', every: 4, art: 'hand', d: '把你最后放进口袋的那张偷回牌堆上'},
+  ignite: {n: '点火', every: 5, art: 'flame', d: '口袋里一张牌烧起来，4 步内不凑成一组就炸坏一格口袋'},
+  gnaw: {n: '啃地', every: 4, art: 'lava', d: '岩浆马上往前漫一排'},
+  breath: {n: '喷火', every: 6, art: 'flame', d: '一排露着的牌烧起来，3 步之内不拿走就烧成灰'},
+  burrow: {n: '钻洞', every: 6, art: 'mouse', d: '老鼠钻进牌堆，把露着的牌和下面一层一起洗乱：等着的那张可能被洗下去'},
+  rocks: {n: '落石', every: 5, art: 'xrock', d: '头顶砸下三块石头，三块也能凑一组'},
+  warp: {n: '传送出口', every: 8, art: 'lich', d: '把出口传送到牌堆别处'}
+};
+// 每一段的怪：普通层三选一，恶魔层固定一只
+const ROSTER = [['ghoul', 'bats', 'jailer'], ['digger', 'wraith', 'thief'], ['imp', 'worm', 'hound']];
+const ELITES = ['butcher', 'golem', 'fiend'];
+const LIGHT_MAX = 12;   // 烛火：每走一步烧掉 1，凑成一组添 3，烧完就灭三步
+const RELICS = {
+  bag: {n: '无底袋', d: '口袋多一格（最多叠两个）', rare: true, max: 2},
+  magnet: {n: '铁钩', d: '拿一张牌时，场上露着的同款会被一起钩进口袋', rare: true},
+  glasses: {n: '邪眼', d: '牌堆变得半透明，被压住的牌也看得清'},
+  scissors: {n: '镰刀', d: '每层第一次口袋要撑破时，割掉最左边 3 张，蜡烛不灭'},
+  bell: {n: '火柴', d: '每消掉 12 组，重新点亮一根蜡烛'},
+  map: {n: '提灯', d: '黑暗和浓雾里，露着的牌照样看得清'},
+  socks: {n: '血契', d: '上一组消掉后 3 步之内又消一组，这一组的伤害和灵魂都翻倍'},
+  piggy: {n: '灵魂瓶', d: '每往下一层，手里每 5 个灵魂多给 1 个（最多 5 个）'},
+  coupon: {n: '黑市徽章', d: '篝火边的商人打七折'},
+  dog: {n: '乌鸦', d: '每到新的一层，口袋里落单的牌被乌鸦叼走'},
+  wild: {n: '替罪羊', d: '每到新的一层，口袋里多一只替罪羊，能顶替任何一张凑成一组', rare: true},
+  greedy: {n: '贪婪', d: '灵魂翻倍，但口袋少一格'},
+  sweater: {n: '烛台', d: '蜡烛上限多两根，马上全部点亮', rare: true},
+  clock: {n: '沙漏', d: '怪的每一招都晚 2 步出手'},
+  shovel: {n: '掘墓铲', d: '每层一次：点它，再点一张露着的牌，直接铲掉，不进口袋', active: true},
+  dynamite: {n: '硫磺弹', d: '每层一次：点它，再点一张露着的牌，连周围露着的一起炸掉，还震伤怪 2 点', active: true, rare: true}
+};
+const TOOL_NAMES = {out: '移出', undo: '撤回', shuffle: '洗牌'};
+const relicCount = id => (G.run ? G.run.relics.filter(r => r === id).length : 0);
+const has = id => relicCount(id) > 0;
+
+/* ---- 难度：越往下牌越多、图案越多、能走通的路越窄 ---- */
+function floorCfg(f, kind){
+  const d = f - 1;
+  const cfg = Object.assign({}, levelCfg(5), {
+    target: Math.round(42 + Math.min(d, 20) * 5.5),
+    piles: 4 + Math.min(10, d),
+    types: Math.min(NTYPE, 8 + Math.ceil(d * .6 - .001)),
+    interleave: Math.min(.62, .32 + d * .025),
+    maxSlot: d < 2 ? 5 : 6,
+    maxLayers: Math.min(14, 6 + Math.floor(d / 1.5))
+  });
+  // 恶魔层牌多一点、图案多一种；难的主要是那只恶魔
+  if (kind === 'elite'){
+    cfg.target = Math.round(cfg.target * 1.12);
+    cfg.types = Math.min(NTYPE, cfg.types + 1);
+    cfg.interleave = Math.min(.66, cfg.interleave + .03);
+  }
+  // Boss 层牌多一点；Boss 自己的招已经够难，图案不再加
+  if (kind === 'boss') cfg.target = Math.round(cfg.target * 1.1);
+  return cfg;
+}
+function digArch(rng){
+  const pool = ARCHES.filter(a => a.id !== 'columns');
+  let r = rng() * pool.reduce((s, a) => s + archW(a), 0);
+  for (const a of pool){ r -= archW(a); if (r < 0) return a; }
+  return pool[0];
+}
+function digCapFor(run){
+  const slots = CAP + run.relics.filter(r => r === 'bag').length - (run.relics.includes('greedy') ? 1 : 0);
+  return {slots, cap: slots};
+}
+// 一个位置上面一共压着几张：顺着“谁压着谁”一路往上数
+function coneAt(tiles, x, y, live){
+  const set = new Set();
+  const stack = tiles.filter(t => !t.hatch && t.z > -2 && (!live || t.status === 'board') && Math.abs(t.x - x) < .999 && Math.abs(t.y - y) < .999);
+  while (stack.length){
+    const t = stack.pop();
+    if (set.has(t)) continue;
+    set.add(t);
+    for (const a of t.coveredBy) if (!a.hatch && (!live || a.status === 'board') && !set.has(a)) stack.push(a);
+  }
+  return set;
+}
+// 洞口能放在哪：主牌堆最底下两层的位置
+function hatchSpots(tiles){
+  const seen = new Set(), out = [];
+  for (const t of tiles){
+    if (t.pile || t.z > 1) continue;
+    const key = Math.round(t.x * 3) + ',' + Math.round(t.y * 3);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const cone = coneAt(tiles, t.x, t.y).size;
+    if (cone >= 5) out.push({x: t.x, y: t.y, cone});
+  }
+  return out;
+}
+// 出口：越往下埋得越深（前几层挑中等深度的位置，地狱挑最深的那一批）；Boss 层放在中间附近
+function chooseHatches(spots, n, central, rng, f = 1){
+  if (!spots.length) return null;
+  const s = spots.slice().sort((a, b) => b.cone - a.cone);
+  const [a0, a1] = f === 1 ? [.5, .85] : f <= 5 ? [.3, .7] : f <= 10 ? [.15, .55] : [0, .35];
+  const top = s.slice(Math.floor(s.length * a0), Math.max(Math.floor(s.length * a0) + 1, Math.ceil(s.length * a1)));
+  const c = central ? top.filter(p => Math.abs(p.x - 3) < 1.7) : top;
+  return [pickOne(c.length ? c : top, rng)];
+}
+// 上一层没挖完塌下来的牌：东一张西一张散在牌堆最上面，每张都压着点别的
+function rubblePos(pos, n, rng){
+  const out = [];
+  for (let tries = 0; out.length < n && tries < n * 30; tries++){
+    const x = Math.round(rng() * 18) / 3, y = Math.round(rng() * 20) / 3;
+    if (out.some(p => Math.abs(p.x - x) < .999 && Math.abs(p.y - y) < .999)) continue;
+    const under = pos.filter(p => !p.pile && Math.abs(p.x - x) < .999 && Math.abs(p.y - y) < .999);
+    if (!under.length) continue;
+    out.push({x, y, z: 1 + Math.max(...under.map(p => p.z)), rubble: true});
+  }
+  return out;
+}
+// 蝙蝠窝、棺材：藏在只被一两张压着的牌上（记号从边上露出来，细心能看见），挖开的那一刻发作；几个之间隔开一点
+function placeBadges(board, kind, n, rng){
+  const cands = shuffled(board.filter(t => !t.pile && !t.rubble && t.type < NTYPE && t.coveredBy.length >= 1 && t.coveredBy.length <= 2), rng), out = [];
+  for (const t of cands){
+    if (out.length >= n) break;
+    if (out.some(u => Math.hypot(u.x - t.x, u.y - t.y) < 2.4)) continue;
+    t.badge = kind;
+    out.push(t);
+  }
+}
+// 发一层牌：先摆形状、撒上塌下来的牌、放出口，再按“带下来的口袋 + 这一层”算一条能清空的路线给每张牌定图案
+function digBuild(run, f, kind, mod, slotTy, holdTy, cap, seed, rubbleN, hz, nCoffin = 3){
+  const cfg = floorCfg(f, kind), boss = kind === 'boss';
+  hz = hz || [];
+  // 带下来的牌，这一层要给它们配齐
+  const counts = new Map();
+  for (const ty of [...slotTy, ...holdTy]) counts.set(ty, (counts.get(ty) || 0) + 1);
+  const supply0 = {};
+  let need = 0;
+  for (const [ty, c] of counts){
+    const k = (3 - c % 3) % 3;
+    if (k){ supply0[ty] = k; need += k; }
+  }
+  let spare = null;
+  for (let attempt = 0; attempt < 40; attempt++){
+    const rng = rngFrom((seed + attempt * 7919) >>> 0);
+    let pos = makeLayout(rng, cfg, digArch(rng)).pos;
+    if (rubbleN) pos = pos.concat(rubblePos(pos, rubbleN, rng));
+    // 张数对齐：除去要配的，剩下的得是 3 的倍数，从主牌堆最底下拿掉一两张
+    const extra = (pos.length - need) % 3;
+    if (extra){
+      const drop = new Set(pos.filter(p => !p.pile && !p.rubble).sort((a, b) => a.z - b.z).slice(0, extra));
+      pos = pos.filter(p => !drop.has(p));
+    }
+    const picks = chooseHatches(hatchSpots(makeTiles(pos)), 1, boss, rng, f);
+    if (!picks) continue;
+    const tiles = makeTiles(pos.concat(picks.map(p => ({x: p.x, y: p.y, z: -1}))));
+    const board = tiles.slice(0, pos.length);
+    board.forEach((t, i) => { if (pos[i].rubble) t.rubble = true; });
+    const h = tiles[pos.length];
+    h.type = -1;
+    h.hatch = {i: 0, kind};
+    if (boss) h.sealed = true;
+    const types = shuffled([...Array(NTYPE).keys()], rng).slice(0, cfg.types), supply = Object.assign({}, supply0);
+    for (let i = 0; i < (board.length - need) / 3; i++) supply[types[i % types.length]] = (supply[types[i % types.length]] || 0) + 3;
+    // 同一个摆法多试几次路线；越往后试，路线越“稳”（少开新的一种），总能排出来
+    let res = null;
+    for (let k = 0; k < 10 && !res; k++) res = plan(board, {supply, slot: slotTy, hold: holdTy, interleave: cfg.interleave * (1 - k * .07), maxSlot: cfg.maxSlot, cap, rng});
+    if (!res){
+      if (!spare) spare = {tiles, board, supply, rng};
+      continue;
+    }
+    for (const t of board) t.type = res.assign.get(t.id);
+    if (hz.includes('bats')) placeBadges(board, 'bat', 2, rng);
+    if (hz.includes('coffin')) placeBadges(board, 'coffin', nCoffin, rng);
+    return {tiles, guaranteed: true};
+  }
+  // 实在排不出保证走得通的路（多半是带下来的口袋太乱），就照张数随便发
+  if (!spare) return null;
+  const bag = [];
+  for (const [ty, n] of Object.entries(spare.supply)) for (let i = 0; i < n; i++) bag.push(+ty);
+  shuffled(bag, spare.rng).forEach((ty, i) => { spare.board[i].type = ty; });
+  return {tiles: spare.tiles, guaranteed: false};
+}
+
+/* ---- 一局的进度 ---- */
+function newRun(){
+  return {
+    v: 4, seed: newSeed(), floor: 1, kind: 'normal', mod: null, exits: [], room: null,
+    hearts: 3, maxHearts: 3, wool: 0, relics: [], charge: {}, bell: 0, endless: false, deepest: 1,
+    foes: [], followers: [], rubble: 0, lastFoe: null, seen: {}, owed: [], target: 0,
+    fl: {}, stats: {triples: 0, wool: 0, hurt: 0, relics: 0, kills: 0}
+  };
+}
+// 每层只有一个出口，通到下一层；第 15 层打穿之前不往无底深渊开
+function digExits(run){
+  const f = run.floor;
+  if (!run.endless && f >= FLOOR_END) return [];
+  return [{kind: kindOf(f + 1)}];
+}
+// 这一层的险境：地窖的烛火会烧完、牌底下有蝙蝠窝；墓穴的棺材冒雾；地狱的岩浆漫过来；无底深渊里随机两样
+// Boss 层只留烛火（Boss 自己会关灯、吐雾），不放蝙蝠窝、棺材、岩浆；第 2 层先只有烛火，蝙蝠窝从第 3 层开始
+function hazardsFor(run, f, kind){
+  const z = zoneOf(f), boss = kind === 'boss';
+  let hz;
+  if (z === 0) hz = f === 1 ? [] : f === 2 ? ['light'] : ['light', 'bats'];
+  else if (z === 1) hz = ['coffin'];
+  else if (z === 2) hz = ['lava'];
+  else hz = shuffled([['light', 'bats'], ['coffin'], ['lava']], rngFrom((run.seed + f * 271) >>> 0)).slice(0, 2).flat();
+  return boss ? hz.filter(h => h === 'light') : hz;
+}
+// 这一层来哪只怪：第 1 层总是食尸鬼；不和上一层的、也不和跟下来的同一种；熔岩虫只来有岩浆的层
+function pickFoe(run, f, kind, hz, follow){
+  if (kind === 'boss') return bossOf(f);
+  const z = zoneOf(f), rng = rngFrom((run.seed + f * 613) >>> 0);
+  if (kind === 'elite') return z < 3 ? ELITES[z] : pickOne(ELITES, rng);
+  if (f === 1) return 'ghoul';
+  const pool = (z < 3 ? ROSTER[z] : ROSTER.flat()).filter(k => k !== run.lastFoe && !follow.includes(k) && (k !== 'worm' || hz.includes('lava')));
+  return pickOne(pool.length ? pool : ROSTER[0].filter(k => !follow.includes(k)), rng);
+}
+const moveEvery = m => MOVES[m].every + (has('clock') ? 2 : 0);
+// 血量：基础血量，越往下越厚；也不超过这一层能凑出来的组数的四成多
+function foeHp(kind, f, triples){
+  const F = FOES[kind], add = F.boss ? Math.floor((f - 1) / 15) * 6 : Math.floor((f - 1) * (F.elite ? .6 : .5));
+  return Math.max(3, Math.min(F.hp + add, Math.floor(triples * .45)));
+}
+function newFoe(kind, f, triples){
+  const F = FOES[kind], hp = foeHp(kind, f, triples);
+  return {kind, hp, max: hp, mi: 0, left: moveEvery(F.moves[0]) + (F.boss ? 2 : 1)};
+}
+const relicPrice = id => Math.ceil((RELICS[id].rare ? 32 : 22) * (has('coupon') ? .7 : 1));
+const itemPrice = base => Math.ceil(base * (has('coupon') ? .7 : 1));
+function relicOffers(n, rareP, rng){
+  const ok = id => relicCount(id) < (RELICS[id].max || 1);
+  const rare = Object.keys(RELICS).filter(id => ok(id) && RELICS[id].rare), common = Object.keys(RELICS).filter(id => ok(id) && !RELICS[id].rare);
+  const out = [];
+  while (out.length < n && (rare.length || common.length)){
+    const from = (rng() < rareP && rare.length) || !common.length ? rare : common;
+    out.push(from.splice(Math.floor(rng() * from.length), 1)[0]);
+  }
+  return out;
+}
+// 篝火：歇脚（点亮蜡烛或者烧掉口袋，二选一），旁边还有个商人
+function newRoom(kind, run){
+  const rng = rngFrom((run.seed + run.floor * 31 + 7) >>> 0);
+  const tool = pickOne(['out', 'undo', 'shuffle'], rng);
+  return {kind, used: null, goods: [...relicOffers(2, .35, rng).map(id => ({t: 'relic', id})), {t: 'tool', id: tool}], sold: []};
+}
+
+/* ---- 界面：蜡烛、险境、宝物、灵魂一排；下面每只怪一行；房间、坠落的过场、每一段的底色 ---- */
+const mk = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+const digbar = mk('div', 'digbar');
+digbar.hidden = true;
+const dgRow = mk('div', 'dg-row'), dgHearts = mk('div', 'dg-hearts'), dgHaz = mk('div', 'dg-haz'), dgRelics = mk('div', 'dg-relics'), dgWool = mk('div', 'dg-wool');
+dgWool.append(mk('i'), mk('b'));
+dgRow.append(dgHearts, dgHaz, dgRelics, dgWool);
+const dgFoes = mk('div', 'dg-foes');
+dgFoes.hidden = true;
+digbar.append(dgRow, dgFoes);
+$('rail').after(digbar);
+const zoneEl = mk('div', 'zone'), roomEl = mk('div', 'room'), fallEl = mk('div', 'fall');
+zoneEl.hidden = roomEl.hidden = fallEl.hidden = true;
+zoneEl.setAttribute('aria-hidden', 'true');
+fallEl.setAttribute('aria-hidden', 'true');
+stage.prepend(zoneEl);
+stage.append(roomEl);
+// 岩浆铺在地面上；黑暗和浓雾盖在牌堆上面、口袋下面
+const lavaEl = mk('div', 'lava');
+lavaEl.hidden = true;
+zoneEl.appendChild(lavaEl);
+const shadeEl = mk('div', 'shade'), fogLayer = mk('div', 'foglayer');
+shadeEl.setAttribute('aria-hidden', 'true');
+fogLayer.setAttribute('aria-hidden', 'true');
+stage.append(shadeEl, fogLayer);
+document.body.appendChild(fallEl);
+function digLayout(){
+  const U = L.unit;
+  const box = {left: (L.boardX - 6) + 'px', top: (L.boardY - 2) + 'px', width: (U * BW + 12) + 'px', height: Math.round(U * BH + 4) + 'px'};
+  Object.assign(zoneEl.style, box);
+  Object.assign(shadeEl.style, box);
+  Object.assign(roomEl.style, {left: (L.boardX + 2) + 'px', top: (L.boardY + 4) + 'px', width: (U * BW - 4) + 'px', height: Math.round(U * BH - 6) + 'px'});
+}
+let relicKey = '';
+function digSync(){
+  const run = G.mode === 'dig' ? G.run : null;
+  syncHell(run);
+  const was = !digbar.hidden;
+  digbar.hidden = !run;
+  zoneEl.hidden = !run;
+  if (!run){
+    roomEl.hidden = true;
+    stage.classList.remove('xray', 'aiming', 'dark', 'lamp');
+    shadeEl.hidden = true;
+    fogLayer.replaceChildren();
+    if (was) requestAnimationFrame(relayout);
+    return;
+  }
+  zoneEl.className = 'zone z' + zoneOf(run.floor);
+  // 心
+  const hk = run.hearts + '/' + run.maxHearts;
+  if (dgHearts.dataset.k !== hk){
+    const lost = dgHearts.dataset.k && +dgHearts.dataset.k.split('/')[0] > run.hearts;
+    dgHearts.dataset.k = hk;
+    // 蜡烛多于 6 根就只画一根，后面写数字，免得一排太长
+    if (run.maxHearts <= 6) dgHearts.replaceChildren(...Array.from({length: run.maxHearts}, (_, i) => mk('i', i < run.hearts ? '' : 'empty')));
+    else {
+      const n = mk('b');
+      n.textContent = `${run.hearts}/${run.maxHearts}`;
+      dgHearts.replaceChildren(mk('i', run.hearts ? '' : 'empty'), n);
+    }
+    if (lost && !REDUCED) replay(dgHearts, 'hit');
+    dgHearts.setAttribute('aria-label', `还有 ${run.hearts} 根蜡烛亮着，最多 ${run.maxHearts} 根`);
+  }
+  syncHaz(run);
+  // 宝物：点一下看说明；小铲子、炸药这一层还能用就发光
+  const rk = run.relics.join(',') + '|' + JSON.stringify(run.charge) + '|' + (G.aim || '') + '|' + !!run.room;
+  if (rk !== relicKey){
+    relicKey = rk;
+    const seen = [];
+    dgRelics.replaceChildren(...run.relics.filter(id => !seen.includes(id) && seen.push(id)).map(id => {
+      const b = mk('button', 'dg-relic');
+      b.type = 'button';
+      b.style.backgroundImage = `var(--da-${id})`;
+      const R = RELICS[id], n = relicCount(id);
+      b.setAttribute('aria-label', `${R.n}${n > 1 ? ` ×${n}` : ''}：${R.d}`);
+      if (n > 1){ const c = mk('b'); c.textContent = n; b.appendChild(c); }
+      if (R.active){
+        b.classList.toggle('ready', !!run.charge[id] && !run.room);
+        b.classList.toggle('spent', !run.charge[id]);
+        b.classList.toggle('on', G.aim === id);
+      }
+      b.addEventListener('click', () => onRelic(id));
+      return b;
+    }));
+  }
+  // 灵魂
+  const wb = dgWool.lastChild;
+  if (wb.textContent !== String(run.wool)){
+    if (wb.textContent && +wb.textContent < run.wool && !REDUCED) replay(dgWool, 'bump');
+    wb.textContent = run.wool;
+  }
+  dgWool.setAttribute('aria-label', `灵魂 ${run.wool} 个`);
+  syncFoes(run);
+  syncScene(run);
+  stage.classList.toggle('xray', has('glasses'));
+  stage.classList.toggle('aiming', !!G.aim);
+  const dh = digbar.offsetHeight;
+  if (was !== !digbar.hidden || (dh && dh !== digH && !G.zooming)){ digH = dh; requestAnimationFrame(relayout); }
+}
+let digH = 0;
+// 险境的小牌子：烛火还能烧几步、漆黑还剩几步、岩浆还有几步漫过来
+function syncHaz(run){
+  const fl = run.fl || {}, chips = [];
+  if (fl.dark > 0) chips.push(['dark', 'bats', `${fl.dark}`, `一片漆黑，再走 ${fl.dark} 步才亮`]);
+  else if (fl.light != null) chips.push([fl.light <= 3 ? 'low' : '', 'normal', `${fl.light}`, `烛火还能烧 ${fl.light} 步，凑成一组添 3 步`]);
+  if (fl.lava) chips.push([fl.lava.next <= 2 ? 'low' : '', 'lava', `${fl.lava.next}`, `岩浆再过 ${fl.lava.next} 步往前漫一排`]);
+  const k = JSON.stringify(chips);
+  if (dgHaz.dataset.k === k) return;
+  dgHaz.dataset.k = k;
+  dgHaz.replaceChildren(...chips.map(([cls, art, text, label]) => {
+    const c = mk('button', 'haz ' + cls);
+    c.type = 'button';
+    const i = mk('i');
+    i.style.backgroundImage = `var(--da-${art})`;
+    const b = mk('b');
+    b.textContent = text;
+    c.append(i, b);
+    c.setAttribute('aria-label', label);
+    c.addEventListener('click', () => toast(label, 2200));
+    return c;
+  }));
+}
+// 怪：头像、名字、血条，右边是下一招和还剩几步
+function syncFoes(run){
+  const foes = run.room ? [] : run.foes || [];
+  dgFoes.hidden = !foes.length;
+  dgFoes.classList.toggle('two', foes.length > 1);
+  while (dgFoes.children.length > foes.length) dgFoes.lastChild.remove();
+  foes.forEach((f, i) => {
+    let row = dgFoes.children[i];
+    if (!row || row.dataset.kind !== f.kind || row.dataset.max !== String(f.max)){
+      const fresh = foeRow(f, i);
+      if (row) dgFoes.replaceChild(fresh, row); else dgFoes.appendChild(fresh);
+      row = fresh;
+    }
+    const F = FOES[f.kind], M = MOVES[F.moves[f.mi]];
+    row.querySelector('.hp u').style.width = (f.hp / f.max * 100).toFixed(1) + '%';
+    row.querySelector('.hp-n').textContent = `${f.hp}/${f.max}`;
+    const it = row.querySelector('.intent');
+    it.querySelector('i').style.backgroundImage = `var(--da-${M.art})`;
+    it.querySelector('span').textContent = M.n;
+    it.querySelector('em').textContent = f.left;
+    it.classList.toggle('soon', f.hp > 0 && f.left <= 1);
+    row.classList.toggle('dead', f.hp <= 0);
+    if (f.hp > 0) row.classList.remove('dying');
+    row.classList.toggle('target', f.hp > 0 && f === targetFoe() && foes.filter(x => x.hp > 0).length > 1);
+    row.setAttribute('aria-label', f.hp > 0 ? `${F.n}，血 ${f.hp}/${f.max}，${f.left} 步后${M.n}：${M.d}` : `${F.n}，已经打倒`);
+  });
+}
+function foeRow(f, i){
+  const F = FOES[f.kind], row = mk('button', 'foe' + (F.boss ? ' boss' : F.elite ? ' elite' : ''));
+  row.type = 'button';
+  row.dataset.kind = f.kind;
+  row.dataset.max = f.max;
+  const pic = mk('i', 'foe-pic');
+  pic.style.backgroundImage = `var(--da-${F.art})`;
+  const mid = mk('span', 'foe-mid'), nm = mk('b'), hp = mk('span', 'hp'), hn = mk('small', 'hp-n');
+  nm.textContent = F.n;
+  hp.appendChild(mk('u'));
+  mid.append(nm, hn, hp);
+  const it = mk('span', 'intent');
+  it.append(mk('i'), mk('span'), mk('em'));
+  row.append(pic, mid, it);
+  row.addEventListener('click', () => {
+    const run = G.run, o = run && run.foes[i];
+    if (!o) return;
+    // 两只怪都活着：点哪只就先砍哪只；再点一下看招式
+    if (o.hp > 0 && targetFoe() !== o && run.foes.filter(x => x.hp > 0).length > 1){
+      if (G.pending) return toast('等这一组消完再换目标');
+      run.target = i;
+      Sound.tap();
+      render();
+      return toast(`瞄准了${FOES[o.kind].n}：凑成的组先砍它（再点一下看招式）`, 2200);
+    }
+    foeInfo(o);
+  });
+  return row;
+}
+const foeMovesText = kind => FOES[kind].moves.map(m => `${MOVES[m].n}（每 ${moveEvery(m)} 步）：${MOVES[m].d}`).join('；');
+function foeInfo(f){
+  const F = FOES[f.kind];
+  toast(f.hp > 0 ? `${F.n}，血 ${f.hp}/${f.max} · ${foeMovesText(f.kind)}` : `${F.n}已经打倒了`, 4200);
+}
+// 场景：烛火越少越暗、漆黑、浓雾、岩浆
+function syncScene(run){
+  const fl = run.fl || {}, U = L.unit, fight = !run.room;
+  const dark = fight && fl.dark > 0;
+  stage.classList.toggle('dark', dark);
+  stage.classList.toggle('lamp', has('map'));
+  shadeEl.hidden = !fight || (fl.light == null && !dark);
+  const a = dark ? .9 : fl.light == null ? 0 : Math.max(0, .5 - fl.light / LIGHT_MAX * .62);
+  shadeEl.style.setProperty('--a', a.toFixed(3));
+  shadeEl.classList.toggle('flicker', !dark && fl.light != null && fl.light <= 3);
+  // 浓雾：一团一个元素，散的时候淡出
+  const fogs = fight ? fl.fogs || [] : [];
+  const els = new Map([...fogLayer.children].map(e => [e.dataset.id, e]));
+  for (const c of fogs){
+    let e = els.get(String(c.id));
+    // 正在散的那团（撤回让它又回来了）换一个新的
+    if (e && e.classList.contains('bye')){ e.remove(); e = null; }
+    if (!e){
+      e = mk('i', 'fog');
+      e.dataset.id = c.id;
+      e.style.setProperty('--r', (c.id * 47 % 360) + 'deg');
+      fogLayer.appendChild(e);
+    }
+    els.delete(String(c.id));
+    const R = c.r * U;
+    Object.assign(e.style, {left: (L.boardX + c.x * U - R) + 'px', top: (L.boardY + c.y * U - R) + 'px', width: Math.round(2 * R) + 'px', height: Math.round(2 * R) + 'px'});
+    e.classList.toggle('thin', c.left <= 1);
+  }
+  for (const e of els.values()) if (!e.classList.contains('bye')){ e.classList.add('bye'); setTimeout(() => e.remove(), 800); }
+  // 岩浆：从一条边漫进来，前沿发光
+  const lv = fight ? fl.lava : null;
+  lavaEl.hidden = !lv || !lv.pos;
+  if (lv && lv.pos){
+    lavaEl.className = 'lava e-' + lv.edge;
+    lavaEl.style.setProperty('--d', Math.round(lv.pos * U + (lv.edge === 'left' || lv.edge === 'right' ? 6 : 2)) + 'px');
+  }
+}
+// 洞口和藏宝图的金边
+// 进了深渊：整页换成暗色，标题换名字，音效压低，音乐换成深渊里的声音；越往下越红
+const hellfx = mk('div', 'hellfx');
+hellfx.hidden = true;
+hellfx.setAttribute('aria-hidden', 'true');
+document.body.prepend(hellfx);
+const HELL_BG = [
+  ['radial-gradient(120% 70% at 50% -10%,rgba(110,170,145,.16),rgba(0,0,0,0) 60%)', 'radial-gradient(140% 90% at 50% 120%,rgba(0,0,0,.85),rgba(0,0,0,0) 60%)', 'linear-gradient(#131a18,#070a09)'],
+  ['radial-gradient(120% 70% at 50% -10%,rgba(100,120,255,.16),rgba(0,0,0,0) 60%)', 'radial-gradient(140% 90% at 50% 120%,rgba(0,0,0,.85),rgba(0,0,0,0) 60%)', 'linear-gradient(#100e21,#06050d)'],
+  ['radial-gradient(130% 60% at 50% 115%,rgba(255,70,20,.4),rgba(0,0,0,0) 62%)', 'radial-gradient(120% 70% at 50% -15%,rgba(120,0,0,.35),rgba(0,0,0,0) 60%)', 'linear-gradient(#170404,#050101)'],
+  ['radial-gradient(140% 70% at 50% 118%,rgba(230,30,10,.5),rgba(0,0,0,0) 62%)', 'linear-gradient(#0b0101,#000)']
+];
+let hellState = null;
+// 标题放不下就把字缩小一点，最多缩到 15px
+function fitBrand(){
+  if (hellState === null) return;
+  const brand = document.querySelector('.brand'), over = () => brand.scrollWidth > brand.clientWidth + 1;
+  brand.style.fontSize = '';
+  brand.textContent = MODE_NAME;
+  for (let f = parseFloat(getComputedStyle(brand).fontSize) - 1; over() && f >= 15; f--) brand.style.fontSize = f + 'px';
+}
+function syncHell(run){
+  const z = run ? String(zoneOf(run.floor)) : null;
+  if (z === hellState) return;
+  const was = hellState, root = document.documentElement, brand = document.querySelector('.brand');
+  hellState = z;
+  if (z === null){
+    delete root.dataset.hell;
+    hellfx.hidden = true;
+    brand.textContent = '咩了个咩';
+    brand.style.fontSize = '';
+    Sound.pitch = 1;
+    Music.mood('');
+    applySkin(prefs.skin, true);
+    return;
+  }
+  if (was === null){
+    applySkin('knit', true);
+    fitBrand();
+  }
+  root.dataset.hell = z;
+  hellfx.hidden = false;
+  hellfx.className = 'hellfx z' + z;
+  Object.assign(bodyStyle, {backgroundImage: HELL_BG[+z].join(','), backgroundSize: '', backgroundPosition: '', backgroundRepeat: ''});
+  Sound.pitch = [.74, .66, .58, .52][+z];
+  Music.depth = +z;
+  Music.mood('hell');
+}
+function digTileState(t, el){
+  const run = G.run, fl = run.fl || {}, on = t.status === 'board';
+  if (t.hatch){
+    el.classList.toggle('sealed', !!t.sealed);
+    el.classList.toggle('armed', G.armed === t);
+    if (t.hlab){
+      t.hlab.textContent = t.sealed ? '封住了' : run.exits.length ? nextName(run.floor + 1) : '深渊';
+      t.art.style.setProperty('--k', `var(--da-${t.sealed ? 'lock' : run.exits.length ? nextArt(run.floor + 1) : 'normal'})`);
+    }
+    return;
+  }
+  el.classList.toggle('chained', on && t.chain > 0);
+  el.classList.toggle('rubble', !!t.rubble && on);
+  el.classList.toggle('melt', !!t.melted);
+  el.classList.toggle('ash', !!t.ash);
+  el.classList.toggle('burning', on && t.burn > 0);
+  if (t.burn > 0 || t.burnEl){
+    if (!t.burnEl){
+      t.burnEl = mk('b', 'burnc');
+      t.art.parentElement.appendChild(t.burnEl);
+    }
+    t.burnEl.hidden = !(on && t.burn > 0);
+    if (t.burn > 0) t.burnEl.textContent = t.burn;
+  }
+  el.classList.toggle('fogged', on && inFog(t));
+  el.classList.toggle('scorch', on && !!fl.lava && fl.lava.next <= 2 && lavaDepth(t, fl.lava) < fl.lava.pos + 1);
+  // 蝙蝠窝、棺材的记号：被压着的时候也露在外面
+  if (t.badge || t.badgeEl){
+    if (!t.badgeEl){
+      t.badgeEl = mk('i', 'badge');
+      t.art.parentElement.appendChild(t.badgeEl);
+    }
+    t.badgeEl.hidden = !t.badge || !on;
+    if (t.badge) t.badgeEl.style.backgroundImage = `var(--da-${t.badge === 'bat' ? 'bats' : 'coffin'})`;
+  }
+}
+const inFog = t => (G.run.fl.fogs || []).some(c => Math.hypot(t.x + .5 - c.x, t.y + .5 - c.y) < c.r - .2);
+function digCones(){ G.coneSet = null; }
+
+/* ---- 开一局、进一层 ---- */
+function digStart(){
+  if (G.mode === 'dig' && G.run && !G.over) savePrefs({digBest: Math.max(prefs.digBest || 0, G.run.floor)});
+  else if (G.mode !== 'trial' && G.tiles.length && !G.won) saveGame();
+  const run = newRun();
+  G.epoch++;
+  Object.assign(G, {
+    mode: 'dig', day: '', rule: null, run, slots: CAP, cap: CAP, level: 1, seed: run.seed, cfg: {intro: false}, tiles: [], label: MODE_NAME,
+    slot: [], hold: [[], [], []], tools: {out: 1, undo: 1, shuffle: 1}, history: [], moves: 0,
+    over: false, won: false, pending: 0, acc: 0, running: false, aim: null, armed: null
+  });
+  savePrefs({mode: 'dig', digRuns: (prefs.digRuns || 0) + 1});
+  closeDialog();
+  digEnterFloor(1, 'normal');
+  mountTiles(true);
+  startClock();
+  digOnLand(true);
+}
+function digEnter(){
+  if (G.mode !== 'dig' && G.mode !== 'trial' && G.tiles.length && !G.won) saveGame();
+  if (digResume(digLoad())){
+    savePrefs({mode: 'dig'});
+    closeDialog();
+    toast(`接着挖：第 ${G.run.floor} 层 · ${floorName(G.run.floor)}`);
+  } else digStart();
+}
+function digEnterFloor(f, kind){
+  const run = G.run;
+  Object.assign(run, {floor: f, kind, mod: null, room: null});
+  run.deepest = Math.max(run.deepest || 1, f);
+  run.fl = {total: 0, taps: 0, last: -99, cleared: false, snipped: false, hz: [], light: null, dark: 0, fogs: [], fogId: 0, lava: null, melted: 0, rubble: 0};
+  run.charge = {shovel: 1, dynamite: 1};
+  run.exits = digExits(run);
+  const {slots, cap} = digCapFor(run);
+  G.slots = slots;
+  G.cap = cap;
+  G.rule = null;
+  // 乌鸦、替罪羊在发牌之前就算好，保证“能清空”的路线照着落地后真实的口袋来算
+  if (has('dog')){
+    const cnt = new Map();
+    for (const t of G.slot) if (!t.wild) cnt.set(t.type, (cnt.get(t.type) || 0) + 1);
+    const lone = G.slot.filter(t => !t.wild && cnt.get(t.type) === 1);
+    for (const t of lone) t.status = 'gone';
+    G.slot = G.slot.filter(t => t.status === 'slot');
+    run.fl.dog = lone.length;
+  }
+  run.fl.wild = has('wild') && G.slot.length < cap - 1;
+  const carry = G.tiles.filter(t => t.status === 'slot' || t.status === 'hold');
+  // 掉下来的时候，口袋里烧着的火灭了
+  for (const t of carry) if (t.bomb > 0) t.bomb = 0;
+  let board = [];
+  if (!ROOMS.has(kind)){
+    let slotTy = G.slot.filter(t => !t.wild).map(t => t.type);
+    const holdTy = G.hold.flat().map(t => t.type);
+    // 替罪羊落地就会顶替口袋里的第一对，这一对不用再给它配牌
+    if (run.fl.wild){
+      const cnt = new Map();
+      for (const ty of slotTy) cnt.set(ty, (cnt.get(ty) || 0) + 1);
+      for (const [ty, c] of cnt) if (c >= 2){ let k = 2; slotTy = slotTy.filter(x => !(x === ty && k-- > 0)); break; }
+    }
+    const hz = hazardsFor(run, f, kind);
+    // 跟下来的怪：普通层最多两只，恶魔层一只；Boss 的巢穴它们不敢进
+    const fol = kind === 'boss' ? [] : (run.followers || []).slice(0, kind === 'normal' ? 2 : 1);
+    run.fl.scared = kind === 'boss' ? (run.followers || []).map(o => FOES[o.kind].n) : [];
+    const spawn = fol.length < 2 || kind !== 'normal' ? pickFoe(run, f, kind, hz, fol.map(o => o.kind)) : null;
+    const built = digBuild(run, f, kind, null, slotTy, holdTy, cap, (run.seed + f * 104729) >>> 0, run.rubble || 0, hz, spawn === 'wraith' ? 2 : 3);
+    board = built ? built.tiles : [];
+    run.fl.hz = hz;
+    run.fl.rubble = board.filter(t => t.rubble).length;
+    run.rubble = 0;
+    if (hz.includes('light')) run.fl.light = LIGHT_MAX;
+    const h = board.find(t => t.hatch);
+    if (hz.includes('lava') && h) run.fl.lava = lavaFor(f, h);
+    // 怪：上一层跟下来的先上，再来这一层自己的（最多两只；恶魔层、Boss 层只跟下来一只，恶魔和 Boss 一定在）
+    const triples = Math.floor(board.filter(t => !t.hatch).length / 3);
+    const foes = fol.map(o => Object.assign({}, o, {left: moveEvery(FOES[o.kind].moves[o.mi]) + 1, follow: true}));
+    if (spawn){
+      foes.push(newFoe(spawn, f, triples));
+      run.lastFoe = spawn;
+    }
+    run.foes = foes;
+    run.target = 0;
+    run.followers = [];
+  } else {
+    // 篝火边歇脚：跑掉的怪还在后面，等你下一层再跟上来
+    run.foes = [];
+    run.room = newRoom(kind, run);
+  }
+  const tiles = board.slice();
+  for (const t of carry){
+    Object.assign(t, {id: tiles.length, x: -40, y: -40, z: -9, covers: [], coveredBy: [], pile: false, fan: null, chain: 0});
+    tiles.push(t);
+  }
+  G.tiles = tiles;
+  G.history = [];
+  G.level = f;
+  G.aim = null;
+  G.armed = null;
+  G.label = `${floorName(f)} · ${kind === 'boss' ? FOES[bossOf(f)].n : KINDS[kind].n}`;
+  run.fl.total = board.filter(t => !t.hatch).length;
+}
+// 岩浆从离出口最远的那条边漫过来；先给几步缓一缓，越往下漫得越快
+function lavaFor(f, h){
+  const cx = h.x + .5, cy = h.y + .5, d = {top: cy, bottom: BH - cy, left: cx, right: BW - cx};
+  const edge = Object.keys(d).sort((a, b) => d[b] - d[a])[0];
+  return {edge, pos: 0, next: 9, every: Math.max(4, 7 - Math.floor(Math.max(0, f - 11) / 2))};
+}
+const HZ_TIPS = {
+  light: '地窖的烛火会烧完：太久没凑成一组就漆黑几步',
+  bats: '带蝙蝠记号的牌一挖开，蝙蝠扑出来，烛火就灭',
+  coffin: '带棺材记号的牌一挖开，就冒出一团浓雾',
+  lava: '岩浆从一边漫过来，漫到出口你就被逼着掉下去'
+};
+// 落地时要说的几句话，一句一句轮着出
+function toastLines(lines, ms = 2600){
+  const ep = G.epoch;
+  lines.forEach((l, i) => setTimeout(() => { if (ep === G.epoch && G.mode === 'dig') toast(l, ms); }, i * (ms + 200)));
+}
+// 落地以后：说明这一层的怪和险境、谁跟下来了、塌下来多少牌、乌鸦和替罪羊
+function digOnLand(first){
+  const run = G.run, fl = run.fl, lines = [];
+  if (run.room) lines.push('篝火：歇一歇再走，旁边的商人收灵魂');
+  else {
+    for (const h of fl.hz) if (HZ_TIPS[h] && !run.seen[h]){ run.seen[h] = 1; lines.push(HZ_TIPS[h]); }
+    const follow = run.foes.filter(f => f.follow);
+    if (follow.length) lines.unshift(`${follow.map(f => FOES[f.kind].n).join('、')}跟着你掉下来了！${run.foes.length > 1 ? '点怪的头像，选先砍哪只' : ''}`);
+    if (fl.scared && fl.scared.length) lines.unshift(`跟着你的${fl.scared.join('、')}不敢进 Boss 的巢穴，散了`);
+    if (fl.rubble) lines.push(`上一层没挖完，塌下来 ${fl.rubble} 张牌`);
+    const nu = run.foes.find(f => !f.follow);
+    if (nu && !FOES[nu.kind].boss && !run.seen[nu.kind]){
+      run.seen[nu.kind] = 1;
+      lines.push(`${FOES[nu.kind].n}：${MOVES[FOES[nu.kind].moves[0]].d}${FOES[nu.kind].moves[1] ? `；还会${MOVES[FOES[nu.kind].moves[1]].n}` : ''}`);
+    }
+    if (first) lines.unshift('每凑成一组三张就砍怪一刀；挖到出口连点两下往下跳');
+  }
+  if (fl.dog) lines.push(`乌鸦叼走了 ${fl.dog} 张落单的牌`);
+  if (fl.wild){
+    const w = {id: G.tiles.length, x: -40, y: -40, z: -9, pile: false, fan: null, type: WILD, wild: true, status: 'slot', pending: false, covers: [], coveredBy: [], el: null, art: null, shown: -1, si: 0, hc: 0, hd: 0};
+    G.tiles.push(w);
+    G.slot.push(w);
+    stage.appendChild(tileEl(w));
+    lines.push('替罪羊跳进了口袋');
+    digWildCheck();
+  }
+  render();
+  const boss = run.foes.find(f => FOES[f.kind].boss);
+  if (boss){
+    const B = FOES[boss.kind], pic = mk('i', 'boss-pic');
+    pic.style.backgroundImage = `var(--da-${B.art})`;
+    openDialog({kind: 'boss', title: `${floorName(run.floor)} · ${B.n}`, body: `${B.d}（血 ${boss.hp}）`, extra: pic, actions: [{label: '来吧', primary: true, run: closeDialog}]});
+  }
+  // 规则改过一版：老玩家也要再看一次说明
+  if (first && prefs.digHelpV !== 2){ savePrefs({digHelpSeen: true, digHelpV: 2, digHelpTab: 'play'}); digHelp(); }
+  else if (lines.length) toastLines(lines);
+  if (run.owed && run.owed.length) later(payOwed, 700);
+  if (G.slot.length >= G.cap && !G.pending) digOverflow();
+}
+// 金羊顶替：口袋里有一对、又有金羊，就凑成一组
+function digWildCheck(){
+  const live = G.slot.filter(s => !s.pending), w = live.find(s => s.wild);
+  if (!w) return false;
+  const cnt = new Map();
+  for (const s of live) if (!s.wild) cnt.set(s.type, (cnt.get(s.type) || 0) + 1);
+  for (const [ty, c] of cnt){
+    if (c < 2) continue;
+    const pair = live.filter(s => !s.wild && s.type === ty).slice(0, 2);
+    w.joinType = ty;
+    for (const s of [...pair, w]) s.pending = true;
+    G.pending += 3;
+    const ep = G.epoch;
+    setTimeout(() => settle(ep), REDUCED ? 220 : 340);
+    return true;
+  }
+  return false;
+}
+
+/* ---- 点牌：洞口要连点两下；锁住的牌点不动；小铲子、炸药先点宝物再点牌 ---- */
+function digTap(t){
+  const run = G.run;
+  if (G.aim){
+    if (t.status !== 'board' || t.hatch || !isFree(t)){ toast('要点一张露着的牌'); return true; }
+    digUseActive(G.aim, t);
+    return true;
+  }
+  if (t.status === 'board' && !t.hatch && t.chain > 0 && isFree(t)){
+    replay(t.el, 'nope');
+    Sound.chain();
+    toast(`这张被锁住了：凑成一组就解开（最多再锁 ${t.chain} 步）`);
+    return true;
+  }
+  if (t.status !== 'board' || !t.hatch) return false;
+  if (!isFree(t)){ nudge(t); return true; }
+  if (G.pending){ toast('等这一组消完'); return true; }
+  if (!run.exits.length && !run.endless && run.floor >= FLOOR_END && !run.foes.some(f => f.hp > 0)){ digVictory(null); return true; }
+  if (t.sealed){
+    const b = run.foes.find(f => FOES[f.kind].boss && f.hp > 0);
+    replay(t.el, 'nope');
+    Sound.bump();
+    toast(b ? `${FOES[b.kind].n}还活着，出口被它封住了` : '出口封住了');
+    return true;
+  }
+  const now = performance.now();
+  if (G.armed === t && now - G.armedAt < 4000){
+    G.armed = null;
+    digDive(t);
+    return true;
+  }
+  G.armed = t;
+  G.armedAt = now;
+  const alive = run.foes.filter(f => f.hp > 0);
+  const dest = run.exits.length ? `下一层：${floorName(run.floor + 1)} · ${nextName(run.floor + 1)}` : '往下跳';
+  const warn = alive.length ? ` · ${alive.map(f => FOES[f.kind].n).join('、')}没打死，会跟着你掉下去` : '';
+  toast(`再点一下跳下去 · ${dest}${warn}`, 3200);
+  Sound.tap();
+  render();
+  return true;
+}
+// 这一步里发生的事攒成一句话一起说，免得几条提示互相顶掉
+let stepSay = null;
+function say(m){
+  if (!m) return;
+  if (stepSay) stepSay.push(m); else toast(m, 2200);
+}
+// 每拿一张牌算一步：漆黑、锁、雾、烛火、岩浆各走一步；挖开的蝙蝠窝和棺材发作；怪的倒数走一步，数到了就出招
+function digAfterPick(){
+  stepSay = [];
+  try { stepWorld(); } finally {
+    const m = stepSay;
+    stepSay = null;
+    if (m.length) toast(m.join(' · '), Math.min(4600, 1500 + m.length * 1000));
+  }
+}
+function stepWorld(){
+  const run = G.run, fl = run.fl;
+  fl.taps++;
+  G.armed = null;
+  if (fl.dark > 0) fl.dark--;
+  for (const t of G.tiles) if (t.chain > 0 && t.status === 'board' && --t.chain === 0) Sound.chain();
+  const ash = [];
+  for (const t of G.tiles) if (t.burn > 0){ if (t.status !== 'board') t.burn = 0; else if (isFree(t) && --t.burn === 0) ash.push(t); }
+  if (ash.length) burnAway(ash);
+  if (fl.fogs.length){
+    for (const c of fl.fogs) c.left--;
+    fl.fogs = fl.fogs.filter(c => c.left > 0);
+  }
+  if (fl.light != null && !(fl.dark > 0) && --fl.light <= 0){
+    fl.light = 7;
+    darken(3, '烛火烧完了，眼前一片漆黑！', null);
+  }
+  if (fl.lava && --fl.lava.next <= 0){
+    fl.lava.next = fl.lava.every;
+    lavaAdvance();
+  }
+  badgeCheck();
+  for (const f of run.foes) if (f.hp > 0 && --f.left <= 0) foeAct(f);
+  digCheckClear();
+  bossRefill();
+}
+// 每消掉几组：灵魂、砍怪、烛火添一截、锁全断、火柴、清场奖励
+function digAfterSettle(groups){
+  const run = G.run;
+  let n = 0;
+  for (const g of Object.values(groups)){
+    const mid = g[Math.floor(g.length / 2)];
+    run.stats.triples++;
+    n++;
+    let w = 1;
+    if (has('socks') && run.fl.taps - run.fl.last <= 3) w *= 2;
+    run.fl.last = run.fl.taps;
+    digWool(w, mid, true);
+    hitFoe(w, mid);
+  }
+  if (n){
+    if (run.fl.light != null) run.fl.light = Math.min(LIGHT_MAX, run.fl.light + 3 * n);
+    breakChains();
+  }
+  if (n && has('bell')){
+    run.bell = (run.bell || 0) + n;
+    while (run.bell >= 12){ run.bell -= 12; digHeal(1, '划了一根火柴'); }
+  }
+  digCheckClear();
+  bossRefill();
+}
+function digWool(n, at, earned){
+  const run = G.run;
+  if (earned && has('greedy')) n *= 2;
+  run.wool += n;
+  run.stats.wool += n;
+  if (at && at.px !== undefined && !REDUCED){
+    const fx = mk('b', 'woolfx');
+    fx.textContent = '+' + n;
+    fx.style.left = (at.px + L.cell * .2) + 'px';
+    fx.style.top = (at.py - 6) + 'px';
+    stage.appendChild(fx);
+    setTimeout(() => fx.remove(), 950);
+  }
+}
+function digHeal(n, why){
+  const run = G.run, was = run.hearts;
+  run.hearts = Math.min(run.maxHearts, run.hearts + n);
+  if (run.hearts > was && why) toast(`${why}，重新点亮了一根蜡烛`);
+}
+function digCheckClear(){
+  const run = G.run;
+  if (run.fl.cleared || !run.fl.total || G.tiles.some(t => t.status === 'board' && !t.hatch)) return;
+  run.fl.cleared = true;
+  // 有牌被岩浆吞了、被火烧了，就不算自己挖干净
+  if (run.fl.melted || run.fl.burned) return;
+  digWool(6, null, true);
+  Sound.win();
+  toast(`清场！这一层的牌全挖完了，奖励 ${has('greedy') ? 12 : 6} 个灵魂`, 2400);
+}
+// 口袋撑破：金剪刀先救一次；不然扣一颗心，口袋里的牌全掉
+function digOverflow(){
+  const run = G.run;
+  if (has('scissors') && !run.fl.snipped){
+    run.fl.snipped = true;
+    for (const t of G.slot.splice(0, 3)){ t.status = 'gone'; if (t.px !== undefined) burst(t.px + L.cell * .46, t.py + L.cell * .46); }
+    Sound.tool();
+    toast('镰刀一挥，割掉了最左边 3 张');
+    render();
+    return;
+  }
+  run.hearts--;
+  run.stats.hurt++;
+  Sound.hurt();
+  shakePocket();
+  for (const t of G.slot){
+    t.status = 'gone';
+    t.pending = false;
+    t.claimed = false;
+    if (t.px !== undefined) burst(t.px + L.cell * .46, t.py + L.cell * .46);
+  }
+  G.slot = [];
+  G.history = [];
+  G.pending = 0;
+  bossRefill();
+  if (run.hearts <= 0){ render(); return digDead(); }
+  toast(`口袋撑破了！灭了一根蜡烛，口袋里的牌全掉了（还剩 ${run.hearts} 根）`, 2800);
+  render();
+}
+function digDead(){
+  const run = G.run;
+  G.over = true;
+  stopClock();
+  savePrefs({digBest: Math.max(prefs.digBest || 0, run.floor)});
+  try { localStorage.removeItem(DIG_KEY); } catch (e) {}
+  const ep = G.epoch;
+  setTimeout(() => { if (ep === G.epoch && G.mode === 'dig' && G.run) digDeadDialog(); }, REDUCED ? 300 : 900);
+}
+function digStatsText(){
+  const run = G.run, st = run.stats;
+  return `打倒 ${st.kills || 0} 只怪，消了 ${st.triples} 组，收了 ${st.wool} 个灵魂，捡了 ${run.relics.length} 样宝物，用时 ${fmt(Math.floor(elapsed() / 1000))}。`;
+}
+function digDeadDialog(){
+  const run = G.run, best = prefs.digBest || run.floor;
+  openDialog({kind: 'lose', art: 'sad', title: '被黑暗吞没',
+    body: `蜡烛全灭了，困在第 ${run.floor} 层 · ${floorName(run.floor)}。${digStatsText()}${run.floor >= best ? '这是你下得最深的一次。' : `最深到过第 ${best} 层。`}`,
+    actions: [{label: '再下一次', primary: true, run: digStart}, {label: '回主菜单', run: showHome}]});
+}
+
+/* ---- 宝物 ---- */
+function digGain(id){
+  const run = G.run, R = RELICS[id];
+  G.history = [];   // 拿了宝物就不能撤回到拿之前
+  run.relics.push(id);
+  run.stats.relics++;
+  if (id === 'bag' || id === 'greedy'){
+    const d = id === 'bag' ? 1 : -1;
+    G.slots += d;
+    G.cap += d;
+    relayout();
+  }
+  if (id === 'sweater'){ run.maxHearts += 2; run.hearts = run.maxHearts; }
+  Sound.tool();
+  toast(`得到「${R.n}」：${R.d}`, 3000);
+  render();
+  if (G.slot.length >= G.cap && !G.pending) digOverflow();
+}
+function onRelic(id){
+  const R = RELICS[id], run = G.run;
+  if (R.active && !G.zooming && !G.over && !run.room){
+    if (G.aim === id){ G.aim = null; render(); return toast('不用了'); }
+    if (!run.charge[id]) return toast(`「${R.n}」这一层已经用过了，下一层再用`);
+    if (!G.tiles.some(t => t.status === 'board' && !t.hatch)) return toast('这一层没有牌可以用了');
+    G.aim = id;
+    render();
+    return toast(id === 'shovel' ? '点一张露着的牌，把它铲掉（再点掘墓铲取消）' : '点一张露着的牌，连它周围露着的一起炸掉（再点硫磺弹取消）', 2800);
+  }
+  toast(`${R.n}${relicCount(id) > 1 ? ` ×${relicCount(id)}` : ''}：${R.d}`, 2800);
+}
+function digUseActive(id, t){
+  const run = G.run;
+  G.aim = null;
+  const hit = id === 'dynamite'
+    ? G.tiles.filter(u => u.status === 'board' && !u.hatch && isFree(u) && Math.hypot(u.x - t.x, u.y - t.y) <= 1.6)
+    : [t];
+  for (const u of hit){ u.status = 'gone'; if (u.px !== undefined) burst(u.px + L.unit * .46, u.py + L.unit * .46); }
+  run.charge[id] = 0;
+  if (id === 'dynamite'){ Sound.boom(); shakePocket(); hitFoe(2, t); } else Sound.tool();
+  badgeCheck();
+  render();
+  digCheckClear();
+}
+// 打倒恶魔、Boss：挑一样宝物（灵魂在打倒的时候已经给了）
+function digReward(o){
+  const run = G.run, F = FOES[o.kind], rng = rngFrom((run.seed + run.floor * 977 + run.stats.relics * 31) >>> 0);
+  const offers = relicOffers(3, F.boss ? .6 : .4, rng);
+  const wrap = mk('div', 'cards');
+  for (const id of offers) wrap.appendChild(relicCard(id, null, () => { closeDialog(); paid(o); digGain(id); }));
+  Sound.win();
+  openDialog({kind: 'reward', art: 'hop', title: `打倒了${F.n}！`,
+    body: `${F.boss ? `出口的封印解开了${o.healed ? '，还重新点亮了一根蜡烛' : ''}。` : ''}挑一样宝物带走：`, extra: wrap,
+    actions: [{label: '都不要', run: () => { closeDialog(); paid(o); }}]});
+}
+function relicCard(id, price, onPick, disabled){
+  const R = RELICS[id], b = mk('button', 'card');
+  b.type = 'button';
+  const i = mk('i');
+  i.style.backgroundImage = `var(--da-${id})`;
+  const n = mk('b');
+  n.textContent = R.n;
+  const d = mk('small');
+  d.textContent = R.d;
+  b.append(i, n, d);
+  if (price != null){ const p = mk('span', 'price'); p.textContent = `${price} 魂`; b.appendChild(p); }
+  b.disabled = !!disabled;
+  b.addEventListener('click', onPick);
+  return b;
+}
+function itemCard(art, name, desc, price, onPick, disabled){
+  const b = mk('button', 'card');
+  b.type = 'button';
+  const i = mk('i');
+  i.style.backgroundImage = art;
+  const n = mk('b');
+  n.textContent = name;
+  const d = mk('small');
+  d.textContent = desc;
+  const p = mk('span', 'price');
+  p.textContent = `${price} 魂`;
+  b.append(i, n, d, p);
+  b.disabled = !!disabled;
+  b.addEventListener('click', onPick);
+  return b;
+}
+function digVictory(o){
+  const run = G.run;
+  // 打穿只记一次（中途关了页面、回来再弹一遍也不重复算）
+  if (!run.won){ run.won = true; savePrefs({digWins: (prefs.digWins || 0) + 1, digBest: Math.max(prefs.digBest || 0, run.floor)}); }
+  Sound.fanfare();
+  confetti();
+  if (!REDUCED){ setTimeout(confetti, 650); setTimeout(confetti, 1300); }
+  openDialog({kind: 'final', art: 'herd', title: '打穿了深渊！',
+    body: `十五层全部挖穿，打败了鼠王、巫妖和魔王。${digStatsText()}再往下是没有底的深渊。`,
+    actions: [
+      {label: '继续往下：无底深渊', primary: true, run: () => { closeDialog(); run.endless = true; run.exits = digExits(run); if (o) paid(o); render(); toast('出口开了：挖开它，往无底深渊跳'); }},
+      {label: '就到这里', run: () => { closeDialog(); if (o) paid(o); G.over = true; stopClock(); try { localStorage.removeItem(DIG_KEY); } catch (e) {} showHome(); }}
+    ]});
+}
+
+/* ---- 怪出招、挨刀、倒下 ---- */
+// 这一步凑成、还没消完的组：马上就要砍到怪身上
+const pendingHits = () => Math.floor(G.slot.filter(s => s.pending).length / 3) * (has('socks') && G.run.fl.taps - G.run.fl.last <= 3 ? 2 : 1);
+const later = (fn, ms) => { const ep = G.epoch; setTimeout(() => { if (ep === G.epoch && G.mode === 'dig' && !G.over) fn(); }, ms); };
+function foeAct(f){
+  const F = FOES[f.kind], m = F.moves[f.mi];
+  f.mi = (f.mi + 1) % F.moves.length;
+  f.left = moveEvery(F.moves[f.mi]);
+  // 这一步凑成的那一组正好要砍死它，它就来不及出手了
+  if (f === targetFoe() && f.hp - pendingHits() <= 0) return;
+  foeFx(f, 'act');
+  Sound.growl();
+  const said = MOVE_FN[m](f);
+  if (said) say(`${F.n}${said}`);
+}
+const MOVE_FN = {
+  bone: f => spitBones(f, 1),
+  bone2: f => spitBones(f, 2),
+  snuff: () => (darken(3, null, null), '扑灭了烛火，眼前一片漆黑！'),
+  chain: () => chainTiles(1),
+  chain2: () => chainTiles(2),
+  bury: () => dropTiles(DIRT, 3, '往牌堆上倒了三块泥土'),
+  fog: () => {
+    const t = fogSpot();
+    if (!t) return '';
+    fogCloud(t.x + .5, t.y + .5, 1.9, 6);
+    return '吐出一团浓雾';
+  },
+  steal: () => stealTile(),
+  ignite: () => igniteTile(),
+  gnaw: () => {
+    const run = G.run;
+    if (!run.fl.lava){
+      const h = G.tiles.find(t => t.hatch && t.status === 'board');
+      if (!h) return '';
+      run.fl.lava = lavaFor(run.floor, h);
+    }
+    lavaAdvance();
+    return '一口啃塌了地面，岩浆往前漫了一排';
+  },
+  breath: () => breathFire(),
+  burrow: () => burrow(),
+  rocks: () => dropTiles(ROCK, 3, '砸下来三块石头'),
+  warp: () => moleMove()
+};
+// 凑成一组砍哪只：点过头像的那只；没点过、或者它已经倒了，就砍排在最前面的
+function targetFoe(){
+  const run = G.run, t = run.foes[run.target || 0];
+  return t && t.hp > 0 ? t : run.foes.find(o => o.hp > 0) || null;
+}
+function hitFoe(n, at){
+  const f = targetFoe();
+  if (!f) return;
+  f.hp = Math.max(0, f.hp - n);
+  foeFx(f, 'hit', n, at);
+  Sound.hit();
+  if (f.hp <= 0) foeDie(f);
+}
+function foeDie(f){
+  const run = G.run, F = FOES[f.kind];
+  run.stats.kills = (run.stats.kills || 0) + 1;
+  G.history = [];   // 打倒了就不能撤回，免得反复领奖励
+  // 它留下的东西跟着没了：骨头化成灰、锁全断、火灭
+  const alive = run.foes.filter(o => o.hp > 0), still = m => alive.some(o => FOES[o.kind].moves.some(x => x.startsWith(m)));
+  if (!still('bone')) crumbleBones();
+  if (!still('chain')) breakChains();
+  if (!still('ignite')) for (const t of G.tiles) if (t.bomb > 0) t.bomb = 0;
+  if (!still('breath')) for (const t of G.tiles) t.burn = 0;
+  const wool = F.boss ? 15 : F.elite ? 8 : 3;
+  digWool(wool, null, true);
+  later(() => { foeFx(f, 'die'); Sound.foeDie(); }, 300);
+  if (F.boss){
+    for (const h of G.tiles) if (h.hatch) h.sealed = false;
+    const healed = run.hearts < run.maxHearts;
+    digHeal(1);
+    run.owed.push({kind: f.kind, healed, victory: run.floor >= FLOOR_END && !run.endless});
+    return later(payOwed, 900);
+  }
+  if (F.elite){
+    run.owed.push({kind: f.kind});
+    return later(payOwed, 900);
+  }
+  say(`打倒了${F.n}！+${has('greedy') ? wool * 2 : wool} 个灵魂${alive.length ? '' : ' · 这一层安全了，挖到出口就能往下跳'}`);
+}
+// Boss 还活着，却再也凑不出一组（牌被烧光、口袋撑破时搭档掉了……）：它召来一批新牌，免得这一层卡死
+function bossRefill(){
+  const run = G.run;
+  if (!run || run.room || G.mode !== 'dig') return;
+  const boss = run.foes.find(f => f.hp > 0 && FOES[f.kind].boss);
+  if (!boss) return;
+  const cnt = new Map(), mine = new Set();
+  for (const t of G.tiles){
+    if (t.pending || t.wild || !((t.status === 'board' && !t.hatch) || t.status === 'slot' || t.status === 'hold')) continue;
+    cnt.set(t.type, (cnt.get(t.type) || 0) + 1);
+    if (t.status !== 'board') mine.add(t.type);
+  }
+  const wild = G.slot.some(t => t.wild);
+  if ([...cnt.values()].some(c => c >= 3 || (wild && c >= 2))) return;
+  // 口袋里的每种配齐，再加两组新的
+  const add = [];
+  for (const ty of mine) for (let k = cnt.get(ty); k < 3; k++) add.push(ty);
+  for (const ty of shuffled([...Array(NTYPE).keys()].filter(t => !mine.has(t)), Math.random).slice(0, 2)) add.push(ty, ty, ty);
+  for (const ty of new Set(add)) dropTiles(ty, add.filter(x => x === ty).length, '');
+  say(`${FOES[boss.kind].n}一声怒吼，牌堆上又涌出 ${add.length} 张牌`);
+}
+// 欠着的奖励（恶魔、Boss 的宝物、打穿十五层）：对话框、掉层动画都不在的时候再拿出来；玩家选了才算领走，
+// 中途关掉页面，下次进来接着弹
+function payOwed(){
+  const run = G.run;
+  if (!run || !run.owed || !run.owed.length) return;
+  if (G.zooming || G.pending || !scrim.hidden) return later(payOwed, 500);
+  const o = run.owed[0];
+  if (o.victory) digVictory(o); else digReward(o);
+}
+function paid(o){
+  const run = G.run, i = run.owed.indexOf(o);
+  if (i >= 0) run.owed.splice(i, 1);
+  saveGame();
+  if (run.owed.length) later(payOwed, 450);
+}
+// 骨头：从怪那里飞进口袋；凑够三根也算一组
+function spitBones(f, n){
+  const from = foeOrigin(f);
+  for (let k = 0; k < n; k++){
+    const t = {id: G.tiles.length, x: -40, y: -40, z: -9, pile: false, fan: null, type: BONE, status: 'slot', pending: false, covers: [], coveredBy: [], el: null, art: null, shown: -1, si: 0, hc: 0, hd: 0, inAt: G.moves};
+    G.tiles.push(t);
+    let at = G.slot.length;
+    for (let i = G.slot.length - 1; i >= 0; i--) if (G.slot[i].type === BONE && !G.slot[i].pending){ at = i + 1; break; }
+    G.slot.splice(at, 0, t);
+    stage.appendChild(tileEl(t));
+    if (from){ t.prev = 'hold'; t.px = from.x; t.py = from.y; t.ps = .55; }
+  }
+  checkTriple(BONE);
+  return n > 1 ? `往你口袋里吐了 ${n} 根骨头` : '往你口袋里吐了一根骨头';
+}
+function checkTriple(ty){
+  const same = G.slot.filter(s => !s.pending && s.type === ty);
+  if (same.length < 3) return false;
+  for (const s of same.slice(0, 3)) s.pending = true;
+  G.pending += 3;
+  const ep = G.epoch;
+  setTimeout(() => settle(ep), REDUCED ? 220 : 340);
+  return true;
+}
+function crumbleBones(){
+  let n = 0;
+  for (const t of G.tiles) if (t.type === BONE && !t.pending && t.status !== 'gone'){
+    if (t.px !== undefined && t.status !== 'board') burst(t.px + L.cell * .46, t.py + L.cell * .46);
+    t.status = 'gone';
+    n++;
+  }
+  if (!n) return;
+  G.slot = G.slot.filter(t => t.status === 'slot');
+  G.hold = G.hold.map(c => c.filter(t => t.status === 'hold'));
+}
+// 锁：挑能跟你口袋里配上的那几张锁；凑成一组全断，最多锁 6 步
+function chainTiles(n){
+  const cnt = new Map();
+  for (const s of G.slot) if (!s.pending) cnt.set(s.type, (cnt.get(s.type) || 0) + 1);
+  const free = shuffled(G.tiles.filter(t => t.status === 'board' && !t.hatch && isFree(t) && !(t.chain > 0)), Math.random);
+  free.sort((a, b) => (cnt.get(b.type) || 0) - (cnt.get(a.type) || 0));
+  const hit = free.slice(0, n);
+  for (const t of hit){
+    t.chain = 6;
+    if (!REDUCED && t.el) replay(t.el, 'clank');
+  }
+  Sound.chain();
+  return hit.length ? `锁住了 ${hit.length} 张露着的牌` : '';
+}
+function breakChains(){
+  let n = 0;
+  for (const t of G.tiles) if (t.chain > 0){ t.chain = 0; n++; }
+  if (n) Sound.chain();
+}
+// 往牌堆上砸东西（泥土、石头、Boss 召来的牌）：先一块盖住一张露着的牌，牌不够了就落在空地上——一定落满 n 块
+function dropTiles(ty, n, say){
+  const run = G.run, s3 = v => Math.round(v * 3) / 3, cl = (v, a, b) => Math.max(a, Math.min(b, v));
+  const anchors = shuffled(G.tiles.filter(t => t.status === 'board' && !t.hatch && !t.pile), Math.random).sort((a, b) => isFree(b) - isFree(a));
+  const placed = [];
+  for (let i = 0, tries = 0; placed.length < n && tries < 300; tries++){
+    const a = anchors[i++];
+    const x = s3(a ? cl(a.x + (Math.random() - .5) * .5, 0, 6) : Math.random() * 6), y = s3(a ? cl(a.y + (Math.random() - .5) * .5, 0, 6.67) : Math.random() * 6.67);
+    if (placed.some(p => Math.abs(p.x - x) < .999 && Math.abs(p.y - y) < .999)) continue;
+    const t = {id: G.tiles.length, x: -40, y: -40, z: -9, pile: false, fan: null, type: ty, status: 'board', pending: false, covers: [], coveredBy: [], el: null, art: null, shown: -1, si: 0, hc: 0, hd: 0};
+    G.tiles.push(t);
+    placeOnTop(t, x, y);
+    placed.push(t);
+  }
+  if (!placed.length) return '';
+  run.fl.total += placed.length;
+  computeHeights(G.tiles);
+  for (const t of placed){
+    stage.appendChild(tileEl(t));
+    if (!REDUCED) t.el.classList.add('drop');
+  }
+  Sound.bump();
+  return say;
+}
+// 把一张牌挪到 (x, y, z)：先拆掉它原来的上下关系，再跟新位置上下的牌接上
+function relink(t, x, y, z){
+  for (const b of t.coveredBy){ const i = b.covers.indexOf(t); if (i >= 0) b.covers.splice(i, 1); }
+  for (const b of t.covers){ const i = b.coveredBy.indexOf(t); if (i >= 0) b.coveredBy.splice(i, 1); }
+  t.covers = [];
+  t.coveredBy = [];
+  Object.assign(t, {x, y, z, pile: false, fan: null});
+  for (const b of G.tiles){
+    if (b === t || b.z <= -9 || b.z === z || Math.abs(b.x - x) > .999 || Math.abs(b.y - y) > .999) continue;
+    if (b.z < z){ t.covers.push(b); b.coveredBy.push(t); } else { b.covers.push(t); t.coveredBy.push(b); }
+  }
+}
+// 放到 (x, y) 那摞的最上面
+function placeOnTop(t, x, y){
+  const under = G.tiles.filter(b => b !== t && b.status === 'board' && Math.abs(b.x - x) < .999 && Math.abs(b.y - y) < .999);
+  relink(t, x, y, 1 + Math.max(0, ...under.map(b => b.z)));
+}
+// 偷牌：口袋里最后放进去的那张，飞回牌堆最上面
+function stealTile(){
+  const live = G.slot.filter(t => !t.pending && !t.wild);
+  if (!live.length) return '想偷你的牌，可你口袋是空的';
+  const t = live.reduce((a, b) => ((b.inAt || 0) >= (a.inAt || 0) ? b : a));
+  G.slot.splice(G.slot.indexOf(t), 1);
+  const anchors = G.tiles.filter(u => u.status === 'board' && !u.hatch && !u.pile && isFree(u));
+  const a = anchors.length ? pickOne(anchors, Math.random) : {x: 3, y: 3};
+  t.status = 'board';
+  placeOnTop(t, a.x, a.y);
+  computeHeights(G.tiles);
+  return `把你口袋里的「${tyName(t.type)}」偷回了牌堆上`;
+}
+// 点火：口袋里落单的那张先烧；口袋空着就点一张露着的牌，拿进口袋才开始倒数
+function igniteTile(){
+  const cnt = new Map();
+  for (const s of G.slot) if (!s.pending) cnt.set(s.type, (cnt.get(s.type) || 0) + 1);
+  const cands = G.slot.filter(s => !s.pending && !s.wild && !(s.bomb > 0));
+  if (cands.length){
+    const t = cands.find(s => cnt.get(s.type) === 1) || cands[cands.length - 1];
+    t.bomb = 4;
+    return `点着了你口袋里的「${tyName(t.type)}」：4 步内凑成一组，不然炸坏一格口袋`;
+  }
+  const free = G.tiles.filter(t => t.status === 'board' && !t.hatch && isFree(t) && !(t.bomb > 0));
+  if (!free.length) return '';
+  pickOne(free, Math.random).bomb = 4;
+  return '点着了牌堆上的一张牌：拿进口袋就开始倒数';
+}
+// 钻洞（鼠王）：露着的牌，加上把它们拿走以后就会露出来的那一层，图案一起洗乱——露出来的图案真的会变
+function burrow(){
+  const top = new Set(G.tiles.filter(t => t.status === 'board' && !t.hatch && t.type < NTYPE && isFree(t)));
+  const under = G.tiles.filter(b => b.status === 'board' && !b.hatch && b.type < NTYPE && !top.has(b)
+    && b.coveredBy.some(a => a.status === 'board') && b.coveredBy.every(a => a.status !== 'board' || top.has(a)));
+  const pool = [...top, ...under];
+  if (pool.length < 2) return '想钻进牌堆，可是没剩几张牌了';
+  const types = shuffled(pool.map(t => t.type), Math.random);
+  pool.forEach((t, i) => { t.type = types[i]; });
+  if (!REDUCED){
+    ratsFx();
+    for (const t of pool){
+      const d = Math.round((t.x / 7) * 320 + (top.has(t) ? 0 : 90));
+      t.artLock = true;
+      t.el.style.setProperty('--fd', d + 'ms');
+      replay(t.el, 'flip');
+      setTimeout(() => { t.artLock = false; updateArt(t); }, d + 180);
+    }
+    G.flipUntil = performance.now() + 760;
+  }
+  Sound.wind();
+  for (let i = 0; i < 4; i++) Sound.tone(1900 + Math.random() * 700, .05, 'square', .012, .05 + i * .09);
+  return `钻进了牌堆：露着的牌和下面一层，${pool.length} 张全被洗乱了`;
+}
+// 一窝老鼠从牌桌左边窜到右边
+function ratsFx(){
+  if (REDUCED) return;
+  const U = L.unit;
+  for (let i = 0; i < 9; i++){
+    const r = mk('i', 'ratfx');
+    r.style.left = (L.boardX - U * .6) + 'px';
+    r.style.top = (L.boardY + U * (.6 + Math.random() * (BH - 1.2))) + 'px';
+    r.style.setProperty('--dx', Math.round(U * (BW + 1.2)) + 'px');
+    r.style.animationDelay = Math.round(i * 55 + Math.random() * 60) + 'ms';
+    stage.appendChild(r);
+    setTimeout(() => r.remove(), 1300);
+  }
+}
+// 喷火（地狱犬）：挑一排露着的牌（最好是你口袋里正缺的那几种）点着，3 步之内不拿走就烧成灰
+function breathFire(){
+  const free = G.tiles.filter(t => t.status === 'board' && !t.hatch && isFree(t) && !(t.burn > 0) && !(t.chain > 0));
+  if (!free.length) return '';
+  const need = new Set(G.slot.filter(s => !s.pending).map(s => s.type));
+  let row = null, best = -1;
+  for (const c of free){
+    const band = free.filter(t => Math.abs(t.y - c.y) < .5);
+    const sc = band.length + band.filter(t => need.has(t.type)).length * 1.5 + Math.random() * .5;
+    if (sc > best){ best = sc; row = band; }
+  }
+  row = row.sort((a, b) => Math.abs(a.x - 3) - Math.abs(b.x - 3)).slice(0, 5);
+  for (const t of row) t.burn = 3;
+  flameFx(row);
+  Sound.flame();
+  return `喷出一道火，${row.length} 张露着的牌烧起来了：3 步之内拿走，不然烧成灰`;
+}
+// 烧完的牌：变成灰，直接没了（不会塌到下一层）
+function burnAway(list){
+  for (const t of list){ t.status = 'gone'; t.ash = true; t.burn = 0; t.chain = 0; }
+  G.run.fl.burned = (G.run.fl.burned || 0) + list.length;
+  Sound.flame();
+  say(`${list.length} 张牌烧成了灰`);
+  badgeCheck();
+}
+// 一道火从牌桌一边扫过那一排
+function flameFx(row){
+  if (REDUCED || !row.length) return;
+  const U = L.unit, y = Math.min(...row.map(t => t.y)), f = mk('i', 'breath');
+  Object.assign(f.style, {left: (L.boardX - U * .3) + 'px', top: (L.boardY + (y - .1) * U) + 'px', width: (U * (BW + .6)) + 'px', height: (U * 1.2) + 'px'});
+  stage.appendChild(f);
+  setTimeout(() => f.remove(), 900);
+}
+// 巫妖传送出口：挑一个还被压着、离现在远一点的底层位置
+function moleMove(){
+  const h = G.tiles.find(t => t.hatch && t.status === 'board');
+  if (!h) return '';
+  const seen = new Set(), cands = [];
+  for (const t of G.tiles){
+    if (t.status !== 'board' || t.hatch || t.pile || t.z > 2) continue;
+    const key = Math.round(t.x * 3) + ',' + Math.round(t.y * 3);
+    if (seen.has(key) || Math.hypot(t.x - h.x, t.y - h.y) < 2.2) continue;
+    seen.add(key);
+    if (coneAt(G.tiles, t.x, t.y, true).size >= 3) cands.push(t);
+  }
+  if (!cands.length) return '想把出口传送走，可是没地方了';
+  const p = pickOne(cands, Math.random);
+  relink(h, p.x, p.y, -1);
+  computeHeights(G.tiles);
+  G.armed = null;
+  if (!REDUCED) replay(h.el, 'back');
+  return '把出口传送到了别处';
+}
+
+/* ---- 险境：漆黑、浓雾、岩浆、蝙蝠窝和棺材 ---- */
+function darken(steps, msg, at){
+  const fl = G.run.fl;
+  fl.dark = Math.max(fl.dark, steps);
+  Sound.snuff();
+  batsFx(at);
+  if (msg) say(msg);
+}
+function fogCloud(x, y, r, steps, msg){
+  const fl = G.run.fl;
+  fl.fogId = (fl.fogId || 0) + 1;
+  fl.fogs.push({id: fl.fogId, x, y, r, left: steps});
+  Sound.fog();
+  if (msg) say(msg);
+}
+// 雾吐在露着的牌最密的地方
+function fogSpot(){
+  const free = G.tiles.filter(t => t.status === 'board' && !t.hatch && isFree(t));
+  let best = null, bn = -1;
+  for (const t of free){
+    const n = free.filter(u => Math.hypot(u.x - t.x, u.y - t.y) < 1.8).length + Math.random() * .5;
+    if (n > bn){ bn = n; best = t; }
+  }
+  return best;
+}
+// 被压着的蝙蝠窝、棺材一露出来就发作
+function badgeCheck(){
+  for (const t of G.tiles){
+    if (!t.badge || t.status !== 'board' || !isFree(t)) continue;
+    const kind = t.badge;
+    t.badge = null;
+    if (kind === 'bat') darken(3, '牌底下扑出一窝蝙蝠，烛火灭了！', t);
+    else fogCloud(t.x + .5, t.y + .5, 2.1, 6, '棺材盖一掀，涌出一团浓雾');
+  }
+}
+// 牌的中心离岩浆那条边有多远（以牌宽为单位）
+function lavaDepth(t, lv){
+  const cx = t.x + .5, cy = t.y + .5;
+  return lv.edge === 'top' ? cy : lv.edge === 'bottom' ? BH - cy : lv.edge === 'left' ? cx : BW - cx;
+}
+// 岩浆往前漫一排：吞掉的牌掉进下一层；漫到出口，人就被逼着掉下去
+function lavaAdvance(){
+  const run = G.run, lv = run.fl.lava;
+  if (!lv) return;
+  lv.pos++;
+  const melt = G.tiles.filter(t => t.status === 'board' && !t.hatch && lavaDepth(t, lv) < lv.pos);
+  for (const t of melt){ t.status = 'gone'; t.melted = true; t.chain = 0; t.badge = null; }
+  run.fl.melted += melt.length;
+  Sound.lava();
+  if (melt.length) say(`岩浆往前漫了一排，吞掉了 ${melt.length} 张牌`);
+  badgeCheck();
+  const h = G.tiles.find(t => t.hatch && t.status === 'board');
+  if (h && !h.sealed && lavaDepth(h, lv) < lv.pos + .5 && !run.fl.forced){
+    run.fl.forced = true;
+    say('岩浆漫到了出口，地面塌了！');
+    const ep = G.epoch;
+    setTimeout(() => forceFall(ep), 900);
+  }
+}
+// 被岩浆逼着掉下去：正在消一组、开着对话框的话等一等再掉
+function forceFall(ep){
+  if (ep !== G.epoch || G.mode !== 'dig' || G.over) return;
+  const h = G.tiles.find(t => t.hatch && t.status === 'board');
+  if (!h) return;
+  if (G.pending || G.zooming || !scrim.hidden) return void setTimeout(() => forceFall(ep), 400);
+  digDive(h, true);
+}
+
+/* ---- 怪和险境的动效 ---- */
+// 怪头像在牌桌里的位置（骨头从这里飞出来）
+function foeOrigin(f){
+  const row = dgFoes.children[G.run.foes.indexOf(f)];
+  if (!row) return null;
+  const r = row.querySelector('.foe-pic').getBoundingClientRect(), st = stage.getBoundingClientRect();
+  return {x: r.left - st.left, y: r.top - st.top};
+}
+function foeFx(f, type, n, at){
+  const row = dgFoes.children[G.run.foes.indexOf(f)];
+  if (!row || REDUCED){ if (row && type === 'die') row.classList.add('dying'); return; }
+  if (type === 'act') return replay(row, 'act');
+  if (type === 'die') return row.classList.add('dying');
+  // 挨刀：一道光从消掉的那组飞到怪身上
+  const pic = row.querySelector('.foe-pic'), r = pic.getBoundingClientRect(), st = stage.getBoundingClientRect();
+  const sx = at && at.px !== undefined ? st.left + at.px + L.cell * .46 : r.left, sy = at && at.py !== undefined ? st.top + at.py + L.cell * .46 : r.top;
+  const ex = r.left + r.width / 2, ey = r.top + r.height / 2, orb = mk('i', 'slash');
+  document.body.appendChild(orb);
+  const a = orb.animate([{transform: `translate(${sx}px,${sy}px) scale(.5)`}, {transform: `translate(${ex}px,${ey}px) scale(1.2)`}], {duration: 240, easing: 'cubic-bezier(.5,0,.75,.5)'});
+  a.onfinish = () => {
+    orb.remove();
+    replay(row, 'hit');
+    const dmg = mk('b', 'dmg');
+    dmg.textContent = '-' + n;
+    row.appendChild(dmg);
+    setTimeout(() => dmg.remove(), 820);
+  };
+}
+// 一群蝙蝠从牌堆里扑出来，飞过整个牌桌
+function batsFx(at){
+  if (REDUCED) return;
+  const U = L.unit, ox = at ? L.boardX + (at.x + .5) * U : L.boardX + 3.5 * U, oy = at ? L.boardY + (at.y + .5) * U : L.boardY - U;
+  for (let i = 0; i < 7; i++){
+    const b = mk('i', 'batfx');
+    b.style.left = ox + 'px';
+    b.style.top = oy + 'px';
+    const ang = (i / 7) * Math.PI * 2 + Math.random() * .6, d = U * (3.5 + Math.random() * 2.5);
+    b.style.setProperty('--dx', (Math.cos(ang) * d).toFixed(0) + 'px');
+    b.style.setProperty('--dy', (Math.sin(ang) * d - U * 1.5).toFixed(0) + 'px');
+    b.style.animationDelay = (i * 40) + 'ms';
+    stage.appendChild(b);
+    setTimeout(() => b.remove(), 1300);
+  }
+}
+
+/* ---- 篝火：Boss 前歇一歇（点亮蜡烛或者烧掉口袋，二选一），旁边的商人收灵魂 ---- */
+function roomRender(){
+  const run = G.mode === 'dig' ? G.run : null, R = run && run.room;
+  if (!R){ roomEl.hidden = true; return; }
+  roomEl.hidden = false;
+  roomEl.className = 'room r-camp' + (roomEl.classList.contains('driven') ? ' driven' : '');
+  const head = mk('div', 'room-head'), ht = mk('div'), h = mk('h3'), sub = mk('p');
+  ht.append(h, sub);
+  h.textContent = '篝火';
+  sub.textContent = R.used ? (R.used === 'rest' ? '歇了一会儿，点亮了一根蜡烛' : '口袋里的牌都烧掉了') : `下一层是${nextName(run.floor + 1)}，先歇一歇`;
+  const fire = mk('i', 'fire');
+  fire.style.backgroundImage = 'var(--da-camp)';
+  head.append(fire, ht);
+  const opts = mk('div', 'camp-opts');
+  const rest = mk('button', 'btn primary');
+  rest.type = 'button';
+  rest.textContent = run.hearts >= run.maxHearts ? '蜡烛都亮着' : '歇一歇：点亮蜡烛';
+  rest.disabled = !!R.used || run.hearts >= run.maxHearts;
+  rest.addEventListener('click', () => { R.used = 'rest'; run.hearts = Math.min(run.maxHearts, run.hearts + 1); Sound.tool(); render(); roomRender(); });
+  const n = G.slot.length + G.hold.flat().length;
+  const burn = mk('button', 'btn ghost');
+  burn.type = 'button';
+  burn.textContent = n ? `烧掉口袋 ${n} 张` : '烧掉口袋';
+  burn.disabled = !!R.used || !n;
+  burn.addEventListener('click', () => {
+    R.used = 'burn';
+    for (const t of [...G.slot, ...G.hold.flat()]){ t.status = 'gone'; if (t.px !== undefined) burst(t.px + L.cell * .46, t.py + L.cell * .46); }
+    G.slot = [];
+    G.hold = [[], [], []];
+    Sound.boom();
+    render();
+    roomRender();
+  });
+  opts.append(rest, burn);
+  // 商人
+  const shop = mk('p', 'shop-note');
+  shop.textContent = `商人：手里有 ${run.wool} 个灵魂${has('coupon') ? ' · 黑市徽章打七折' : ''}`;
+  const cards = mk('div', 'cards');
+  R.goods.forEach((g, i) => {
+    const sold = R.sold.includes(i);
+    const buy = price => {
+      if (run.wool < price) return toast('灵魂不够');
+      run.wool -= price;
+      R.sold.push(i);
+      Sound.coin();
+      if (g.t === 'relic') digGain(g.id);
+      if (g.t === 'tool'){ G.tools[g.id]++; toast(`「${TOOL_NAMES[g.id]}」多了一次`); }
+      render();
+      roomRender();
+    };
+    let card;
+    if (g.t === 'relic'){ const pr = relicPrice(g.id); card = relicCard(g.id, pr, () => buy(pr), sold || run.wool < pr); }
+    else { const pr = itemPrice(7); card = itemCard(`var(--da-t${g.id})`, TOOL_NAMES[g.id], '道具多一次', pr, () => buy(pr), sold || run.wool < pr); }
+    if (sold) card.classList.add('sold');
+    cards.appendChild(card);
+  });
+  // 出口
+  const exits = mk('div', 'exits');
+  run.exits.forEach((x, i) => {
+    const b = mk('button', 'exit');
+    b.type = 'button';
+    const ic = mk('i');
+    ic.style.setProperty('--k', `var(--da-${nextArt(run.floor + 1)})`);
+    const lab = mk('span');
+    lab.textContent = `往下跳 · ${nextName(run.floor + 1)}`;
+    b.append(ic, lab);
+    b.setAttribute('aria-label', `跳下去，下一层：${floorName(run.floor + 1)}，${nextName(run.floor + 1)}`);
+    b.addEventListener('click', () => { if (!G.zooming && !G.pending) digDive(i); });
+    exits.appendChild(b);
+  });
+  roomEl.replaceChildren(head, opts, shop, cards, exits);
+}
+
+/* ---- 掉进下一层：出口蓄力开裂 → 地面塌陷 → 冲进竖井往下掉 → 砸到下一层 ----
+   牌、地面、房间面板用同一台 3D 镜头（camFrame / camPlane）；光、竖井、飞过的灰尘火星、冲击波画在一张盖满全屏的画布上。
+   整段按时间轴走（毫秒）：0 蓄力 · 350 塌陷 · 1100 闪光冲进竖井 · 1500 换层 · 2050 看见底 · 2500 落地 · 3200 站稳 */
+const SEQ = {collapse: 350, flash: 1100, swap: 1500, approach: 2050, impact: 2500, settle: 3200};
+const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const lerp3 = (a, b, k) => a.map((v, i) => v + (b[i] - v) * k);
+const rgba = (c, a) => `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${a == null ? 1 : Math.max(0, Math.min(1, a)).toFixed(3)})`;
+// 每一段竖井：岩层三种颜色轮着来、井底透上来的光、飞过去的是灰尘还是碎骨头还是火星
+const SHAFT = [
+  {bands: ['#4a3a30', '#5e4b3d', '#30251e'], light: [255, 170, 90], parts: 'dust'},
+  {bands: ['#2c3540', '#3d4958', '#1c232b'], light: [160, 222, 235], parts: 'bone'},
+  {bands: ['#4c130a', '#71200f', '#2b0805'], light: [255, 112, 40], parts: 'ember'},
+  {bands: ['#2c0606', '#480a0a', '#150202'], light: [255, 52, 16], parts: 'ember'}
+].map(z => Object.assign(z, {rgb: z.bands.map(hexRgb)}));
+const fxCanvas = mk('canvas', 'fxc');
+fxCanvas.hidden = true;
+fxCanvas.setAttribute('aria-hidden', 'true');
+document.body.appendChild(fxCanvas);
+const landCard = mk('div', 'landcard');
+landCard.hidden = true;
+landCard.setAttribute('aria-hidden', 'true');
+landCard.addEventListener('animationend', e => { if (e.target === landCard) landCard.hidden = true; });
+stage.appendChild(landCard);
+const pitEl = mk('div', 'pit');   // 地面从出口开始塌出来的黑洞
+zoneEl.appendChild(pitEl);
+const appEl = document.querySelector('.app');
+const TAU2 = Math.PI * 2;
+const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+let D = null;   // 正在往下掉的那一段
+
+function camHead(c){
+  return `translate(${c.sx.toFixed(1)}px,${c.sy.toFixed(1)}px) perspective(${P3}px) translateZ(${c.k.toFixed(1)}px) rotateX(${c.tilt.toFixed(2)}deg) rotateZ(${c.yaw.toFixed(2)}deg) `;
+}
+function camFrame(list, c, per){
+  const a = c.tilt * Math.PI / 180, cs = Math.cos(a), sn = Math.sin(a);
+  const w = c.yaw * Math.PI / 180, cw = Math.cos(w), sw = Math.sin(w), ts = L.unit * .92, hs = (ts / 2).toFixed(1);
+  const head = camHead(c), out = [];
+  stage.style.setProperty('--fe', (1 - Math.min(1, c.tilt / 20)).toFixed(3));
+  for (const t of list){
+    if (!t.el) continue;
+    const p = boardPose(t), o = per(t);
+    const X = p.x - c.tx + (o.dx || 0), Y = p.y - c.ty + (o.dy || 0), Z = (t.z + 1) * c.gap + (o.dz || 0);
+    const x1 = (X + ts / 2) * cw - (Y + ts / 2) * sw, y1 = (X + ts / 2) * sw + (Y + ts / 2) * cw;
+    const zc = y1 * sn + Z * cs + c.k;
+    const op = (o.op == null ? 1 : o.op) * (1 - seg(zc, P3 - 430, P3 - 170));
+    // 翻滚绕着牌的中心转；出口的盖子绕上边翻开
+    const sp = o.spin ? ` translate(${hs}px,${hs}px) rotateX(${o.spin.rx.toFixed(1)}deg) rotateY(${o.spin.ry.toFixed(1)}deg) rotateZ(${o.spin.rz.toFixed(1)}deg) translate(-${hs}px,-${hs}px)` : '';
+    t.el.style.transform = head + `translate3d(${X.toFixed(1)}px,${Y.toFixed(1)}px,${Z.toFixed(1)}px)` + sp + (o.hinge ? ` rotateX(${o.hinge.toFixed(1)}deg)` : '');
+    t.el.style.opacity = op < .999 ? Math.max(0, op).toFixed(3) : '';
+    t.el.style.visibility = op < .002 ? 'hidden' : '';
+    out.push([zc + (t.z + 1) * 3, t]);   // 层压扁了以后，上层还是要盖在下层上面
+  }
+  out.sort((u, v) => u[0] - v[0]);
+  const n = Math.max(1, out.length - 1);
+  out.forEach(([, t], i) => { t.el.style.zIndex = 10 + Math.round(i / n * 270); });
+  camPlane(zoneEl, L.boardX - 6, L.boardY - 2, c, -3);
+  if (!bed.hidden) camPlane(bed, L.boardX - 4, Math.round(L.boardY + L.unit * 7.5), c, -2);
+}
+// 地面、房间面板这种平放着的大块：放在 (lx, ly)，和牌用同一台镜头；tail 是贴在它自己身上的额外变换
+function camPlane(el, lx, ly, c, Z, tail){
+  el.style.transformOrigin = '0 0';
+  el.style.transform = `translate(${(-lx).toFixed(1)}px,${(-ly).toFixed(1)}px) ` + camHead(c) + `translate3d(${(lx - c.tx).toFixed(1)}px,${(ly - c.ty).toFixed(1)}px,${Z.toFixed(1)}px)` + (tail || '');
+}
+const boardMid = () => ({x: L.boardX + 3.5 * L.unit, y: L.boardY + 4.1 * L.unit});
+// 地面塌出来的洞：几个圆叠在一起，边缘一圈被底下的光照亮
+function pitPaint(t){
+  const S = D, U = L.unit, R = U * Math.max(0, (t - SEQ.collapse - 220) / 48);
+  if (!R){ pitEl.style.opacity = '0'; return; }
+  const cx = S.hx - (L.boardX - 6), cy = S.hy - (L.boardY - 2), lit = SHAFT[S.fromZone].light, cores = [], rims = [];
+  for (const b of S.blobs){
+    const x = cx + b.dx * R * .35, y = cy + b.dy * R * .35, r = R * b.k;
+    cores.push(`radial-gradient(circle at ${x.toFixed(1)}px ${y.toFixed(1)}px,#040202 0 ${r.toFixed(1)}px,rgba(4,2,2,0) ${(r + 1.5).toFixed(1)}px)`);
+    rims.push(`radial-gradient(circle at ${x.toFixed(1)}px ${y.toFixed(1)}px,${rgba(lit, .95)} 0 ${(r + 2).toFixed(1)}px,${rgba(lit, 0)} ${(r + U * .45).toFixed(1)}px)`);
+  }
+  pitEl.style.background = cores.concat(rims).join(',');
+  pitEl.style.opacity = '1';
+}
+// ① 出口附近的牌发抖 → 牌堆立起来 → 地面从出口往外塌、牌一圈圈翻滚着掉进黑洞；镜头凑近出口，盖子翻开
+function collapseFrame(t){
+  const S = D, U = L.unit, m = boardMid(), h = S.tile;
+  const c1 = seg(t, 0, 700), c2 = seg(t, 650, SEQ.flash), toH = seg(t, 120, 900);
+  const zoom = Math.exp(Math.log(1.45) * seg(t, 150, 900) + Math.log(2.6 / 1.45) * seg(t, 880, SEQ.flash));
+  const cam = {
+    tilt: S.tdir * (26 * c1 + 18 * c2), yaw: -9 * S.tdir * seg(t, 0, 1000), gap: S.gmax * seg(t, 100, 600) * (1 - .6 * c2),
+    tx: mix(m.x, S.hx, toH), ty: mix(m.y, S.hy, toH), sx: m.x, sy: m.y + U * .3 * c1, k: P3 * (1 - 1 / zoom)
+  };
+  camFrame(S.old, cam, u => {
+    if (u === h) return {hinge: 105 * seg(t, 380, 680), op: 1 - seg(t, 600, 780)};
+    const f = u.fx, near = Math.max(0, 1 - f.d / 3);
+    const amp = seg(t, 0, 300) * (1 - seg(t, 330, 460)) * near * 2.4;
+    const lt = Math.max(0, Math.min(1, (t - SEQ.collapse - 30 - f.d * 48) / 620)), g = lt * lt;
+    return {
+      dx: Math.sin(t * .09 + f.j) * amp + f.ox * U * .5 * g, dy: Math.cos(t * .11 + f.j) * amp + f.oy * U * .5 * g, dz: -U * f.fall * g,
+      spin: g > 0 ? {rx: f.rx * g, ry: f.ry * g, rz: f.rz * g} : null, op: 1 - seg(lt, .55, 1)
+    };
+  });
+  pitPaint(t);
+  // 房间的面板跟着地面一起倒下去，再翻着掉进洞里
+  if (S.roomOut){
+    const g = Math.pow(Math.max(0, Math.min(1, (t - 420) / 640)), 2), pw = (U * BW - 4) / 2, ph = (U * BH - 6) / 2;
+    camPlane(roomEl, L.boardX + 2, L.boardY + 4, cam, 2 - U * 14 * g, ` translate(${pw.toFixed(1)}px,${ph.toFixed(1)}px) rotateX(${(-50 * g).toFixed(1)}deg) rotateZ(${(18 * g).toFixed(1)}deg) translate(${(-pw).toFixed(1)}px,${(-ph).toFixed(1)}px)`);
+    roomEl.style.opacity = (1 - seg(t, 800, 1060)).toFixed(3);
+  }
+}
+// ④ 井底的新一层迎面冲上来：一路转正、一层层拍扁，砸到底的那一下从中间往外一圈圈弹起来
+function landFrame(t){
+  const S = D, U = L.unit, m = boardMid(), ti = t - SEQ.impact;
+  const p = Math.max(0, Math.min(1, (t - SEQ.approach) / (SEQ.impact - SEQ.approach)));
+  const zoom = 1 / (1 / .26 - (1 / .26 - 1) * p) * (ti > 0 ? 1 + .06 * Math.sin(Math.PI * Math.min(1, ti / 240)) : 1);
+  const back = seg(t, SEQ.impact, SEQ.impact + 320);
+  const cam = {
+    tilt: mix(48, 9, sm(p)) * (1 - back), yaw: S.roll * (1 - seg(t, SEQ.approach - 250, SEQ.impact)), gap: S.gmaxN * Math.pow(1 - p, .8),
+    tx: m.x, ty: m.y, sx: m.x, sy: m.y + U * 1.2 * (1 - sm(p)), k: P3 * (1 - 1 / zoom)
+  };
+  const bounce = d => { const tau = (ti - d * 30) / 1000; return tau > 0 ? U * .8 * Math.exp(-6.5 * tau) * Math.sin(17 * tau) : 0; };
+  const op = seg(t, SEQ.approach - 60, SEQ.approach + 140);
+  // 上一层塌下来的碎牌：落地之后才一张张砸下来
+  camFrame(S.fresh, cam, u => {
+    const f = u.fx || {d: 0, j: 0};
+    if (!u.rubble) return {dz: bounce(f.d), op};
+    const q = Math.max(0, Math.min(1, (ti - 60 - f.j * 260) / 300));
+    if (q <= 0) return {op: 0};
+    const k = (1 - q) * (1 - q);
+    return {dz: U * 8 * k + bounce(f.d), op, spin: k > 0 ? {rx: 70 * k, ry: 0, rz: 90 * k * (f.j - .5)} : null};
+  });
+  if (G.run.room){
+    camPlane(roomEl, L.boardX + 2, L.boardY + 4, cam, 2 + bounce(0));
+    roomEl.style.opacity = op.toFixed(3);
+  }
+}
+// 晃动：蓄力时轻、塌陷时重、往下掉时一直颠、落地时猛一下再慢慢停
+function shakeOff(t){
+  const ti = t - SEQ.impact;
+  let amp = 2.2 * seg(t, 0, 350) + 3.8 * seg(t, 350, SEQ.flash);
+  if (t > SEQ.flash) amp = 4.5 * fallSpeed(t);
+  if (ti > 0) amp = 12 * Math.exp(-ti / 140);
+  return amp < .05 ? null : [Math.sin(t * .131) * amp + Math.sin(t * .057) * amp * .5, Math.cos(t * .113) * amp + Math.sin(t * .071) * amp * .4];
+}
+function shakeAt(t){
+  const o = t > SEQ.flash + 60 && t < SEQ.impact - 200 ? null : shakeOff(t);   // 竖井把页面盖住的时候不用晃页面
+  appEl.style.transform = o ? `translate(${o[0].toFixed(1)}px,${o[1].toFixed(1)}px)` : '';
+}
+// 竖井：一圈圈岩层的间距、离镜头最近能看到多近；往下掉的速度越到底越快，深度是速度的积分
+const RING = .3, RING0 = .16, NRING = 26;
+const fallSpeed = t => (t < SEQ.flash ? 0 : seg(t, SEQ.flash, SEQ.flash + 220) * (1 + .5 * seg(t, SEQ.approach, SEQ.impact)));
+function fallDepth(t){
+  let d = 0;
+  for (let x = SEQ.flash; x < t; x += 16) d += fallSpeed(x) * .016 * 4.2;
+  return d;
+}
+function fxSize(){
+  const dpr = Math.min(1.5, window.devicePixelRatio || 1), w = window.innerWidth, h = window.innerHeight;
+  fxCanvas.width = Math.round(w * dpr);
+  fxCanvas.height = Math.round(h * dpr);
+  fxCanvas.style.width = w + 'px';
+  fxCanvas.style.height = h + 'px';
+  return {dpr, w, h};
+}
+// ② 出口冒光：光晕、转动的光柱、天花板掉灰、往上崩的火星；最后光一下子撑满整个屏幕
+function fxCharge(t, ctx, w, h, bc){
+  const S = D, U = L.unit, lit = SHAFT[S.fromZone].light, r = S.srcEl && S.srcEl.isConnected ? S.srcEl.getBoundingClientRect() : null;
+  const gx = r ? r.left + r.width / 2 : bc.x, gy = r ? r.top + r.height / 2 : bc.y;
+  const I = seg(t, 0, 350) * .7 + seg(t, 350, 1000) * .3, R = U * (.5 + 3 * seg(t, 0, 1050));
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, R * 1.7);
+  g.addColorStop(0, rgba(lit, .95 * I));
+  g.addColorStop(.3, rgba(lit, .4 * I));
+  g.addColorStop(1, rgba(lit, 0));
+  ctx.fillStyle = g;
+  ctx.fillRect(gx - R * 1.7, gy - R * 1.7, R * 3.4, R * 3.4);
+  ctx.fillStyle = rgba(lit, .28 * I);
+  for (let i = 0; i < 14; i++){
+    const an = t * .0011 + i * TAU2 / 14 + Math.sin(i * 2.3) * .2, len = R * (1.6 + .7 * Math.sin(i * 1.7 + t * .005));
+    ctx.beginPath();
+    ctx.moveTo(gx, gy);
+    ctx.lineTo(gx + Math.cos(an - .035) * len, gy + Math.sin(an - .035) * len);
+    ctx.lineTo(gx + Math.cos(an + .035) * len, gy + Math.sin(an + .035) * len);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  for (const p of S.debris){
+    const q = (t - p.t0) / 900;
+    if (q <= 0 || q >= 1) continue;
+    ctx.fillStyle = `rgba(${p.c},${(Math.min(1, (1 - q) * 3) * .85).toFixed(3)})`;
+    ctx.fillRect(p.x * w, -10 + 1100 * q * q + p.v * q, p.s, p.s);
+  }
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of S.sparks){
+    const q = (t - p.t0) / 700;
+    if (q <= 0 || q >= 1) continue;
+    ctx.fillStyle = rgba(lit, 1 - q);
+    ctx.beginPath();
+    ctx.arc(gx + Math.cos(p.a) * p.v * q, gy + Math.sin(p.a) * p.v * q + 420 * q * q, p.s, 0, TAU2);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  const iq = Math.max(0, Math.min(1, (t - 860) / (SEQ.flash - 860)));
+  if (iq > 0){
+    const RR = U * .6 + Math.pow(iq, 1.7) * Math.hypot(w, h) * 1.25, gi = ctx.createRadialGradient(gx, gy, 0, gx, gy, RR);
+    gi.addColorStop(0, rgba([255, 254, 250]));
+    gi.addColorStop(.62, rgba([255, 246, 228]));
+    gi.addColorStop(.8, rgba(lerp3(lit, [255, 255, 255], .3), .85));
+    gi.addColorStop(1, rgba(lit, 0));
+    ctx.fillStyle = gi;
+    ctx.fillRect(0, 0, w, h);
+  }
+}
+// ③ 竖井：一圈圈岩层迎面扑过来，每一圈朝着井底的边被光照亮；镜头转着往下掉；看见底时正中间开出一个洞，露出底下的新一层
+function fxShaft(t, ctx, w, h, bc){
+  const S = D, pal = SHAFT[S.toZone], old = SHAFT[S.fromZone], L3 = pal.light, dep = fallDepth(t);
+  const roll = S.roll * Math.PI / 180 * sm((t - SEQ.flash) / (SEQ.impact - SEQ.flash)), near = seg(t, SEQ.approach - 300, SEQ.impact);
+  const fade = 1 - seg(t, SEQ.impact - 120, SEQ.impact + 120), A = Math.max(w, h) * .55, asp = Math.min(1, w / h + .2), o = shakeOff(t) || [0, 0];
+  ctx.save();
+  ctx.globalAlpha = fade;
+  ctx.fillStyle = rgba(lerp3(pal.rgb[2], L3, .5));
+  ctx.fillRect(0, 0, w, h);
+  const cx = mix(w / 2, bc.x, seg(t, SEQ.approach - 200, SEQ.impact)), cy = mix(h / 2, bc.y, seg(t, SEQ.approach - 200, SEQ.impact));
+  ctx.translate(cx + Math.sin(t * .0021) * w * .02 + o[0], cy + Math.cos(t * .0017) * h * .015 + o[1]);
+  ctx.rotate(roll);
+  ctx.scale(asp, 1);
+  const r0 = Math.ceil((dep + RING0) / RING), NV = 30;
+  for (let k = 0; k < NRING; k++){
+    const rid = r0 + k, z = rid * RING - dep;
+    if (z <= RING0 * .8) continue;
+    // 换了一段的话，中间有一圈发光的岩层：穿过它之前是上一段的颜色，之后是下一段的
+    const band = S.zoneChanged && rid < S.bRid ? old : pal, edge = S.zoneChanged && rid === S.bRid;
+    const f = Math.min(1, (z - RING0) / (NRING * RING)), sc = A / z, rIn = A / (z + RING);
+    const base = lerp3(band.rgb[rid % 3], [0, 0, 0], .5 * (1 - f));
+    const lip = lerp3(base, band.light, .22 + .5 * Math.pow(f, 1.3)), deep = lerp3(base, L3, .55 * Math.pow(f, 2));
+    ctx.beginPath();
+    for (let q = 0; q < NV; q++){
+      const th = q / NV * TAU2, c = Math.cos(th), s = Math.sin(th);
+      const j = 1 + .09 * Math.sin(q * 1.3 + rid * .7) + .06 * Math.sin(q * 3.1 - rid * 1.1 + 2) + (hash(rid, q) - .5) * .14;
+      const x = Math.sign(c) * Math.pow(Math.abs(c), .8) * sc * j, y = Math.sign(s) * Math.pow(Math.abs(s), .8) * sc * j;
+      q ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.closePath();
+    const gr = ctx.createRadialGradient(0, 0, rIn * .92, 0, 0, sc * 1.12);
+    gr.addColorStop(0, rgba(edge ? lerp3(L3, [255, 255, 255], .3) : lip));
+    gr.addColorStop(.3, rgba(edge ? L3 : deep));
+    gr.addColorStop(1, rgba(lerp3(deep, [0, 0, 0], .55)));
+    ctx.fillStyle = gr;
+    ctx.fill();
+  }
+  // 井底透上来的光，快到底时越来越亮；几道光柱慢慢转
+  ctx.globalCompositeOperation = 'lighter';
+  const gR = A * (.16 + .5 * near), gg = ctx.createRadialGradient(0, 0, 0, 0, 0, gR);
+  gg.addColorStop(0, rgba(L3, .55 + .4 * near));
+  gg.addColorStop(.4, rgba(L3, .18 + .2 * near));
+  gg.addColorStop(1, rgba(L3, 0));
+  ctx.fillStyle = gg;
+  ctx.fillRect(-gR, -gR, gR * 2, gR * 2);
+  ctx.fillStyle = rgba(L3, .05 + .05 * near);
+  for (let i = 0; i < 9; i++){
+    const an = i * TAU2 / 9 + t * .0004, len = A * 2.2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(an - .05) * len, Math.sin(an - .05) * len);
+    ctx.lineTo(Math.cos(an + .05) * len, Math.sin(an + .05) * len);
+    ctx.fill();
+  }
+  // 飞过去的灰尘、碎骨头、火星，速度越快拖得越长
+  const v = fallSpeed(t);
+  ctx.globalCompositeOperation = pal.parts === 'ember' ? 'lighter' : 'source-over';
+  ctx.lineCap = 'round';
+  for (const p of S.parts){
+    const z = ((p.z - dep * 1.15) % 7 + 7) % 7 + .15, z2 = z + .05 + v * .35;
+    const x = Math.cos(p.a) * p.r * A / z, y = Math.sin(p.a) * p.r * A / z, x2 = Math.cos(p.a) * p.r * A / z2, y2 = Math.sin(p.a) * p.r * A / z2;
+    const al = Math.min(1, (7 - z) / 4) * .9;
+    ctx.strokeStyle = pal.parts === 'ember' ? rgba([255, 120 + p.c * 100, 40], al) : pal.parts === 'bone' ? rgba([226, 232, 236], al * .85) : rgba([255, 214, 168], al * .75);
+    ctx.lineWidth = Math.min(7, p.s * (pal.parts === 'bone' ? 3.4 : 2.4) / z);
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+  // 正中间开洞：露出底下正冲上来的新一层
+  const hq = seg(t, SEQ.approach - 60, SEQ.impact);
+  if (hq > 0){
+    const HR = (.05 + hq) * Math.hypot(w, h) * .62;
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    const hg = ctx.createRadialGradient(bc.x, bc.y, HR * .6, bc.x, bc.y, HR);
+    hg.addColorStop(0, 'rgba(0,0,0,1)');
+    hg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = hg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+    const lq = 1 - seg(t, SEQ.approach + 60, SEQ.impact - 40);
+    if (lq > 0){
+      const lg = ctx.createRadialGradient(bc.x, bc.y, 0, bc.x, bc.y, HR * 1.05);
+      lg.addColorStop(0, rgba(lerp3(L3, [255, 255, 255], .45), .9 * lq));
+      lg.addColorStop(.6, rgba(L3, .55 * lq));
+      lg.addColorStop(1, rgba(L3, 0));
+      ctx.fillStyle = lg;
+      ctx.fillRect(0, 0, w, h);
+    }
+  }
+  // 冲进竖井那一下的白光慢慢退掉
+  const fq = seg(t, SEQ.flash, SEQ.flash + 320);
+  if (fq < 1){
+    ctx.fillStyle = rgba([255, 248, 236], 1 - fq);
+    ctx.fillRect(0, 0, w, h);
+  }
+  const vg = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .35, w / 2, h / 2, Math.hypot(w, h) * .6);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, rgba([0, 0, 0], .55 * fade));
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, w, h);
+}
+// ⑤ 落地：一闪、两圈冲击波、碎石崩出去、四周扬起一圈灰
+function fxImpact(ti, ctx, w, h, bc){
+  const S = D, U = L.unit, lit = SHAFT[S.toZone].light;
+  if (ti < 160){
+    ctx.fillStyle = rgba(lerp3(lit, [255, 255, 255], .5), .55 * (1 - ti / 160));
+    ctx.fillRect(0, 0, w, h);
+  }
+  for (const [dl, lw, al] of [[0, 9, .8], [90, 4, .5]]){
+    const q = (ti - dl) / 560;
+    if (q <= 0 || q >= 1) continue;
+    const R = U * .8 + (1 - Math.pow(1 - q, 2)) * Math.hypot(w, h) * .75;
+    ctx.beginPath();
+    ctx.ellipse(bc.x, bc.y, R, R * .9, 0, 0, TAU2);
+    ctx.strokeStyle = rgba(lit, al * .25 * (1 - q));
+    ctx.lineWidth = (lw * (1 - q) + 1) * 2.6;
+    ctx.stroke();
+    ctx.strokeStyle = rgba(lerp3(lit, [255, 255, 255], .4), al * Math.pow(1 - q, 1.3));
+    ctx.lineWidth = lw * (1 - q) + 1;
+    ctx.stroke();
+  }
+  const dc = [[150, 122, 98], [118, 138, 150], [140, 62, 40], [112, 30, 24]][S.toZone];
+  for (const p of S.dust){
+    const q = ti / p.life;
+    if (q >= 1) continue;
+    const e = 1 - Math.pow(1 - q, 2.2), x = bc.x + Math.cos(p.a) * (p.r0 * U + p.v * e), y = bc.y + Math.sin(p.a) * (p.r0 * U + p.v * e) * .9;
+    const r = p.s * U * (1 + 2.2 * e), g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgba(dc, .28 * (1 - q)));
+    g.addColorStop(1, rgba(dc, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  if (S.rubble) for (const p of S.chips){
+    const q = (ti - 330) / 600;
+    if (q <= 0 || q >= 1) break;
+    const x = bc.x + Math.cos(p.a + 1) * (p.r0 * U * .8 + p.v * .6 * q), y = bc.y + Math.sin(p.a + 1) * (p.r0 * U * .8 + p.v * .6 * q) * .9 - p.up * .5 * q + 1100 * q * q;
+    ctx.fillStyle = rgba([60, 48, 40], .9 * (1 - q * q));
+    ctx.fillRect(x - p.s * .35, y - p.s * .25, p.s * .7, p.s * .5);
+  }
+  for (const p of S.chips){
+    const q = ti / 700;
+    if (q >= 1) break;
+    const x = bc.x + Math.cos(p.a) * (p.r0 * U + p.v * q), y = bc.y + Math.sin(p.a) * (p.r0 * U + p.v * q) * .9 - p.up * q + 1100 * q * q;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(p.rot + q * p.spin);
+    ctx.fillStyle = rgba(S.toZone >= 2 ? [70, 22, 14] : S.toZone === 1 ? [70, 80, 90] : [80, 62, 50], 1 - q * q);
+    ctx.fillRect(-p.s / 2, -p.s * .35, p.s, p.s * .7);
+    ctx.restore();
+  }
+}
+function fxDraw(t){
+  const S = D, {dpr, w, h} = S.fx, ctx = S.ctx;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const st = stage.getBoundingClientRect(), m = boardMid(), bc = {x: st.left + m.x, y: st.top + m.y};
+  if (t < SEQ.flash + 40) fxCharge(t, ctx, w, h, bc);
+  if (t >= SEQ.flash - 20 && t < SEQ.impact + 140) fxShaft(t, ctx, w, h, bc);
+  if (t > SEQ.impact && t < SEQ.impact + 1100) fxImpact(t - SEQ.impact, ctx, w, h, bc);
+}
+function diveRender(t){
+  const S = D;
+  if (!S) return;
+  // 竖井盖住屏幕的那段时间，牌堆停在最后一帧，不用每帧重算
+  if (!S.swapped){
+    if (t <= SEQ.flash + 60 || !S.cDone) collapseFrame(Math.min(t, SEQ.flash + 60));
+    S.cDone = t > SEQ.flash + 60;
+  } else if (t >= SEQ.approach - 80 || !S.lDone){
+    landFrame(t);
+    S.lDone = true;
+  }
+  fxDraw(t);
+  shakeAt(t);
+}
+// 换层：竖井把整个屏幕盖住的时候，把旧牌拿掉、发下一层的牌（先藏在远处）
+function diveSwap(){
+  const S = D, U = L.unit;
+  for (const t of S.old) if (t.el) t.el.remove();
+  pitEl.style.opacity = '0';
+  roomEl.style.opacity = '0';
+  digEnterFloor(S.from + 1, S.exit.kind);
+  S.rubble = G.run.fl.rubble;
+  S.fresh = G.tiles.filter(t => t.status === 'board');
+  const zMax = Math.max(1, ...S.fresh.map(t => t.z + 1));
+  for (const t of S.fresh) t.fx = {d: Math.hypot(t.x - 3, t.y - 3.6), j: Math.random()};
+  S.gmaxN = Math.min(U * .7, U * 5 / zMax);
+  S.swapped = true;
+  mountTiles(false);
+  roomRender();
+  roomEl.classList.add('driven');
+  document.body.classList.add('hideui');
+}
+function diveTick(now){
+  const S = D;
+  if (!S) return;
+  if (S.ep !== G.epoch) return diveAbort();
+  const t = S.frozen != null ? S.frozen : now - S.t0;
+  S.now = t;
+  if (!S.swapped && t >= SEQ.swap) diveSwap();
+  // 声音和字跟着时间轴出来
+  const once = (k, at, fn) => { if (!S.sfx[k] && t >= at){ S.sfx[k] = 1; fn(); } };
+  once('crack', 320, () => Sound.crack());
+  once('whoosh', SEQ.flash - 30, () => Sound.whoosh());
+  once('text', SEQ.flash + 60, () => {
+    const f = S.from + 1, z = zoneOf(f);
+    fallEl.replaceChildren();
+    if (S.zoneChanged){ const em = mk('em'); em.textContent = z < 3 ? ZONES[z].name : '无底深渊'; fallEl.appendChild(em); }
+    const b = mk('b');
+    b.textContent = `第 ${f} 层`;
+    fallEl.appendChild(b);
+    fallEl.className = `fall z${S.toZone}` + (S.zoneChanged ? ' big' : '');
+    fallEl.hidden = false;
+    void fallEl.offsetWidth;
+    fallEl.classList.add('rush');
+    if (S.zoneChanged) Sound.stinger();
+  });
+  once('rubble', SEQ.impact + 330, () => { if (S.rubble){ Sound.bump(); setTimeout(() => Sound.bump(), 120); setTimeout(() => Sound.bump(), 230); } });
+  once('impact', SEQ.impact, () => {
+    Sound.impact();
+    fallEl.hidden = true;
+    document.body.classList.remove('hideui');
+    document.body.classList.add('uidrop');
+    const f = S.from + 1;
+    landCard.replaceChildren();
+    const b = mk('b'), s = mk('span');
+    b.textContent = `第 ${f} 层`;
+    s.textContent = floorName(f);
+    landCard.append(b, s);
+    landCard.style.top = Math.round(L.boardY + L.unit * 2.9) + 'px';
+    landCard.className = `landcard z${S.toZone}`;
+    landCard.hidden = false;
+    void landCard.offsetWidth;
+    landCard.classList.add('slam');
+  });
+  diveRender(t);
+  if (S.frozen == null && t >= SEQ.settle) return diveEnd();
+  requestAnimationFrame(diveTick);
+}
+function diveCleanup(){
+  fxCanvas.hidden = true;
+  fallEl.hidden = true;
+  document.body.classList.remove('diving', 'hideui', 'uidrop');
+  appEl.style.transform = '';
+  for (const el of [zoneEl, roomEl, bed]){ el.style.transform = ''; el.style.transformOrigin = ''; el.style.opacity = ''; }
+  roomEl.classList.remove('driven');
+  pitEl.style.opacity = '0';
+  stage.classList.remove('zooming', 'three');
+  stage.style.removeProperty('--fe');
+}
+function diveAbort(){
+  D = null;
+  diveCleanup();
+  landCard.hidden = true;
+}
+function diveEnd(){
+  D = null;
+  diveCleanup();
+  G.anim = null;
+  G.zooming = false;
+  for (const t of G.tiles) if (t.el){ t.el.style.opacity = ''; t.el.style.visibility = ''; }
+  stage.classList.add('instant');
+  render();
+  void stage.offsetWidth;
+  stage.classList.remove('instant');
+  digOnLand(false);
+  saveGame();
+}
+function diveBegin(tile, idx, exit){
+  const run = G.run, U = L.unit, ts = U * .92, m = boardMid();
+  const old = G.tiles.filter(t => t.status === 'board');
+  const srcEl = tile ? tile.el : roomEl.querySelectorAll('.exit')[idx] || null;
+  const hx = tile ? L.boardX + (tile.x + .04) * U + ts / 2 : m.x, hy = tile ? L.boardY + (tile.y + .01) * U + ts / 2 : m.y;
+  const rnd = rngFrom((run.seed + run.floor * 977 + 13) >>> 0);
+  for (const t of old){
+    const cx = L.boardX + (t.x + .5) * U, cy = L.boardY + (t.y + .5) * U, d = Math.hypot(cx - hx, cy - hy) / U || .01;
+    t.fx = {d, ox: (cx - hx) / U / Math.max(1, d), oy: (cy - hy) / U / Math.max(1, d), fall: 9 + rnd() * 7,
+      rx: (rnd() - .5) * 340, ry: (rnd() - .5) * 200, rz: (rnd() - .5) * 260, j: rnd() * 6.28};
+  }
+  const zMax = Math.max(1, ...old.map(t => t.z + 1));
+  D = {
+    t0: performance.now(), ep: G.epoch, tile, srcEl, hx, hy, exit, from: run.floor, old, fresh: [], swapped: false,
+    gmax: Math.min(U * .6, U * 4.5 / zMax), gmaxN: 0, fx: fxSize(), ctx: fxCanvas.getContext('2d'),
+    roll: (rnd() < .5 ? -1 : 1) * (24 + rnd() * 18), fromZone: zoneOf(run.floor), toZone: zoneOf(run.floor + 1),
+    zoneChanged: zoneOf(run.floor + 1) !== zoneOf(run.floor), roomOut: !!run.room, sfx: {}, now: 0, frozen: null, tdir: hy < m.y + U * .4 ? 1 : -1,
+    bRid: Math.ceil((fallDepth(1850) + RING0) / RING),
+    blobs: [{dx: 0, dy: 0, k: 1}].concat(Array.from({length: 5}, () => ({dx: rnd() * 2 - 1, dy: rnd() * 2 - 1, k: .55 + rnd() * .35}))),
+    parts: Array.from({length: 110}, () => ({a: rnd() * TAU2, r: .25 + rnd() * .75, z: rnd() * 7, s: .6 + rnd() * .8, c: rnd()})),
+    sparks: Array.from({length: 26}, () => ({a: -Math.PI / 2 + (rnd() - .5) * 2.4, v: 140 + rnd() * 260, t0: 320 + rnd() * 500, s: 1 + rnd() * 2})),
+    debris: Array.from({length: 34}, () => ({x: rnd(), v: rnd() * 120, t0: rnd() * 700, s: 1.5 + rnd() * 3, c: rnd() < .5 ? '120,100,86' : '70,58,50'})),
+    dust: Array.from({length: 28}, () => ({a: rnd() * TAU2, r0: 2.8 + rnd() * 1.6, v: 40 + rnd() * 120, s: .35 + rnd() * .4, life: 700 + rnd() * 450})),
+    chips: Array.from({length: 18}, () => ({a: rnd() * TAU2, r0: 1 + rnd() * 2.5, v: 120 + rnd() * 260, up: 200 + rnd() * 380, s: 3 + rnd() * 5, rot: rnd() * 6, spin: (rnd() - .5) * 14}))
+  };
+  G.anim = {keep: true, redraw: () => D && diveRender(D.now)};
+  stage.classList.add('zooming', 'three');
+  document.body.classList.add('diving');
+  if (run.room) roomEl.classList.add('driven');
+  fxCanvas.hidden = false;
+  Sound.rumble();
+  requestAnimationFrame(diveTick);
+}
+// 不要动画（系统设置了减少动态效果）：直接换层
+function diveQuick(exit){
+  const from = G.run.floor;
+  for (const t of G.tiles) if (t.status === 'board' && t.el) t.el.remove();
+  digEnterFloor(from + 1, exit.kind);
+  mountTiles(false);
+  roomRender();
+  G.zooming = false;
+  render();
+  toast(`第 ${from + 1} 层 · ${floorName(from + 1)}`);
+  digOnLand(false);
+  saveGame();
+}
+function digDive(h, forced){
+  const run = G.run;
+  if (G.zooming || G.pending || G.over || D) return;
+  const tile = typeof h === 'number' ? null : h, idx = tile ? 0 : h;
+  const exit = run.exits[Math.min(idx, run.exits.length - 1)];
+  if (!exit) return;
+  // 没挖完的牌塌下去，压在下一层最上面（岩浆吞掉的也算）；没打死的怪跟着掉下去
+  if (!ROOMS.has(run.kind)){
+    const left = G.tiles.filter(t => t.status === 'board' && !t.hatch).length + (run.fl.melted || 0);
+    run.rubble = Math.min(18, (run.rubble || 0) + 3 * Math.round(left / 12));
+    run.followers = run.foes.filter(f => f.hp > 0 && !FOES[f.kind].boss).map(f => ({kind: f.kind, hp: f.hp, max: f.max, mi: f.mi}));
+  }
+  G.zooming = true;
+  G.armed = null;
+  G.aim = null;
+  G.epoch++;
+  $('toast').classList.remove('show');
+  if (has('piggy')){
+    const n = Math.min(5, Math.floor(run.wool / 5));
+    if (n){ digWool(n, null, false); toast(`灵魂瓶：多收了 ${n} 个灵魂`); }
+  }
+  // 不要动画、或者页面在后台（动画帧停着）：直接换层
+  if (REDUCED || document.hidden) return diveQuick(exit);
+  diveBegin(tile, idx, exit);
+}
+// 掉到一半切到后台：动画帧停了，直接落地，免得存档停在半空
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden || !D || D.frozen != null) return;
+  if (!D.swapped) diveSwap();
+  diveEnd();
+});
+// 本地测试用：直接跳到某一层；diveAt 把掉层的动画停在某个时刻（传 null 接着往下放）
+function digJump(f, kind){
+  for (const t of G.tiles) if (t.status === 'board' && t.el) t.el.remove();
+  digEnterFloor(f, kind || kindOf(f));
+  mountTiles(false);
+  roomRender();
+  digOnLand(false);
+}
+function diveAt(t){
+  if (!D) return 'no dive';
+  if (t == null){ D.t0 = performance.now() - D.now; D.frozen = null; return 'running'; }
+  D.frozen = t;
+  if (!D.swapped && t >= SEQ.swap) diveSwap();
+  D.now = t;
+  diveRender(t);
+  return t;
+}
+
+/* ---- 存档：刷新页面也接着这一局 ---- */
+function digSerialize(){
+  return {
+    v: 4, run: G.run, tools: G.tools, slots: G.slots, cap: G.cap, rule: G.rule, ms: elapsed(), moves: G.moves, label: G.label,
+    tiles: G.tiles.map(t => ({x: t.x, y: t.y, z: t.z, p: t.pile ? 1 : 0, f: t.fan || null, ty: t.type, st: t.pending ? 3 : ST[t.status],
+      h: t.hatch || null, s: t.sealed ? 1 : 0, w: t.wild ? 1 : 0, b: t.bomb || 0, c: t.chain || 0, n: t.burn || 0, r: t.rubble ? 1 : 0, g: t.badge || 0, i: t.inAt || 0})),
+    slot: G.slot.filter(t => !t.pending).map(t => t.id), hold: G.hold.map(c => c.map(t => t.id))
+  };
+}
+function digLoad(){
+  try { return JSON.parse(localStorage.getItem(DIG_KEY)); } catch (e) { return null; }
+}
+function digResume(s){
+  if (!s || s.v !== 4 || !s.run || !Array.isArray(s.tiles)) return false;
+  try {
+    const tiles = makeTiles(s.tiles.map(o => ({x: o.x, y: o.y, z: o.z, pile: !!o.p, fan: o.f || null})));
+    tiles.forEach((t, i) => {
+      const o = s.tiles[i];
+      t.type = o.ty;
+      t.status = STN[o.st] || 'gone';
+      if (o.h) t.hatch = o.h;
+      if (o.s) t.sealed = true;
+      if (o.w) t.wild = true;
+      if (o.b) t.bomb = o.b;
+      if (o.c) t.chain = o.c;
+      if (o.n) t.burn = o.n;
+      if (o.r) t.rubble = true;
+      if (o.g) t.badge = o.g;
+      if (o.i) t.inAt = o.i;
+    });
+    G.epoch++;
+    Object.assign(G, {
+      mode: 'dig', day: '', rule: s.rule || null, run: s.run, slots: s.slots, cap: s.cap, level: s.run.floor, seed: s.run.seed, cfg: {intro: false},
+      tiles, label: s.label || '', slot: s.slot.map(id => tiles[id]).filter(Boolean), hold: s.hold.map(c => c.map(id => tiles[id]).filter(Boolean)),
+      tools: s.tools, history: [], moves: s.moves || 0, over: false, won: false, pending: 0, acc: s.ms || 0, running: false, aim: null, armed: null
+    });
+    for (const t of G.slot) t.status = 'slot';
+    if (!G.run.owed) G.run.owed = [];
+    mountTiles(false);
+    roomRender();
+    startClock();
+    if (G.run.owed.length) later(payOwed, 900);
+    if (G.run.fl && G.run.fl.forced){ const ep = G.epoch; setTimeout(() => forceFall(ep), 900); }
+    return true;
+  } catch (e) { return false; }
+}
+/* ---- 深渊的规则：玩法、怪、险境、宝物四页。在深渊里点右上角的问号随时打开，主菜单的玩法说明里也能打开；记住上次看的那一页 ---- */
+const DIG_RULES = [
+  '每层都有怪守着。每凑成一组三张就砍它一刀；它旁边写着下一招是什么、还有几步出手。有两只怪时，点头像选先砍哪只。',
+  '出口压在牌堆最底下，挖开以后连点两下就往下跳。怪没打死也能跑，但它会跟着你掉下去（Boss 的巢穴它们不敢进）；Boss 不死，出口打不开。',
+  '没挖完的牌会塌下去，压在下一层最上面。挖得越干净，下一层越好走；自己把一层挖得一张不剩（没有牌被烧掉或被岩浆吞掉），奖励 6 个灵魂。',
+  '口袋会带到下一层。口袋撑破，灭一根蜡烛、口袋里的牌全掉；三根蜡烛全灭，就被黑暗吞没。',
+  '每段五层：普通、普通、恶魔、篝火、Boss。打倒恶魔和 Boss 能挑宝物；篝火边能歇脚，也能用灵魂跟商人换东西。',
+  '一共十五层，第 5、10、15 层是鼠王、巫妖、魔王；打穿之后还有没有底的深渊。',
+  '灵魂：每消一组 1 个，打倒怪 3 个（恶魔 8、Boss 15），自己把一层挖干净 6 个。移出、撤回、洗牌三个道具整局通用。',
+  '点怪的头像、上面那排宝物、烛火和岩浆的小牌子，都能看说明；右上角的问号随时打开这份规则。'
+];
+const HZ_RULES = [
+  ['normal', '烛火 · 地窖', '每拿一张牌烧掉一截，凑成一组添三截；烧完眼前一片漆黑三步，只看得出牌的轮廓。'],
+  ['bats', '蝙蝠窝 · 地窖第 3 层起', '有的牌带蝙蝠记号，被压着时记号偶尔从缝里露出来；它一露出来，蝙蝠扑出，烛火灭三步。'],
+  ['coffin', '棺材 · 墓穴', '带棺材记号的牌一露出来，冒出一团浓雾，盖住周围一片牌六步。'],
+  ['lava', '岩浆 · 地狱', '从离出口最远的一边往前漫，吞掉的牌掉进下一层；漫到出口，你就被逼着掉下去。'],
+  ['', '碎牌', '上一层没挖完的牌塌下来，带着裂纹压在这一层最上面。'],
+  ['lock', '锁', '被锁住的牌点不动；凑成一组、或者过六步就解开。'],
+  ['flame', '着火', '口袋里烧着的牌 4 步内不凑成一组，就炸坏一格口袋；牌堆上烧着的牌 3 步内不拿走，就烧成灰。'],
+  ['xbone', '骨头、泥土、石头', '怪塞给你的牌，凑够三张一样能消，也算砍一刀。'],
+  ['demon', '无底深渊 · 第 16 层起', '上面这些险境随机来两样；Boss 层只留烛火。']
+];
+function ruleRow(art, title, lines, cls){
+  const row = mk('div', 'rule-row' + (cls ? ' ' + cls : '')), pic = mk('i'), txt = mk('div'), b = mk('b');
+  if (art) pic.style.backgroundImage = `var(--da-${art})`; else pic.className = 'mini-rubble';
+  b.textContent = title;
+  txt.appendChild(b);
+  for (const l of lines){
+    if (typeof l === 'string'){ const sm = mk('small'); sm.textContent = l; txt.appendChild(sm); }
+    else txt.appendChild(l);
+  }
+  row.append(pic, txt);
+  return row;
+}
+function rulesNote(text){ const p = mk('p', 'rules-note'); p.textContent = text; return p; }
+const RULE_PAGES = {
+  play: ['玩法', () => {
+    const ul = mk('ul');
+    for (const r of DIG_RULES){ const li = mk('li'); li.textContent = r; ul.appendChild(li); }
+    return [ul];
+  }],
+  foes: ['怪', () => {
+    const out = [rulesNote('每凑成一组三张砍一刀。怪每隔几步出一招，招式和倒数写在它旁边；越往下血越厚。')];
+    for (const [name, list] of [['地窖', ROSTER[0]], ['墓穴', ROSTER[1]], ['地狱', ROSTER[2]], ['恶魔层', ELITES], ['Boss', ['ratking', 'lich', 'demon']]]){
+      const h = mk('h4');
+      h.textContent = name;
+      out.push(h);
+      for (const k of list){
+        const F = FOES[k], lines = [];
+        for (const m of F.moves){
+          const M = MOVES[m], mv = mk('span', 'rule-move'), ic = mk('i'), t = mk('span');
+          ic.style.backgroundImage = `var(--da-${M.art})`;
+          t.textContent = `${M.n}（每 ${moveEvery(m)} 步）：${M.d}`;
+          mv.append(ic, t);
+          lines.push(mv);
+        }
+        if (F.boss) lines.push('不打死它，出口打不开；跟着你的怪不敢进来。');
+        out.push(ruleRow(F.art, `${F.n} · 血 ${F.hp}${F.boss ? '' : ' 起'}`, lines));
+      }
+    }
+    return out;
+  }],
+  hz: ['险境', () => [rulesNote('每一段有自己的险境，越往下越凶。'), ...HZ_RULES.map(([art, t, d]) => ruleRow(art, t, [d]))]],
+  relics: ['宝物', () => {
+    const run = G.mode === 'dig' ? G.run : null;
+    const out = [rulesNote('宝物从恶魔、Boss 和篝火边的商人那里来；拿到就一直有效，可以叠着用。')];
+    for (const [id, R] of Object.entries(RELICS)){
+      const n = run ? relicCount(id) : 0;
+      out.push(ruleRow(id, R.n + (R.rare ? ' · 稀有' : '') + (n ? ` · 已有${n > 1 ? ' ×' + n : ''}` : ''), [R.d], n ? 'owned' : ''));
+    }
+    return out;
+  }]
+};
+function digHelp(){
+  const run = G.mode === 'dig' && G.run && !G.over, wrap = mk('div', 'rules'), tabs = mk('div', 'rules-tabs'), pane = mk('div', 'rules-pane');
+  tabs.setAttribute('role', 'tablist');
+  const show = k => {
+    pane.replaceChildren(...RULE_PAGES[k][1]());
+    for (const b of tabs.children) b.setAttribute('aria-pressed', String(b.dataset.k === k));
+    const box = scrim.querySelector('.dialog');
+    if (box) box.scrollTop = 0;
+    savePrefs({digHelpTab: k});
+  };
+  for (const [k, [label]] of Object.entries(RULE_PAGES)){
+    const b = mk('button');
+    b.type = 'button';
+    b.dataset.k = k;
+    b.textContent = label;
+    b.addEventListener('click', () => show(k));
+    tabs.appendChild(b);
+  }
+  wrap.append(tabs, pane);
+  show(RULE_PAGES[prefs.digHelpTab] ? prefs.digHelpTab : 'play');
+  openDialog({kind: 'help', title: `${MODE_NAME} · 规则`, extra: wrap, actions: [{label: run ? '接着往下' : '知道了', primary: true, run: closeDialog}]});
+}
+
 /* ---------- 主菜单 ---------- */
 const homeEl = $('home');
 function homeItem(cls, title, sub, run){
@@ -3188,6 +6393,14 @@ function showHome(){
   const lvText = lv > FINAL ? `第 ${lv} 关 · 无尽模式` : `第 ${lv} 关`;
   list.appendChild(homeItem(tone('normal'), '闯关', going ? `${lvText} · 打到一半` : lvText,
     () => (G.mode === 'normal' && !G.won ? hideHome() : backToLevels())));
+  // 深渊
+  const ds = G.mode === 'dig' ? null : digLoad();
+  const digHere = G.mode === 'dig' && G.run && !G.over;
+  const digFloor = digHere ? G.run.floor : ds && ds.v === 4 && ds.run ? ds.run.floor : 0;
+  const best = prefs.digBest || 0;
+  list.appendChild(homeItem(tone('dig') + ' hell-item', MODE_NAME, digFloor ? `困在第 ${digFloor} 层 · ${floorName(digFloor)}`
+    : best ? `最深到过第 ${best} 层${prefs.digWins ? ` · 打穿过 ${prefs.digWins} 次` : ''}` : '一层层往下，从地窖一直坠进地狱',
+    () => (digHere ? hideHome() : digEnter())));
   // 每日挑战和排行榜
   if (BOARD.url){
     const today = beijingDay(), spec = dailySpec(today);
@@ -3229,7 +6442,8 @@ function showHome(){
 function hideHome(){
   homeEl.hidden = true;
   if (G.won) return;
-  if (G.over) showLose();
+  if (G.over && G.mode === 'dig') digDeadDialog();
+  else if (G.over) showLose();
   else startClock();
 }
 
@@ -3294,7 +6508,7 @@ function boardPose(t){
 
 function applyTilt(){
   for (const t of G.tiles){
-    if (t.status !== 'board' || !t.el) continue;
+    if (t.status !== 'board' || !t.el || G.anim) continue;
     const p = boardPose(t);
     t.el.style.transform = `translate(${p.x.toFixed(1)}px,${p.y.toFixed(1)}px) scale(${p.s.toFixed(3)})`;
   }
@@ -3443,6 +6657,13 @@ function saveGame(){
   clearTimeout(saveTimer);
   saveTimer = 0;
   if (G.mode === 'trial') return;
+  if (G.mode === 'dig'){
+    try {
+      if (!G.run || G.over) localStorage.removeItem(DIG_KEY);
+      else if (!G.zooming && !G.pending) localStorage.setItem(DIG_KEY, JSON.stringify(digSerialize()));
+    } catch (e) {}
+    return;
+  }
   try {
     const key = saveKey(G.mode);
     if (G.won || !G.tiles.length) localStorage.removeItem(key);
@@ -3556,7 +6777,7 @@ const iconCache = {};
 const iconsFor = id => iconCache[id] || (iconCache[id] = ICONS.map((ic, i) => (SKINS[id].draw ? SKINS[id].draw(ic.m, i) : '')));
 let skin = 'knit';
 
-function applySkin(id){
+function applySkin(id, temp){
   if (!SKINS[id]) id = 'knit';
   skin = id;
   document.documentElement.dataset.skin = id;
@@ -3564,7 +6785,8 @@ function applySkin(id){
   bodyStyle.backgroundPosition = '';
   bodyStyle.backgroundRepeat = '';
   SKINS[id].paint();
-  savePrefs({skin: id});
+  digArt();
+  if (!temp) savePrefs({skin: id});
 }
 
 // 换背景音乐：点一首马上换，声音关着的话顺手打开
@@ -3599,6 +6821,7 @@ function showMusic(after){
 }
 
 function showSkins(){
+  if (G.mode === 'dig' && G.run) return toast(`${MODE_NAME}里只有这一种样子`);
   const wrap = document.createElement('div');
   wrap.className = 'skins';
   let lastGroup = '';
@@ -3656,6 +6879,7 @@ function boot(data){
   syncSound();
   const lv = Math.min(Math.max(Number(prefs.level) || 1, 1), 99);
   if (resume(data && data.game)) return;
+  if (prefs.mode === 'dig' && digResume(digLoad())){ showHome(); return; }
   let resumed = false;
   for (const mode of prefs.mode === 'daily' ? ['daily', 'normal'] : ['normal']){
     if (resume(loadGame(mode))){
@@ -3668,10 +6892,11 @@ function boot(data){
 }
 applySkin(prefs.skin);
 try {
-  if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({game: serialize()}));
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({game: G.mode === 'dig' ? null : serialize()}));
 } catch (e) {}
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(boot); else boot((hot && hot.data) || {});
+if (['localhost', '127.0.0.1'].includes(location.hostname)) window.__m = {startLevel, buildLevel, archOf, ARCHES, newSeed, startLab, LAB_MODES, onTile, render, digStart, digJump, digBuild, digEnterFloor, digDive, digGain, digOverflow, plan, makeLayout, makeTiles, floorCfg, digExits, diveAt, SEQ, Sound, FOES, MOVES, newFoe, foeAct, hitFoe, darken, fogCloud, lavaAdvance, lavaFor, badgeCheck, hazardsFor, kindOf, mountTiles, bossRefill, get D(){ return D; }, get G(){ return G; }};
 })();
 </script>
 
